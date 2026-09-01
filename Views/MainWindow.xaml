@@ -60,8 +60,8 @@
                     </StackPanel>
                     <Button Content="⏻" Click="SignOutButton_Click" Margin="16,2,0,0"
                             Width="36" Height="36" Padding="0" FontSize="20"
-                            Background="Transparent" Foreground="{StaticResource MutedBrush}"
-                            ToolTip="Sign out"/>
+                            Background="#0F4C5C" Foreground="White" BorderThickness="0"
+                            Cursor="Hand" ToolTip="Sign out"/>
                 </StackPanel>
             </Grid>
         </Grid>

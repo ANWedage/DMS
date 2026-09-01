@@ -69,6 +69,46 @@ namespace DMS.Services
                 : null;
         }
 
+        public AdminUser? LoginAdmin(string username, string password)
+        {
+            var normalizedUsername = SecurityValidator.NormalizeUsername(username);
+            var admin = _context.Admins.Find(a => a.Username == normalizedUsername).FirstOrDefault();
+            if (admin is null) return null;
+
+            return PasswordHasher.Verify(password ?? string.Empty, admin.PasswordHash, admin.PasswordSalt)
+                ? admin
+                : null;
+        }
+
+        public User GetUserById(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new InvalidOperationException("User session is missing.");
+
+            var user = _context.Users.Find(u => u.Id == userId).FirstOrDefault();
+            if (user == null)
+                throw new InvalidOperationException("This user account could not be found.");
+
+            return user;
+        }
+
+        public List<User> GetAllUsers()
+        {
+            var users = _context.Users.Find(_ => true).ToList();
+            return users
+                .OrderBy(u => string.IsNullOrWhiteSpace(u.Username) ? u.Email : u.Username)
+                .ToList();
+        }
+
+        public bool CanAccessUser(string targetUserId)
+        {
+            var activeUserId = AppSession.CurrentUserId;
+            if (string.IsNullOrWhiteSpace(activeUserId) || string.IsNullOrWhiteSpace(targetUserId))
+                return false;
+
+            return string.Equals(activeUserId, targetUserId, StringComparison.Ordinal);
+        }
+
         public bool EmailExists(string email)
         {
             var normalizedEmail = SecurityValidator.NormalizeEmail(email);

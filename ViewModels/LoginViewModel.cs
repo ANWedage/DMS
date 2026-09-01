@@ -1,4 +1,5 @@
 using System;
+using DMS.Data;
 using DMS.Helpers;
 using DMS.Models;
 using DMS.Services;
@@ -17,6 +18,23 @@ namespace DMS.ViewModels
             get => _isRegistering;
             set => SetProperty(ref _isRegistering, value);
         }
+
+        private bool _isAdminLogin;
+        public bool IsAdminLogin
+        {
+            get => _isAdminLogin;
+            set
+            {
+                if (SetProperty(ref _isAdminLogin, value))
+                {
+                    OnPropertyChanged(nameof(LoginRoleLabel));
+                    OnPropertyChanged(nameof(LoginButtonText));
+                }
+            }
+        }
+
+        public string LoginRoleLabel => IsAdminLogin ? "Admin login" : "User login";
+        public string LoginButtonText => IsAdminLogin ? "Sign in as admin" : "Sign in";
 
         private string _username = string.Empty;
         public string Username
@@ -38,6 +56,7 @@ namespace DMS.ViewModels
         public RelayCommand LoginCommand { get; }
         public RelayCommand CreateAccountCommand { get; }
         public RelayCommand BackToLoginCommand { get; }
+        public RelayCommand ToggleRoleCommand { get; }
 
         /// <summary>Raised with the logged-in user when login succeeds.</summary>
         public Action<User>? LoginSucceeded { get; set; }
@@ -53,6 +72,7 @@ namespace DMS.ViewModels
             _userService = userService;
             Register = new RegisterViewModel(userService);
             LoginCommand = new RelayCommand(_ => Login());
+            ToggleRoleCommand = new RelayCommand(_ => ToggleRole());
             CreateAccountCommand = new RelayCommand(_ =>
             {
                 IsRegistering = true;
@@ -70,6 +90,16 @@ namespace DMS.ViewModels
             });
         }
 
+        public void ToggleRole()
+        {
+            IsAdminLogin = !IsAdminLogin;
+            ErrorMessage = string.Empty;
+            Username = string.Empty;
+            Password = string.Empty;
+            OnPropertyChanged(nameof(LoginRoleLabel));
+            OnPropertyChanged(nameof(LoginButtonText));
+        }
+
         private void Login()
         {
             ErrorMessage = string.Empty;
@@ -78,6 +108,36 @@ namespace DMS.ViewModels
             if (string.IsNullOrWhiteSpace(normalizedUsername) || string.IsNullOrWhiteSpace(Password))
             {
                 ErrorMessage = "Enter your username and password.";
+                return;
+            }
+
+            if (IsAdminLogin)
+            {
+                AdminUser? admin;
+                try
+                {
+                    admin = _userService.LoginAdmin(normalizedUsername, Password);
+                }
+                catch (Exception)
+                {
+                    ErrorMessage = "We could not connect to the admin service. Check the database connection and try again.";
+                    return;
+                }
+
+                if (admin is null)
+                {
+                    ErrorMessage = "Invalid admin credentials.";
+                    return;
+                }
+
+                AppSession.SetAdmin(admin.Name, admin.Username);
+                LoginSucceeded?.Invoke(new User
+                {
+                    Id = admin.Id,
+                    Email = $"{admin.Username}@dms.local",
+                    ContactNumber = "0000000000",
+                    Username = admin.Username
+                });
                 return;
             }
 
@@ -104,6 +164,7 @@ namespace DMS.ViewModels
                 return;
             }
 
+            AppSession.SetCurrentUser(user);
             LoginSucceeded?.Invoke(user);
         }
     }

@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using DMS.Helpers;
 using DMS.Models;
 using DMS.Services;
 using DMS.ViewModels;
@@ -47,6 +48,25 @@ namespace DMS.Views
             Keyboard.ClearFocus();
         }
 
+        private void ToggleRoleButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.ToggleRole();
+
+            UsernameBox.Clear();
+            PasswordBox.Clear();
+            _viewModel.Username = string.Empty;
+            _viewModel.Password = string.Empty;
+
+            if (_viewModel.IsAdminLogin)
+            {
+                UsernameBox.Focus();
+            }
+            else
+            {
+                UsernameBox.Focus();
+            }
+        }
+
         private void OnRegistrationFinished()
         {
             _viewModel.IsRegistering = false;
@@ -60,6 +80,14 @@ namespace DMS.Views
 
         private void OnLoginSucceeded(User user)
         {
+            if (AppSession.IsAdmin)
+            {
+                var adminWindow = new AdminWindow();
+                adminWindow.Show();
+                Close();
+                return;
+            }
+
             var mainWindow = new MainWindow(user, _userService);
             mainWindow.Show();
             Close();

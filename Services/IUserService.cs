@@ -15,6 +15,18 @@ namespace DMS.Services
         /// <summary>Validates username + password. Returns the user on success, null otherwise.</summary>
         User? Login(string username, string password);
 
+        /// <summary>Returns the configured admin account matching the supplied username, or null.</summary>
+        AdminUser? LoginAdmin(string username, string password);
+
+        /// <summary>Loads a user profile by ID so a session can only ever show its own account.</summary>
+        User GetUserById(string userId);
+
+        /// <summary>Returns all registered users so administrators can review the developer list.</summary>
+        List<User> GetAllUsers();
+
+        /// <summary>Returns true only when the active session belongs to the target user.</summary>
+        bool CanAccessUser(string targetUserId);
+
         bool EmailExists(string email);
         bool UsernameExists(string username);
     }

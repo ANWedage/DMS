@@ -1,4 +1,5 @@
 using System.Windows;
+using DMS.Helpers;
 using DMS.Models;
 using DMS.Services;
 using DMS.ViewModels;
@@ -15,7 +16,12 @@ namespace DMS.Views
             InitializeComponent();
 
             _userService = userService;
-            _viewModel = new MainViewModel(currentUser);
+
+            if (!userService.CanAccessUser(currentUser.Id))
+                throw new InvalidOperationException("You do not have access to this workspace.");
+
+            var safeUser = userService.GetUserById(AppSession.CurrentUserId ?? currentUser.Id);
+            _viewModel = new MainViewModel(safeUser);
             DataContext = _viewModel;
             _viewModel.LogoutRequested = OnLogoutRequested;
         }
@@ -34,6 +40,7 @@ namespace DMS.Views
 
         private void OnLogoutRequested()
         {
+            AppSession.Clear();
             var loginWindow = new LoginWindow(_userService);
             loginWindow.Show();
             Close();

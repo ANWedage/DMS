@@ -26,6 +26,13 @@
             </StackPanel>
         </Border>
 
+        <Button Grid.Column="1" Width="38" Height="38" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Margin="0,0,20,20" ToolTip="Switch login mode" Click="ToggleRoleButton_Click"
+                Background="{StaticResource TealBrush}" Foreground="White" BorderThickness="0"
+                Padding="0" FontSize="18" Cursor="Hand">
+            <TextBlock Text="👤" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </Button>
+
         <Grid Grid.Column="1" Margin="58,44,58,42">
             <Grid.Style>
                 <Style TargetType="Grid">
@@ -56,7 +63,7 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Text="Welcome back" Style="{StaticResource HeadingStyle}"/>
-            <TextBlock Grid.Row="2" Text="Sign in to your workspace" Style="{StaticResource MutedStyle}"/>
+            <TextBlock Grid.Row="2" Text="{Binding LoginRoleLabel}" Style="{StaticResource MutedStyle}"/>
 
             <TextBlock Grid.Row="4" Text="Username" Style="{StaticResource LabelStyle}"/>
             <TextBox Grid.Row="5" x:Name="UsernameBox" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
@@ -66,10 +73,11 @@
             <PasswordBox Grid.Row="8" x:Name="PasswordBox" ToolTip="Enter your password"/>
 
             <TextBlock Grid.Row="10" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorStyle}"/>
-            <Button Grid.Row="12" Content="Sign in" Command="{Binding LoginCommand}" Height="46" IsDefault="True"/>
+            <Button Grid.Row="12" Content="{Binding LoginButtonText}" Command="{Binding LoginCommand}" Height="46" IsDefault="True"/>
 
             <TextBlock Grid.Row="14" HorizontalAlignment="Center" Foreground="{StaticResource MutedBrush}">
-                New to DMS? <Hyperlink Command="{Binding CreateAccountCommand}" Style="{StaticResource LinkStyle}">Create an account</Hyperlink>
+                <Run Text="New to DMS?"/>
+                <Hyperlink Command="{Binding CreateAccountCommand}" Style="{StaticResource LinkStyle}">Create an account</Hyperlink>
             </TextBlock>
         </Grid>
 
