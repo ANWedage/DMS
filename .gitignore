@@ -1,2 +1,17 @@
 .env
 .env.*
+
+# Visual Studio / .NET build output
+bin/
+obj/
+.vs/
+.vscode/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test results
+TestResults/
