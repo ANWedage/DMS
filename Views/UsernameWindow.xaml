@@ -1,0 +1,35 @@
+<Window x:Class="DMS.Views.UsernameWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DMS | Choose a username"
+        Icon="/Assets/dms-logo.png"
+        Height="370" Width="520"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        WindowStyle="ToolWindow">
+    <Grid Margin="42,34">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="One last detail" Style="{StaticResource HeadingStyle}" FontSize="25"/>
+        <TextBlock Grid.Row="2" Text="Choose the name your teammates will see in DMS."
+                   Style="{StaticResource MutedStyle}"/>
+
+        <TextBlock Grid.Row="4" Text="Username" Style="{StaticResource LabelStyle}"/>
+        <TextBox Grid.Row="5" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                 ToolTip="At least 3 characters"/>
+
+        <TextBlock Grid.Row="6" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorStyle}"/>
+
+        <Button Grid.Row="8" Content="Continue" Command="{Binding ConfirmCommand}" Height="44" IsDefault="True"/>
+    </Grid>
+</Window>
