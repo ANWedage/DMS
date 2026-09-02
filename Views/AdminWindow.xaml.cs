@@ -21,12 +21,12 @@ namespace DMS.Views
 
         private void ShowDashboard()
         {
-            MainContentFrame.Navigate(new DashboardPage());
+            MainContentFrame.Navigate(new DashboardPage(_userService));
         }
 
         private void DashboardButton_Click(object sender, RoutedEventArgs e)
         {
-            MainContentFrame.Navigate(new DashboardPage());
+            MainContentFrame.Navigate(new DashboardPage(_userService));
         }
 
         private void AllDevelopersButton_Click(object sender, RoutedEventArgs e)

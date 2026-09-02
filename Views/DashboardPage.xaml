@@ -11,21 +11,7 @@
                 <Border Width="180" Height="100" Background="#0F4C5C" CornerRadius="12" Margin="0,0,20,20">
                     <StackPanel Margin="18">
                         <TextBlock Text="Active users" Foreground="White" FontSize="13" Opacity="0.85"/>
-                        <TextBlock Text="128" Foreground="White" FontSize="28" FontWeight="Bold" Margin="0,10,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Width="180" Height="100" Background="#1B6B7A" CornerRadius="12" Margin="0,0,20,20">
-                    <StackPanel Margin="18">
-                        <TextBlock Text="Open tasks" Foreground="White" FontSize="13" Opacity="0.85"/>
-                        <TextBlock Text="42" Foreground="White" FontSize="28" FontWeight="Bold" Margin="0,10,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Width="180" Height="100" Background="#2A8A8D" CornerRadius="12" Margin="0,0,20,20">
-                    <StackPanel Margin="18">
-                        <TextBlock Text="System health" Foreground="White" FontSize="13" Opacity="0.85"/>
-                        <TextBlock Text="98%" Foreground="White" FontSize="28" FontWeight="Bold" Margin="0,10,0,0"/>
+                        <TextBlock x:Name="ActiveUsersCountText" Text="Loading..." Foreground="White" FontSize="28" FontWeight="Bold" Margin="0,10,0,0"/>
                     </StackPanel>
                 </Border>
             </WrapPanel>

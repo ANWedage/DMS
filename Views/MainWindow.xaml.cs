@@ -24,6 +24,32 @@ namespace DMS.Views
             _viewModel = new MainViewModel(safeUser);
             DataContext = _viewModel;
             _viewModel.LogoutRequested = OnLogoutRequested;
+            ShowDashboard();
+        }
+
+        private void ShowDashboard()
+        {
+            MainContentFrame.Navigate(new UserSectionPage("Dashboard"));
+        }
+
+        private void DashboardButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowDashboard();
+        }
+
+        private void AttendanceButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentFrame.Navigate(new UserSectionPage("Attendance"));
+        }
+
+        private void MyTasksButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentFrame.Navigate(new UserSectionPage("My Tasks"));
+        }
+
+        private void NotificationsButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentFrame.Navigate(new UserSectionPage("Notifications"));
         }
 
         private void SignOutButton_Click(object sender, RoutedEventArgs e)

@@ -58,10 +58,29 @@ namespace DMS.Services
             _context.Users.UpdateOne(filter, update);
         }
 
+        public User? GetUserByUsername(string username)
+        {
+            var normalizedUsername = SecurityValidator.NormalizeUsername(username);
+            return _context.Users.Find(u => u.Username == normalizedUsername).FirstOrDefault();
+        }
+
+        public bool SetUserStatus(string userId, bool isActive, string? adminName = null)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return false;
+
+            var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+            var update = Builders<User>.Update
+                .Set(u => u.IsActive, isActive)
+                .Set(u => u.DeactivatedByAdminName, isActive ? null : adminName);
+            var result = _context.Users.UpdateOne(filter, update);
+            return result.ModifiedCount > 0;
+        }
+
         public User? Login(string username, string password)
         {
             var normalizedUsername = SecurityValidator.NormalizeUsername(username);
-            var user = _context.Users.Find(u => u.Username == normalizedUsername).FirstOrDefault();
+            var user = _context.Users.Find(u => u.Username == normalizedUsername && u.IsActive).FirstOrDefault();
             if (user is null) return null;
 
             return PasswordHasher.Verify(password ?? string.Empty, user.PasswordHash, user.PasswordSalt)
@@ -98,6 +117,11 @@ namespace DMS.Services
             return users
                 .OrderBy(u => string.IsNullOrWhiteSpace(u.Username) ? u.Email : u.Username)
                 .ToList();
+        }
+
+        public long GetActiveUserCount()
+        {
+            return _context.Users.CountDocuments(u => u.IsActive);
         }
 
         public bool CanAccessUser(string targetUserId)

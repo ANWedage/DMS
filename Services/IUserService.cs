@@ -12,6 +12,12 @@ namespace DMS.Services
         /// <exception cref="InvalidOperationException">Thrown if the username is already taken.</exception>
         void SetUsername(string userId, string username);
 
+        /// <summary>Looks up a user by username for validation and status checks.</summary>
+        User? GetUserByUsername(string username);
+
+        /// <summary>Updates the active/deactivated state of a user account.</summary>
+        bool SetUserStatus(string userId, bool isActive, string? adminName = null);
+
         /// <summary>Validates username + password. Returns the user on success, null otherwise.</summary>
         User? Login(string username, string password);
 
@@ -23,6 +29,9 @@ namespace DMS.Services
 
         /// <summary>Returns all registered users so administrators can review the developer list.</summary>
         List<User> GetAllUsers();
+
+        /// <summary>Returns the number of currently active user accounts.</summary>
+        long GetActiveUserCount();
 
         /// <summary>Returns true only when the active session belongs to the target user.</summary>
         bool CanAccessUser(string targetUserId);

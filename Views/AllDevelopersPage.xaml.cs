@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using DMS.Helpers;
 using DMS.Models;
 using DMS.Services;
 
@@ -29,6 +30,7 @@ namespace DMS.Views
                     .OrderBy(u => string.IsNullOrWhiteSpace(u.Username) ? u.Email : u.Username)
                     .ToList();
 
+                UpdateDeactivatedByColumnVisibility();
                 ApplyFilter();
             }
             catch (Exception ex)
@@ -49,6 +51,59 @@ namespace DMS.Views
             SearchTextBox.Focus();
         }
 
+        private void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is not ComboBox comboBox || comboBox.Tag is not string userId)
+                return;
+
+            var selectedStatus = comboBox.SelectedItem as string;
+            if (string.IsNullOrWhiteSpace(selectedStatus))
+                return;
+
+            var user = _allUsers.FirstOrDefault(u => u.Id == userId);
+            if (user is null)
+                return;
+
+            var newIsActive = string.Equals(selectedStatus, "Active", StringComparison.OrdinalIgnoreCase);
+            if (newIsActive == user.IsActive)
+                return;
+
+            var result = MessageBox.Show(
+                $"Are you sure you want to change {user.Username ?? user.Email} to {selectedStatus}?",
+                "Confirm developer status change",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                comboBox.SelectedValue = user.IsActive ? "Active" : "Inactive";
+                return;
+            }
+
+            try
+            {
+                var updated = _userService.SetUserStatus(userId, newIsActive, AppSession.CurrentDisplayName);
+                if (!updated)
+                {
+                    MessageBox.Show("Unable to update the developer status.", "Developer status", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    comboBox.SelectedValue = user.IsActive ? "Active" : "Inactive";
+                    return;
+                }
+
+                user.IsActive = newIsActive;
+                user.DeactivatedByAdminName = newIsActive ? null : AppSession.CurrentDisplayName;
+                UpdateDeactivatedByColumnVisibility();
+                ApplyFilter();
+                DeveloperListView.Items.Refresh();
+                MessageBox.Show($"Developer account status changed to {user.Status}.", "Developer status", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to update the developer status: {ex.Message}", "Developer status", MessageBoxButton.OK, MessageBoxImage.Error);
+                comboBox.SelectedValue = user.IsActive ? "Active" : "Inactive";
+            }
+        }
+
         private void ApplyFilter()
         {
             var searchText = SearchTextBox?.Text ?? string.Empty;
@@ -61,6 +116,22 @@ namespace DMS.Views
                 .ToList();
 
             DeveloperListView.ItemsSource = filteredUsers;
+        }
+
+        private void UpdateDeactivatedByColumnVisibility()
+        {
+            var shouldShowColumn = _allUsers.Any(user => !user.IsActive);
+            var columnIsVisible = DeveloperGridView.Columns.Contains(DeactivatedByColumn);
+
+            if (shouldShowColumn)
+            {
+                if (columnIsVisible)
+                    DeveloperGridView.Columns.Remove(DeactivatedByColumn);
+
+                DeveloperGridView.Columns.Add(DeactivatedByColumn);
+            }
+            else if (columnIsVisible)
+                DeveloperGridView.Columns.Remove(DeactivatedByColumn);
         }
     }
 }

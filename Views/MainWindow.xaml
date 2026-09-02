@@ -25,12 +25,20 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Text="DMS" Foreground="White" FontSize="26" FontWeight="Bold"/>
-                <Border Grid.Row="2" Background="#2B8585" CornerRadius="5" Padding="12,10">
-                    <StackPanel Orientation="Horizontal">
-                        <Ellipse Width="8" Height="8" Fill="{StaticResource CoralBrush}" Margin="0,0,9,0"/>
-                        <TextBlock Text="Workspace" Foreground="White" FontWeight="SemiBold"/>
-                    </StackPanel>
-                </Border>
+                <StackPanel Grid.Row="2">
+                    <Button Content="Dashboard" Height="42" Margin="0,0,0,8"
+                        Background="#2B8585" Foreground="White" HorizontalContentAlignment="Left"
+                        Padding="12,0" Click="DashboardButton_Click"/>
+                    <Button Content="Attendance" Height="42" Margin="0,0,0,8"
+                        Background="#2B8585" Foreground="White" HorizontalContentAlignment="Left"
+                        Padding="12,0" Click="AttendanceButton_Click"/>
+                    <Button Content="My Tasks" Height="42" Margin="0,0,0,8"
+                        Background="#2B8585" Foreground="White" HorizontalContentAlignment="Left"
+                        Padding="12,0" Click="MyTasksButton_Click"/>
+                    <Button Content="Notifications" Height="42"
+                        Background="#2B8585" Foreground="White" HorizontalContentAlignment="Left"
+                        Padding="12,0" Click="NotificationsButton_Click"/>
+                </StackPanel>
                 
                 <TextBlock Grid.Row="6" Text="Created By Adeepa Wedage" Foreground="#D7EFEC"/>
             </Grid>
@@ -44,8 +52,6 @@
 
             <Grid Grid.Row="0">
                 <StackPanel>
-                    <TextBlock Text="Workspace overview" Style="{StaticResource HeadingStyle}"/>
-                    
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
                     <StackPanel Orientation="Horizontal">
@@ -64,6 +70,9 @@
                             Cursor="Hand" ToolTip="Sign out"/>
                 </StackPanel>
             </Grid>
+
+                 <Frame x:Name="MainContentFrame" Grid.Row="1" Margin="0,30,0,0"
+                     NavigationUIVisibility="Hidden"/>
         </Grid>
     </Grid>
 </Window>

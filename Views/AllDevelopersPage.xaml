@@ -1,6 +1,7 @@
 <Page x:Class="DMS.Views.AllDevelopersPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
       Title="All Developers">
     <Grid Background="#F5F7F8">
         <Grid Margin="30">
@@ -43,8 +44,20 @@
 
             <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="12">
                 <ListView x:Name="DeveloperListView" ItemsSource="{Binding}" BorderThickness="0" Background="Transparent">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                    <Setter Property="Background" Value="#FAD7D7"/>
+                                    <Setter Property="Foreground" Value="#7A1F1F"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListView.ItemContainerStyle>
                     <ListView.View>
-                        <GridView>
+                        <GridView x:Name="DeveloperGridView">
                             <GridViewColumn Header="Username" Width="180">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
@@ -54,6 +67,45 @@
                             </GridViewColumn>
                             <GridViewColumn Header="Email" DisplayMemberBinding="{Binding Email}" Width="260"/>
                             <GridViewColumn Header="Contact" DisplayMemberBinding="{Binding ContactNumber}" Width="160"/>
+                            <GridViewColumn x:Name="DeactivatedByColumn" Header="Deactivated by" Width="170">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DeactivatedByAdminName}" Foreground="#7A1F1F"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Status" Width="150">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ComboBox Width="120"
+                                                  Height="30"
+                                                  HorizontalAlignment="Left"
+                                                  Tag="{Binding Id}"
+                                                  SelectedValue="{Binding Status, Mode=OneWay}"
+                                                  SelectionChanged="StatusComboBox_SelectionChanged"
+                                                  FontWeight="SemiBold"
+                                                  BorderThickness="1"
+                                                  BorderBrush="#B7D6DD">
+                                            <ComboBox.Style>
+                                                <Style TargetType="ComboBox">
+                                                    <Setter Property="Background" Value="#1FAE67"/>
+                                                    <Setter Property="Foreground" Value="#0F172A"/>
+                                                    <Setter Property="TextElement.Foreground" Value="#0F172A"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                            <Setter Property="Background" Value="#D85A5A"/>
+                                                            <Setter Property="Foreground" Value="#0F172A"/>
+                                                            <Setter Property="TextElement.Foreground" Value="#0F172A"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ComboBox.Style>
+                                            <sys:String>Active</sys:String>
+                                            <sys:String>Inactive</sys:String>
+                                        </ComboBox>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
                         </GridView>
                     </ListView.View>
                 </ListView>
