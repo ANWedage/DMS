@@ -10,6 +10,7 @@ namespace DMS.Data
     public static class MongoConfig
     {
         private const string LocalDevelopmentConnectionString = "mongodb://127.0.0.1:27017/DMS";
+        private const string ReleaseConnectionString = "__DMS_RELEASE_CONNECTION_STRING__";
         private const string EnvFileName = ".env";
 
         public static string GetConnectionString(bool throwIfMissing = false)
@@ -21,10 +22,13 @@ namespace DMS.Data
             if (!string.IsNullOrWhiteSpace(connectionString))
                 return connectionString.Trim();
 
+            if (!string.Equals(ReleaseConnectionString, "__DMS_RELEASE_CONNECTION_STRING__", StringComparison.Ordinal))
+                return ReleaseConnectionString;
+
             if (throwIfMissing)
             {
                 throw new InvalidOperationException(
-                    "DMS_MONGO_CONNECTION_STRING is not configured. Add it to a .env file beside DMS.exe or set it as an environment variable before starting the app.");
+                    "DMS_MONGO_CONNECTION_STRING is not configured. Add it to .env or your environment before starting the app.");
             }
 
             return LocalDevelopmentConnectionString;

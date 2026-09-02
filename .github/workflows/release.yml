@@ -28,22 +28,26 @@ jobs:
           $version = "${{ github.ref_name }}".TrimStart('v')
           "version=$version" >> $env:GITHUB_OUTPUT
 
-      - name: Create release database configuration
-        shell: pwsh
-        env:
-          DMS_MONGO_CONNECTION_STRING: ${{ secrets.DMS_MONGO_CONNECTION_STRING }}
-        run: |
-          if ([string]::IsNullOrWhiteSpace($env:DMS_MONGO_CONNECTION_STRING)) {
-            throw "The DMS_MONGO_CONNECTION_STRING GitHub secret is not configured. Add it in Settings > Secrets and variables > Actions before creating a release."
-          }
-          Set-Content -Path .\.env -Value "DMS_MONGO_CONNECTION_STRING=$env:DMS_MONGO_CONNECTION_STRING" -NoNewline
-
       - name: Embed release version in updater
         shell: pwsh
         run: |
           $path = ".\App.xaml.cs"
           $content = Get-Content $path -Raw
           $content = $content -replace 'private const string CurrentVersion = "[^"]+";', 'private const string CurrentVersion = "${{ steps.version.outputs.version }}";'
+          Set-Content $path $content
+
+      - name: Embed release database configuration
+        shell: pwsh
+        env:
+          DMS_MONGO_CONNECTION_STRING: ${{ secrets.DMS_MONGO_CONNECTION_STRING }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:DMS_MONGO_CONNECTION_STRING)) {
+            throw "The DMS_MONGO_CONNECTION_STRING GitHub secret is not configured."
+          }
+          $path = ".\Data\MongoConfig.cs"
+          $content = Get-Content $path -Raw
+          $connectionStringLiteral = [System.Text.Json.JsonSerializer]::Serialize($env:DMS_MONGO_CONNECTION_STRING)
+          $content = $content.Replace('"__DMS_RELEASE_CONNECTION_STRING__"', $connectionStringLiteral)
           Set-Content $path $content
 
       - name: Publish self-contained Windows application
