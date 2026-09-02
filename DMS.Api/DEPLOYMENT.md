@@ -17,6 +17,8 @@ docker run --rm -p 8080:8080 `
 
 Configure the same two environment variables in the hosting provider's secret settings. Do not place them in the Dockerfile, Git repository, or desktop release ZIP.
 
+The container disables ASP.NET configuration file watching because hosted containers receive configuration through environment variables and do not need live file reloads. This also avoids file-watcher limits on low-cost Linux hosts.
+
 After deployment, confirm `https://<api-host>/health` returns `{"status":"ok"}`. Configure the desktop application with:
 
 ```text

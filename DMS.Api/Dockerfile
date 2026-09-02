@@ -16,6 +16,7 @@ RUN dotnet publish DMS.Api/DMS.Api.csproj -c Release --no-restore -o /app/publis
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:8080
+ENV DOTNET_hostBuilder__reloadConfigOnChange=false
 EXPOSE 8080
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "DMS.Api.dll"]
