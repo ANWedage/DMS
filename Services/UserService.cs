@@ -15,11 +15,12 @@ namespace DMS.Services
             _context = context;
         }
 
-        public User CreateAccount(string email, string contactNumber, string password)
+        public User CreateAccount(string email, string contactNumber, string password, string username)
         {
             var trimmedEmail = SecurityValidator.NormalizeEmail(email);
             var trimmedContactNumber = contactNumber.Trim();
             var trimmedPassword = password ?? string.Empty;
+            var normalizedUsername = SecurityValidator.NormalizeUsername(username);
 
             if (!SecurityValidator.IsValidEmail(trimmedEmail))
                 throw new InvalidOperationException("Enter a valid email address.");
@@ -27,8 +28,14 @@ namespace DMS.Services
             if (!SecurityValidator.IsStrongPassword(trimmedPassword))
                 throw new InvalidOperationException("Password must be at least 8 characters and include uppercase, lowercase, a number, and a symbol.");
 
+            if (!SecurityValidator.IsValidUsername(normalizedUsername))
+                throw new InvalidOperationException("Username must be 3-20 characters, letters/numbers/underscore only, and contain no spaces.");
+
             if (EmailExists(trimmedEmail))
                 throw new InvalidOperationException("An account with this email already exists.");
+
+            if (UsernameExists(normalizedUsername))
+                throw new InvalidOperationException("That username is already taken.");
 
             var (hash, salt) = PasswordHasher.HashPassword(trimmedPassword);
 
@@ -38,7 +45,7 @@ namespace DMS.Services
                 ContactNumber = trimmedContactNumber,
                 PasswordHash = hash,
                 PasswordSalt = salt,
-                Username = null
+                Username = normalizedUsername
             };
 
             _context.Users.InsertOne(user);

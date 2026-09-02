@@ -80,11 +80,15 @@ namespace DMS.ViewModels
 
             try
             {
-                User newUser = _userService.CreateAccount(email, contactNumber, Password);
-
                 // Immediately prompt for a username, per the required first-sprint flow.
-                var usernameWindow = new UsernameWindow(new UsernameViewModel(_userService, newUser.Id));
+                var usernameViewModel = new UsernameViewModel(_userService);
+                var usernameWindow = new UsernameWindow(usernameViewModel);
                 usernameWindow.ShowDialog();
+
+                if (string.IsNullOrWhiteSpace(usernameViewModel.ConfirmedUsername))
+                    return;
+
+                _userService.CreateAccount(email, contactNumber, Password, usernameViewModel.ConfirmedUsername);
 
                 CloseAction?.Invoke();
             }

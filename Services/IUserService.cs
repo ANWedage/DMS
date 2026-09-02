@@ -6,7 +6,7 @@ namespace DMS.Services
     {
         /// <summary>Creates an account with email, contact number, and password. Username is not set yet.</summary>
         /// <exception cref="InvalidOperationException">Thrown if the email is already registered.</exception>
-        User CreateAccount(string email, string contactNumber, string password);
+        User CreateAccount(string email, string contactNumber, string password, string username);
 
         /// <summary>Sets the username for a freshly created account (post-signup popup step).</summary>
         /// <exception cref="InvalidOperationException">Thrown if the username is already taken.</exception>

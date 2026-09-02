@@ -7,8 +7,6 @@ namespace DMS.ViewModels
     public class UsernameViewModel : ViewModelBase
     {
         private readonly IUserService _userService;
-        private readonly string _userId;
-
         private string _username = string.Empty;
         public string Username
         {
@@ -26,11 +24,11 @@ namespace DMS.ViewModels
         public RelayCommand ConfirmCommand { get; }
 
         public Action? CloseAction { get; set; }
+        public string? ConfirmedUsername { get; private set; }
 
-        public UsernameViewModel(IUserService userService, string userId)
+        public UsernameViewModel(IUserService userService)
         {
             _userService = userService;
-            _userId = userId;
             ConfirmCommand = new RelayCommand(_ => Confirm());
         }
 
@@ -47,7 +45,13 @@ namespace DMS.ViewModels
 
             try
             {
-                _userService.SetUsername(_userId, normalizedUsername);
+                if (_userService.UsernameExists(normalizedUsername))
+                {
+                    ErrorMessage = "That username is already taken.";
+                    return;
+                }
+
+                ConfirmedUsername = normalizedUsername;
                 CloseAction?.Invoke();
             }
             catch (InvalidOperationException ex)

@@ -45,11 +45,14 @@ var app = builder.Build();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
+app.MapGet("/api/auth/username-exists", (string username, IUserService users) =>
+    Results.Ok(users.UsernameExists(username)));
+
 app.MapPost("/api/auth/register", (RegisterRequest request, IUserService users, JwtTokenService tokens) =>
 {
     try
     {
-        var user = users.CreateAccount(request.Email, request.ContactNumber, request.Password);
+        var user = users.CreateAccount(request.Email, request.ContactNumber, request.Password, request.Username);
         return Results.Ok(new AuthResponse(tokens.CreateUserToken(user), user.Id, user.Username, "User"));
     }
     catch (InvalidOperationException ex)

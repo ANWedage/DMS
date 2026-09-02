@@ -24,9 +24,9 @@ public sealed class ApiUserService : IUserService, IDisposable
         _httpClient = new HttpClient { BaseAddress = new Uri(configuredUrl.TrimEnd('/') + "/") };
     }
 
-    public User CreateAccount(string email, string contactNumber, string password)
+    public User CreateAccount(string email, string contactNumber, string password, string username)
     {
-        var response = Send(HttpMethod.Post, "api/auth/register", new { email, contactNumber, password });
+        var response = Send(HttpMethod.Post, "api/auth/register", new { email, contactNumber, password, username });
         var auth = Read<AuthResponse>(response);
         AppSession.SetAccessToken(auth.Token);
         var user = new User { Id = auth.UserId, Email = email, ContactNumber = contactNumber, Username = auth.Username };
@@ -121,7 +121,11 @@ public sealed class ApiUserService : IUserService, IDisposable
 
     public bool EmailExists(string email) => throw new NotSupportedException("Email checks are performed by the API during registration.");
 
-    public bool UsernameExists(string username) => throw new NotSupportedException("Username checks are performed by the API during username setup.");
+    public bool UsernameExists(string username)
+    {
+        var encodedUsername = Uri.EscapeDataString(SecurityValidator.NormalizeUsername(username));
+        return Read<bool>(Send(HttpMethod.Get, $"api/auth/username-exists?username={encodedUsername}"));
+    }
 
     private HttpResponseMessage Send(HttpMethod method, string path, object? body = null, bool allowErrorResponse = false)
     {

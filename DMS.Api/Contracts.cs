@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace DMS.Api;
 
-public sealed record RegisterRequest(string Email, string ContactNumber, string Password);
+public sealed record RegisterRequest(string Email, string ContactNumber, string Password, string Username);
 public sealed record LoginRequest(string Username, string Password);
 public sealed record SetUsernameRequest(string Username);
 public sealed record AttendanceRequest(string MeetingType, DateTime Date);
