@@ -75,7 +75,7 @@ var authenticated = app.MapGroup("/api").RequireAuthorization();
 
 authenticated.MapGet("/users/me", (ClaimsPrincipal principal, IUserService users) =>
 {
-    var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+    var userId = GetSubject(principal);
     if (principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId))
         return Results.Forbid();
 
@@ -84,7 +84,7 @@ authenticated.MapGet("/users/me", (ClaimsPrincipal principal, IUserService users
 
 authenticated.MapPost("/users/me/username", (ClaimsPrincipal principal, SetUsernameRequest request, IUserService users) =>
 {
-    var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+    var userId = GetSubject(principal);
     if (principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId))
         return Results.Forbid();
 
@@ -101,7 +101,7 @@ authenticated.MapPost("/users/me/username", (ClaimsPrincipal principal, SetUsern
 
 authenticated.MapGet("/attendance", (ClaimsPrincipal principal, DateTime? date, IUserService users) =>
 {
-    var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+    var userId = GetSubject(principal);
     if (principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId))
         return Results.Forbid();
 
@@ -110,7 +110,7 @@ authenticated.MapGet("/attendance", (ClaimsPrincipal principal, DateTime? date, 
 
 authenticated.MapPost("/attendance/present", (ClaimsPrincipal principal, AttendanceRequest request, IUserService users) =>
 {
-    var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+    var userId = GetSubject(principal);
     if (principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId))
         return Results.Forbid();
 
@@ -146,7 +146,7 @@ authenticated.MapPost("/admin/attendance/{attendanceId}/status", (string attenda
     if (!principal.IsInRole("Admin"))
         return Results.Forbid();
 
-    var adminId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+    var adminId = GetSubject(principal);
     var adminName = principal.FindFirst("display_name")?.Value ?? principal.Identity?.Name ?? "Admin";
     return users.UpdateAttendanceStatus(attendanceId, request.Status, adminId ?? string.Empty, adminName, request.Note)
         ? Results.NoContent()
@@ -163,7 +163,7 @@ authenticated.MapPut("/admin/meeting-settings", (MeetingSettings settings, Claim
 
     try
     {
-        var adminId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? string.Empty;
+        var adminId = GetSubject(principal) ?? string.Empty;
         var adminName = principal.FindFirst("display_name")?.Value ?? "Admin";
         users.SaveMeetingSettings(settings, adminId, adminName);
         return Results.NoContent();
@@ -175,5 +175,11 @@ authenticated.MapPut("/admin/meeting-settings", (MeetingSettings settings, Claim
 });
 
 app.Run();
+
+static string? GetSubject(ClaimsPrincipal principal)
+{
+    return principal.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+}
 
 public partial class Program;
