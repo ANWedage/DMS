@@ -31,6 +31,8 @@
                         </Grid>
                         <Button Content="Save meeting settings" Click="SaveSettingsButton_Click"
                                 HorizontalAlignment="Left" Margin="0,14,0,0"/>
+                        <TextBlock x:Name="LastSettingsUpdateText" Margin="0,10,0,0"
+                               Foreground="#66727D" TextWrapping="Wrap"/>
                         <TextBlock x:Name="SettingsMessageText" Margin="0,10,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
@@ -39,6 +41,7 @@
                     <TextBlock Text="Attendance date" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <DatePicker x:Name="AttendanceDatePicker" SelectedDateChanged="AttendanceDatePicker_SelectedDateChanged"/>
                     <Button Content="Refresh" Click="RefreshButton_Click" Margin="10,0,0,0"/>
+                    <Button Content="Generate PDF report" Click="GenerateReportButton_Click" Margin="10,0,0,0"/>
                 </StackPanel>
                 <TextBlock x:Name="AttendanceMessageText" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
