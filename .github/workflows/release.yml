@@ -45,6 +45,8 @@ jobs:
             --self-contained true `
             -p:PublishSingleFile=true `
             -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:DebugSymbols=false `
+            -p:DebugType=None `
             -p:Version=${{ steps.version.outputs.version }} `
             -o .\publish\DMS-${{ steps.version.outputs.version }}
 
@@ -52,7 +54,7 @@ jobs:
         shell: pwsh
         run: |
           Compress-Archive `
-            -Path .\publish\DMS-${{ steps.version.outputs.version }}\* `
+            -Path .\publish\DMS-${{ steps.version.outputs.version }}\DMS.exe `
             -DestinationPath .\publish\DMS-${{ steps.version.outputs.version }}.zip `
             -Force
 
