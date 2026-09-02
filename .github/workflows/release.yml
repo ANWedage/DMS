@@ -69,10 +69,31 @@ jobs:
             -DestinationPath .\publish\DMS-${{ steps.version.outputs.version }}.zip `
             -Force
 
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress --yes
+
+      - name: Build Windows installer
+        shell: pwsh
+        run: |
+          $iscc = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            throw "Inno Setup compiler was not found at $iscc"
+          }
+          & $iscc `
+            /DAppVersion=${{ steps.version.outputs.version }} `
+            /DPublishDirectory="$(Resolve-Path .\publish\DMS-${{ steps.version.outputs.version }})" `
+            .\installer\DMS.iss
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup failed with exit code $LASTEXITCODE"
+          }
+
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: DMS ${{ github.ref_name }}
           generate_release_notes: true
-          files: .\publish\DMS-${{ steps.version.outputs.version }}.zip
+          files: |
+            .\publish\DMS-${{ steps.version.outputs.version }}.zip
+            .\publish\DMS-Setup-${{ steps.version.outputs.version }}.exe
