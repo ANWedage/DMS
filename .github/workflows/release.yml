@@ -46,7 +46,7 @@ jobs:
           }
           $path = ".\Data\MongoConfig.cs"
           $content = Get-Content $path -Raw
-          $connectionStringLiteral = [System.Text.Json.JsonSerializer]::Serialize($env:DMS_MONGO_CONNECTION_STRING)
+          $connectionStringLiteral = $env:DMS_MONGO_CONNECTION_STRING | ConvertTo-Json -Compress
           $content = $content.Replace('"__DMS_RELEASE_CONNECTION_STRING__"', $connectionStringLiteral)
           Set-Content $path $content
 
