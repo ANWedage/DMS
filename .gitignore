@@ -1,6 +1,5 @@
 .env
 .env.*
-!.env.example
 
 # Visual Studio / .NET build output
 bin/
