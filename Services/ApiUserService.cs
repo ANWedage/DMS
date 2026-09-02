@@ -59,7 +59,7 @@ public sealed class ApiUserService : IUserService, IDisposable
             return null;
 
         AppSession.SetAccessToken(auth.Token);
-        return GetUserById(auth.UserId);
+        return Read<User>(Send(HttpMethod.Get, "api/users/me"));
     }
 
     public AdminUser? LoginAdmin(string username, string password)
