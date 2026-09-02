@@ -24,9 +24,15 @@
                     <Button Content="All Developers" Height="42" Margin="0,0,0,10" Background="#146A7A" Foreground="White"
                             BorderThickness="0" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="16,0,0,0"
                             Click="AllDevelopersButton_Click"/>
-                    <Button Content="Tasks" Height="42" Background="#146A7A" Foreground="White"
+                        <Button Content="Tasks" Height="42" Margin="0,0,0,10" Background="#146A7A" Foreground="White"
                             BorderThickness="0" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="16,0,0,0"
                             Click="TasksButton_Click"/>
+                        <Button Content="Attendance Tracking" Height="42" Margin="0,0,0,10" Background="#146A7A" Foreground="White"
+                            BorderThickness="0" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="16,0,0,0"
+                            Click="AttendanceTrackingButton_Click"/>
+                        <Button Content="Notifications" Height="42" Background="#146A7A" Foreground="White"
+                            BorderThickness="0" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="16,0,0,0"
+                            Click="NotificationsButton_Click"/>
                 </StackPanel>
             </StackPanel>
         </Border>

@@ -39,6 +39,16 @@ namespace DMS.Views
             MainContentFrame.Navigate(new TasksPage());
         }
 
+        private void AttendanceTrackingButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentFrame.Navigate(new AttendanceTrackingPage(_userService));
+        }
+
+        private void NotificationsButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentFrame.Navigate(new UserSectionPage("Notifications"));
+        }
+
         private void SignOutButton_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show(

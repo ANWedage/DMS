@@ -10,6 +10,7 @@ namespace DMS.Views
     {
         private readonly MainViewModel _viewModel;
         private readonly IUserService _userService;
+        private readonly string _currentUserId;
 
         public MainWindow(User currentUser, IUserService userService)
         {
@@ -21,6 +22,7 @@ namespace DMS.Views
                 throw new InvalidOperationException("You do not have access to this workspace.");
 
             var safeUser = userService.GetUserById(AppSession.CurrentUserId ?? currentUser.Id);
+            _currentUserId = safeUser.Id;
             _viewModel = new MainViewModel(safeUser);
             DataContext = _viewModel;
             _viewModel.LogoutRequested = OnLogoutRequested;
@@ -39,7 +41,7 @@ namespace DMS.Views
 
         private void AttendanceButton_Click(object sender, RoutedEventArgs e)
         {
-            MainContentFrame.Navigate(new UserSectionPage("Attendance"));
+            MainContentFrame.Navigate(new AttendancePage(_userService, _currentUserId));
         }
 
         private void MyTasksButton_Click(object sender, RoutedEventArgs e)

@@ -1,0 +1,60 @@
+<Page x:Class="DMS.Views.AttendancePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Attendance">
+    <Grid Background="#F5F7F8">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="30">
+                <TextBlock Text="Attendance" Style="{StaticResource HeadingStyle}"/>
+                <TextBlock Text="Join each Google Meet and mark your attendance during the meeting window."
+                           Margin="0,8,0,20" Foreground="#66727D" TextWrapping="Wrap"/>
+                <DatePicker x:Name="AttendanceDatePicker" Width="160" HorizontalAlignment="Left"
+                            SelectedDateChanged="AttendanceDatePicker_SelectedDateChanged"/>
+                <TextBlock x:Name="MessageText" Margin="0,12,0,0" Foreground="#B54736" TextWrapping="Wrap"/>
+                <ItemsControl x:Name="AttendanceItems" Margin="0,18,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1"
+                                    Padding="18" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding MeetingType, StringFormat={}{0} Standup}" FontSize="19" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding MeetingTime, StringFormat=Scheduled for {0}}" Margin="0,6,0,0" Foreground="#66727D"/>
+                                        <TextBlock Text="{Binding Status}" Margin="0,10,0,0" FontWeight="SemiBold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#E58A2B"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Present">
+                                                            <Setter Property="Foreground" Value="#1FAE67"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Absent">
+                                                            <Setter Property="Foreground" Value="#D85A5A"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Absent (informed)">
+                                                            <Setter Property="Foreground" Value="#E58A2B"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Join Google Meet" Tag="{Binding MeetingLink}"
+                                            Click="JoinMeetingButton_Click" Margin="12,0,10,0" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="2" Content="Mark Present" Tag="{Binding MeetingType}"
+                                            Click="MarkPresentButton_Click" VerticalAlignment="Center"
+                                            IsEnabled="{Binding CanMarkPresent}"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

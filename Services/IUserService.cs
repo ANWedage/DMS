@@ -33,6 +33,13 @@ namespace DMS.Services
         /// <summary>Returns the number of currently active user accounts.</summary>
         long GetActiveUserCount();
 
+        MeetingSettings GetMeetingSettings();
+        void SaveMeetingSettings(MeetingSettings settings, string adminId, string adminName);
+        List<AttendanceRecord> GetUserAttendance(string userId, DateTime date);
+        List<AttendanceRecord> GetAllAttendance(DateTime date);
+        bool MarkAttendancePresent(string userId, string meetingType, DateTime date);
+        bool UpdateAttendanceStatus(string attendanceId, string status, string adminId, string adminName, string? note);
+
         /// <summary>Returns true only when the active session belongs to the target user.</summary>
         bool CanAccessUser(string targetUserId);
 

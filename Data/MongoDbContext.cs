@@ -15,6 +15,8 @@ namespace DMS.Data
 
         public IMongoCollection<User> Users => _database.GetCollection<User>("Users");
         public IMongoCollection<AdminUser> Admins => _database.GetCollection<AdminUser>("Admins");
+        public IMongoCollection<AttendanceRecord> Attendance => _database.GetCollection<AttendanceRecord>("Attendance");
+        public IMongoCollection<MeetingSettings> MeetingSettings => _database.GetCollection<MeetingSettings>("MeetingSettings");
 
         /// <summary>Creates unique indexes on Email and Username (first run only - safe to call every startup).</summary>
         public void EnsureIndexes()
@@ -33,6 +35,15 @@ namespace DMS.Data
 
             Users.Indexes.CreateMany(new[] { emailIndex, usernameIndex });
             Admins.Indexes.CreateOne(adminUsernameIndex);
+
+            var attendanceIndex = new CreateIndexModel<AttendanceRecord>(
+                Builders<AttendanceRecord>.IndexKeys
+                    .Ascending(a => a.UserId)
+                    .Ascending(a => a.MeetingDate)
+                    .Ascending(a => a.MeetingType),
+                new CreateIndexOptions { Unique = true });
+
+            Attendance.Indexes.CreateOne(attendanceIndex);
         }
     }
 }

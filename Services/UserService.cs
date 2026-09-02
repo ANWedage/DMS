@@ -1,4 +1,5 @@
 using MongoDB.Driver;
+using System.Globalization;
 using DMS.Data;
 using DMS.Helpers;
 using DMS.Models;
@@ -122,6 +123,210 @@ namespace DMS.Services
         public long GetActiveUserCount()
         {
             return _context.Users.CountDocuments(u => u.IsActive);
+        }
+
+        public MeetingSettings GetMeetingSettings()
+        {
+            var settings = _context.MeetingSettings.Find(s => s.Id == MeetingSettings.DefaultId).FirstOrDefault();
+            if (settings != null)
+                return settings;
+
+            settings = new MeetingSettings();
+            _context.MeetingSettings.InsertOne(settings);
+            return settings;
+        }
+
+        public void SaveMeetingSettings(MeetingSettings settings, string adminId, string adminName)
+        {
+            if (!TimeSpan.TryParseExact(settings.MorningTime, @"hh\:mm", CultureInfo.InvariantCulture, out _)
+                || !TimeSpan.TryParseExact(settings.EveningTime, @"hh\:mm", CultureInfo.InvariantCulture, out _))
+                throw new InvalidOperationException("Meeting times must use HH:mm format.");
+
+            if (!IsValidMeetingLink(settings.MorningMeetingLink) || !IsValidMeetingLink(settings.EveningMeetingLink))
+                throw new InvalidOperationException("Meeting links must be valid http or https URLs.");
+
+            var update = Builders<MeetingSettings>.Update
+                .Set(s => s.MorningTime, settings.MorningTime)
+                .Set(s => s.EveningTime, settings.EveningTime)
+                .Set(s => s.MorningMeetingLink, settings.MorningMeetingLink?.Trim() ?? string.Empty)
+                .Set(s => s.EveningMeetingLink, settings.EveningMeetingLink?.Trim() ?? string.Empty)
+                .Set(s => s.TimeZoneId, settings.TimeZoneId)
+                .Set(s => s.UpdatedAt, DateTime.UtcNow)
+                .Set(s => s.UpdatedByAdminId, adminId)
+                .Set(s => s.UpdatedByAdminName, adminName);
+
+            _context.MeetingSettings.UpdateOne(
+                s => s.Id == MeetingSettings.DefaultId,
+                update,
+                new UpdateOptions { IsUpsert = true });
+        }
+
+        public List<AttendanceRecord> GetUserAttendance(string userId, DateTime date)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return new List<AttendanceRecord>();
+
+            EnsureDailyAttendance(date);
+            return _context.Attendance.Find(a => a.UserId == userId && a.MeetingDate == FormatDate(date))
+                .ToList()
+                .OrderBy(a => a.MeetingType == MeetingTypes.Morning ? 0 : 1)
+                .ToList();
+        }
+
+        public List<AttendanceRecord> GetAllAttendance(DateTime date)
+        {
+            EnsureDailyAttendance(date);
+            return _context.Attendance.Find(a => a.MeetingDate == FormatDate(date)).ToList();
+        }
+
+        public bool MarkAttendancePresent(string userId, string meetingType, DateTime date)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || !IsValidMeetingType(meetingType))
+                return false;
+
+            EnsureDailyAttendance(date);
+            var settings = GetMeetingSettings();
+            var now = GetApplicationNow(settings);
+            if (date.Date != now.Date || !IsWithinAttendanceWindow(meetingType, settings, now))
+                return false;
+
+            var filter = Builders<AttendanceRecord>.Filter.And(
+                Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, userId),
+                Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingDate, FormatDate(date)),
+                Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType),
+                Builders<AttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
+
+            var update = Builders<AttendanceRecord>.Update
+                .Set(a => a.Status, AttendanceStatuses.Present)
+                .Set(a => a.MarkedAt, DateTime.UtcNow)
+                .Set(a => a.MarkedBy, "User")
+                .Set(a => a.UpdatedAt, DateTime.UtcNow);
+
+            return _context.Attendance.UpdateOne(filter, update).ModifiedCount > 0;
+        }
+
+        public bool UpdateAttendanceStatus(string attendanceId, string status, string adminId, string adminName, string? note)
+        {
+            var validStatuses = new[]
+            {
+                AttendanceStatuses.Present,
+                AttendanceStatuses.Absent,
+                AttendanceStatuses.AbsentInformed
+            };
+            if (string.IsNullOrWhiteSpace(attendanceId) || !validStatuses.Contains(status))
+                return false;
+
+            var update = Builders<AttendanceRecord>.Update
+                .Set(a => a.Status, status)
+                .Set(a => a.MarkedAt, DateTime.UtcNow)
+                .Set(a => a.MarkedBy, "Admin")
+                .Set(a => a.ChangedByAdminId, adminId)
+                .Set(a => a.ChangedByAdminName, adminName)
+                .Set(a => a.AdminNote, string.IsNullOrWhiteSpace(note) ? null : note.Trim())
+                .Set(a => a.UpdatedAt, DateTime.UtcNow);
+
+            return _context.Attendance.UpdateOne(
+                Builders<AttendanceRecord>.Filter.Eq(a => a.Id, attendanceId), update).ModifiedCount > 0;
+        }
+
+        private void EnsureDailyAttendance(DateTime date)
+        {
+            var dateText = FormatDate(date);
+            var settings = GetMeetingSettings();
+            var now = GetApplicationNow(settings);
+            var activeUsers = _context.Users.Find(u => u.IsActive).ToList();
+
+            foreach (var user in activeUsers)
+            {
+                foreach (var meetingType in new[] { MeetingTypes.Morning, MeetingTypes.Evening })
+                {
+                    var filter = Builders<AttendanceRecord>.Filter.And(
+                        Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, user.Id),
+                        Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
+                        Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType));
+
+                    var record = new AttendanceRecord
+                    {
+                        UserId = user.Id,
+                        MeetingDate = dateText,
+                        MeetingType = meetingType
+                    };
+                    _context.Attendance.UpdateOne(filter, Builders<AttendanceRecord>.Update
+                        .SetOnInsert(a => a.UserId, record.UserId)
+                        .SetOnInsert(a => a.MeetingDate, record.MeetingDate)
+                        .SetOnInsert(a => a.MeetingType, record.MeetingType)
+                        .SetOnInsert(a => a.Status, record.Status)
+                        .SetOnInsert(a => a.CreatedAt, record.CreatedAt)
+                        .SetOnInsert(a => a.UpdatedAt, record.UpdatedAt),
+                        new UpdateOptions { IsUpsert = true });
+                }
+            }
+
+            if (date.Date != now.Date)
+                return;
+
+            foreach (var meetingType in new[] { MeetingTypes.Morning, MeetingTypes.Evening })
+            {
+                if (!IsWindowClosed(meetingType, settings, now))
+                    continue;
+
+                var filter = Builders<AttendanceRecord>.Filter.And(
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType),
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
+                _context.Attendance.UpdateMany(filter, Builders<AttendanceRecord>.Update
+                    .Set(a => a.Status, AttendanceStatuses.Absent)
+                    .Set(a => a.MarkedBy, "System")
+                    .Set(a => a.UpdatedAt, DateTime.UtcNow));
+            }
+        }
+
+        private static string FormatDate(DateTime date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+        private static bool IsValidMeetingType(string meetingType) =>
+            meetingType == MeetingTypes.Morning || meetingType == MeetingTypes.Evening;
+
+        private static bool IsValidMeetingLink(string? link)
+        {
+            return string.IsNullOrWhiteSpace(link)
+                || Uri.TryCreate(link.Trim(), UriKind.Absolute, out var uri)
+                && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+        }
+
+        private static DateTime GetApplicationNow(MeetingSettings settings)
+        {
+            try
+            {
+                var timeZone = TimeZoneInfo.FindSystemTimeZoneById(settings.TimeZoneId);
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return DateTime.Now;
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return DateTime.Now;
+            }
+        }
+
+        private static bool IsWithinAttendanceWindow(string meetingType, MeetingSettings settings, DateTime now)
+        {
+            var start = GetMeetingStart(meetingType, settings, now.Date);
+            return now >= start && now <= start.AddMinutes(15);
+        }
+
+        private static bool IsWindowClosed(string meetingType, MeetingSettings settings, DateTime now)
+        {
+            return now > GetMeetingStart(meetingType, settings, now.Date).AddMinutes(15);
+        }
+
+        private static DateTime GetMeetingStart(string meetingType, MeetingSettings settings, DateTime date)
+        {
+            var time = meetingType == MeetingTypes.Morning ? settings.MorningTime : settings.EveningTime;
+            if (!TimeSpan.TryParseExact(time, @"hh\:mm", CultureInfo.InvariantCulture, out var parsedTime))
+                parsedTime = meetingType == MeetingTypes.Morning ? new TimeSpan(10, 0, 0) : new TimeSpan(17, 0, 0);
+            return date.Add(parsedTime);
         }
 
         public bool CanAccessUser(string targetUserId)

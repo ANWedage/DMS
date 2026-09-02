@@ -5,16 +5,7 @@
     <Grid Background="#F5F7F8">
         <StackPanel Margin="30">
             <TextBlock Text="Tasks" FontSize="32" FontWeight="Bold" Foreground="#17212B"/>
-            <TextBlock Text="Pending and active work for the team." Margin="0,12,0,0" Foreground="#66727D"/>
-
-            <Border Background="White" CornerRadius="12" Padding="16" Margin="0,24,0,0">
-                <StackPanel>
-                    <TextBlock Text="• Fix onboarding flow" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                    <TextBlock Text="• Review deployment checklist" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                    <TextBlock Text="• Prepare admin reporting summary" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                    <TextBlock Text="• Update system access permissions" FontWeight="SemiBold"/>
-                </StackPanel>
-            </Border>
+            
         </StackPanel>
     </Grid>
 </Page>
