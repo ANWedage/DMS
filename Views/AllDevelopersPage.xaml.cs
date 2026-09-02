@@ -23,6 +23,11 @@ namespace DMS.Views
 
         private async void AllDevelopersPage_Loaded(object sender, RoutedEventArgs e)
         {
+            await ReloadDevelopersAsync();
+        }
+
+        private async Task ReloadDevelopersAsync()
+        {
             try
             {
                 var users = await Task.Run(() => _userService.GetAllUsers());
@@ -51,7 +56,7 @@ namespace DMS.Views
             SearchTextBox.Focus();
         }
 
-        private void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is not ComboBox comboBox || comboBox.Tag is not string userId)
                 return;
@@ -92,9 +97,7 @@ namespace DMS.Views
 
                 user.IsActive = newIsActive;
                 user.DeactivatedByAdminName = newIsActive ? null : AppSession.CurrentDisplayName;
-                UpdateDeactivatedByColumnVisibility();
-                ApplyFilter();
-                DeveloperListView.Items.Refresh();
+                await ReloadDevelopersAsync();
                 MessageBox.Show($"Developer account status changed to {user.Status}.", "Developer status", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -104,7 +107,7 @@ namespace DMS.Views
             }
         }
 
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        private async void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button button || button.Tag is not string userId)
                 return;
@@ -131,9 +134,7 @@ namespace DMS.Views
                     return;
                 }
 
-                _allUsers.Remove(user);
-                UpdateDeactivatedByColumnVisibility();
-                ApplyFilter();
+                await ReloadDevelopersAsync();
                 MessageBox.Show($"Developer account {displayName} was deleted.", "Delete developer", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
