@@ -147,29 +147,6 @@ namespace DMS.ViewModels
                 return;
             }
 
-            User? existingUser;
-            try
-            {
-                existingUser = _userService.GetUserByUsername(normalizedUsername);
-            }
-            catch (Exception)
-            {
-                ErrorMessage = "We could not connect to the account service. Check the database connection and try again.";
-                return;
-            }
-
-            if (existingUser is null)
-            {
-                ErrorMessage = "Invalid username or password.";
-                return;
-            }
-
-            if (!existingUser.IsActive)
-            {
-                ErrorMessage = "This account has been deactivated by the administrator. Please contact support.";
-                return;
-            }
-
             User? user;
             try
             {

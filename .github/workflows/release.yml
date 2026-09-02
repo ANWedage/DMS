@@ -50,11 +50,22 @@ jobs:
             -p:Version=${{ steps.version.outputs.version }} `
             -o .\publish\DMS-${{ steps.version.outputs.version }}
 
+      - name: Configure API endpoint
+        shell: pwsh
+        env:
+          DMS_API_BASE_URL: ${{ secrets.DMS_API_BASE_URL }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:DMS_API_BASE_URL)) {
+            throw "The DMS_API_BASE_URL GitHub secret is not configured."
+          }
+          $releaseDirectory = ".\publish\DMS-${{ steps.version.outputs.version }}"
+          Set-Content -Path "$releaseDirectory\.env" -Value "DMS_API_BASE_URL=$($env:DMS_API_BASE_URL)"
+
       - name: Create release ZIP
         shell: pwsh
         run: |
           Compress-Archive `
-            -Path .\publish\DMS-${{ steps.version.outputs.version }}\DMS.exe `
+            -Path .\publish\DMS-${{ steps.version.outputs.version }}\DMS.exe, .\publish\DMS-${{ steps.version.outputs.version }}\.env `
             -DestinationPath .\publish\DMS-${{ steps.version.outputs.version }}.zip `
             -Force
 

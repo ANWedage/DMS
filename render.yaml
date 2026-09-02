@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: dms-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./DMS.Api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DMS_MONGO_CONNECTION_STRING
+        sync: false
+      - key: DMS_JWT_SECRET
+        sync: false

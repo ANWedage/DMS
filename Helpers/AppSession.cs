@@ -8,6 +8,7 @@ namespace DMS.Helpers
         public static string? CurrentUsername { get; private set; }
         public static string? CurrentDisplayName { get; private set; }
         public static string CurrentRole { get; private set; } = "User";
+        public static string? AccessToken { get; private set; }
 
         public static bool IsAdmin => string.Equals(CurrentRole, "Admin", StringComparison.OrdinalIgnoreCase);
 
@@ -20,6 +21,14 @@ namespace DMS.Helpers
             CurrentUserId = user.Id;
             CurrentUsername = user.Username ?? user.Email;
             CurrentDisplayName = user.Username ?? user.Email;
+        }
+
+        public static void SetAccessToken(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                throw new ArgumentException("Access token is required.", nameof(token));
+
+            AccessToken = token;
         }
 
         public static void SetAdmin(string name, string username)
@@ -36,6 +45,7 @@ namespace DMS.Helpers
             CurrentUsername = null;
             CurrentDisplayName = null;
             CurrentRole = "User";
+            AccessToken = null;
         }
     }
 }

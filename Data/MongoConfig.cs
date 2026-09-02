@@ -14,9 +14,7 @@ namespace DMS.Data
 
         public static string GetConnectionString(bool throwIfMissing = false)
         {
-            var connectionString = ReadFromEnvFile();
-            if (string.IsNullOrWhiteSpace(connectionString))
-                connectionString = Environment.GetEnvironmentVariable("DMS_MONGO_CONNECTION_STRING");
+            var connectionString = GetEnvironmentValue("DMS_MONGO_CONNECTION_STRING");
 
             if (!string.IsNullOrWhiteSpace(connectionString))
                 return connectionString.Trim();
@@ -32,9 +30,18 @@ namespace DMS.Data
 
         public static string ConnectionString => GetConnectionString();
 
+        public static string GetEnvironmentValue(string key)
+        {
+            var value = ReadFromEnvFile(key);
+            if (string.IsNullOrWhiteSpace(value))
+                value = Environment.GetEnvironmentVariable(key);
+
+            return value?.Trim() ?? string.Empty;
+        }
+
         public const string DatabaseName = "DMS";
 
-        private static string ReadFromEnvFile()
+        private static string ReadFromEnvFile(string key)
         {
             try
             {
@@ -60,10 +67,10 @@ namespace DMS.Data
                         var index = trimmed.IndexOf('=');
                         if (index <= 0) continue;
 
-                        var key = trimmed.Substring(0, index).Trim();
+                        var parsedKey = trimmed.Substring(0, index).Trim();
                         var value = trimmed.Substring(index + 1).Trim();
 
-                        if (string.Equals(key, "DMS_MONGO_CONNECTION_STRING", StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals(parsedKey, key, StringComparison.OrdinalIgnoreCase))
                             return value.Trim('"', '\'');
                     }
                 }

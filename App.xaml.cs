@@ -21,24 +21,33 @@ namespace DMS
         {
             base.OnStartup(e);
 
-            MongoDbContext? context = null;
-            try
+            IUserService userService;
+            var apiBaseUrl = MongoConfig.GetEnvironmentValue("DMS_API_BASE_URL");
+            if (!string.IsNullOrWhiteSpace(apiBaseUrl))
             {
-                context = new MongoDbContext();
-                context.EnsureIndexes();
-                SeedAdminUsers(context);
+                userService = new ApiUserService(apiBaseUrl);
             }
-            catch (Exception ex)
+            else
             {
-                MessageBox.Show(
-                    $"DMS could not reach its database. The app will continue in offline mode, but account actions will be unavailable until the MongoDB connection is restored.\n\nDetails: {ex.Message}",
-                    "Database connection unavailable",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-            }
+                MongoDbContext? context = null;
+                try
+                {
+                    context = new MongoDbContext();
+                    context.EnsureIndexes();
+                    SeedAdminUsers(context);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"DMS could not reach its database. The app will continue in offline mode, but account actions will be unavailable until the MongoDB connection is restored.\n\nDetails: {ex.Message}",
+                        "Database connection unavailable",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
 
-            context ??= new MongoDbContext();
-            IUserService userService = new UserService(context);
+                context ??= new MongoDbContext();
+                userService = new UserService(context);
+            }
 
             var loginWindow = new LoginWindow(userService);
             loginWindow.Show();

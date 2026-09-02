@@ -82,7 +82,7 @@ namespace DMS.Views
         {
             if (AppSession.IsAdmin)
             {
-                var adminWindow = new AdminWindow();
+                var adminWindow = new AdminWindow(_userService);
                 adminWindow.Show();
                 Close();
                 return;
