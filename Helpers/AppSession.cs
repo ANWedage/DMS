@@ -1,4 +1,6 @@
 using DMS.Models;
+using System.IO;
+using System.Text.Json;
 
 namespace DMS.Helpers
 {
@@ -21,6 +23,7 @@ namespace DMS.Helpers
             CurrentUserId = user.Id;
             CurrentUsername = user.Username ?? user.Email;
             CurrentDisplayName = user.Username ?? user.Email;
+            Save();
         }
 
         public static void SetAccessToken(string token)
@@ -29,6 +32,7 @@ namespace DMS.Helpers
                 throw new ArgumentException("Access token is required.", nameof(token));
 
             AccessToken = token;
+            Save();
         }
 
         public static void SetAdmin(string name, string username)
@@ -37,6 +41,22 @@ namespace DMS.Helpers
             CurrentUserId = username;
             CurrentUsername = username;
             CurrentDisplayName = name;
+            Save();
+        }
+
+        public static SessionSnapshot? Load()
+        {
+            try
+            {
+                if (!File.Exists(SessionFilePath))
+                    return null;
+
+                return JsonSerializer.Deserialize<SessionSnapshot>(File.ReadAllText(SessionFilePath));
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public static void Clear()
@@ -46,6 +66,51 @@ namespace DMS.Helpers
             CurrentDisplayName = null;
             CurrentRole = "User";
             AccessToken = null;
+
+            try
+            {
+                if (File.Exists(SessionFilePath))
+                    File.Delete(SessionFilePath);
+            }
+            catch
+            {
+            }
         }
+
+        private static string SessionFilePath => Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "DMS",
+            "session.json");
+
+        private static void Save()
+        {
+            if (string.IsNullOrWhiteSpace(CurrentUserId))
+                return;
+
+            try
+            {
+                var directory = Path.GetDirectoryName(SessionFilePath);
+                if (directory != null)
+                    Directory.CreateDirectory(directory);
+
+                var session = new SessionSnapshot(
+                    CurrentUserId,
+                    CurrentUsername,
+                    CurrentDisplayName,
+                    CurrentRole,
+                    AccessToken);
+                File.WriteAllText(SessionFilePath, JsonSerializer.Serialize(session));
+            }
+            catch
+            {
+            }
+        }
+
+        public sealed record SessionSnapshot(
+            string? UserId,
+            string? Username,
+            string? DisplayName,
+            string Role,
+            string? AccessToken);
     }
 }

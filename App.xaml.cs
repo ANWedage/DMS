@@ -49,8 +49,46 @@ namespace DMS
                 userService = new UserService(context);
             }
 
-            var loginWindow = new LoginWindow(userService);
-            loginWindow.Show();
+            Window startupWindow;
+            var savedSession = AppSession.Load();
+            if (savedSession == null || string.IsNullOrWhiteSpace(savedSession.UserId))
+            {
+                startupWindow = new LoginWindow(userService);
+            }
+            else
+            {
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(savedSession.AccessToken))
+                        AppSession.SetAccessToken(savedSession.AccessToken);
+
+                    if (string.Equals(savedSession.Role, "Admin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        AppSession.SetAdmin(savedSession.DisplayName ?? savedSession.Username ?? "Admin", savedSession.Username ?? savedSession.UserId);
+                        startupWindow = new AdminWindow(userService);
+                    }
+                    else
+                    {
+                        var savedUser = new User
+                        {
+                            Id = savedSession.UserId,
+                            Username = savedSession.Username,
+                            Email = savedSession.Username ?? string.Empty
+                        };
+                        AppSession.SetCurrentUser(savedUser);
+                        var currentUser = userService.GetUserById(savedUser.Id);
+                        AppSession.SetCurrentUser(currentUser);
+                        startupWindow = new MainWindow(currentUser, userService);
+                    }
+                }
+                catch
+                {
+                    AppSession.Clear();
+                    startupWindow = new LoginWindow(userService);
+                }
+            }
+
+            startupWindow.Show();
             _ = CheckForUpdatesAsync();
         }
 
