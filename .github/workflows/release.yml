@@ -82,7 +82,6 @@ jobs:
           }
           & $iscc `
             /DAppVersion=${{ steps.version.outputs.version }} `
-            /DPublishDirectory="$(Resolve-Path .\publish\DMS-${{ steps.version.outputs.version }})" `
             .\installer\DMS.iss
           if ($LASTEXITCODE -ne 0) {
             throw "Inno Setup failed with exit code $LASTEXITCODE"
