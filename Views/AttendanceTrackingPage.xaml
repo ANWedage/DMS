@@ -1,11 +1,11 @@
 <Page x:Class="DMS.Views.AttendanceTrackingPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Attendance Tracking">
+    Title="Track Attendance">
     <Grid Background="#F5F7F8">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="30">
-                <TextBlock Text="Attendance Tracking" Style="{StaticResource HeadingStyle}"/>
+                <TextBlock Text="Track Attendance" Style="{StaticResource HeadingStyle}"/>
                 <TextBlock Text="Review attendance for both daily Google Meet standups."
                            Margin="0,8,0,20" Foreground="#66727D"/>
 
