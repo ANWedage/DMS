@@ -149,6 +149,16 @@ authenticated.MapDelete("/admin/users/{userId}", (string userId, ClaimsPrincipal
         : Results.NotFound();
 });
 
+authenticated.MapPost("/admin/users/{userId}/delete", (string userId, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin"))
+        return Results.Forbid();
+
+    return users.DeleteUserAccount(userId)
+        ? Results.NoContent()
+        : Results.NotFound();
+});
+
 authenticated.MapGet("/admin/attendance", (DateTime? date, ClaimsPrincipal principal, IUserService users) =>
     principal.IsInRole("Admin")
         ? Results.Ok(users.GetAllAttendance(date?.Date ?? DateTime.Today))

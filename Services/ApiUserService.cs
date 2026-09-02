@@ -50,7 +50,16 @@ public sealed class ApiUserService : IUserService, IDisposable
 
     public bool DeleteUserAccount(string userId)
     {
-        using var response = Send(HttpMethod.Delete, $"api/admin/users/{Uri.EscapeDataString(userId)}");
+        using var response = Send(HttpMethod.Post, $"api/admin/users/{Uri.EscapeDataString(userId)}/delete", allowErrorResponse: true);
+        if (!response.IsSuccessStatusCode)
+        {
+            var message = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(message)
+                    ? $"The API returned {(int)response.StatusCode} ({response.StatusCode})."
+                    : message);
+        }
+
         return response.IsSuccessStatusCode;
     }
 
