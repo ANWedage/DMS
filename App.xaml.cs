@@ -117,15 +117,13 @@ namespace DMS
                 Current.Dispatcher.Invoke(() =>
                 {
                     var result = MessageBox.Show(
-                        $"A new DMS update (version {latestVersion}) is required. Select OK to download and install it now.",
+                        $"A new DMS update (version {latestVersion}) is available. Select OK to download and install it now.",
                         "DMS update available",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
 
                     if (result == MessageBoxResult.OK)
-                    {
                         _ = DownloadAndInstallUpdateAsync(downloadUrl, latestVersion.ToString());
-                    }
                 });
             }
             catch
@@ -156,13 +154,12 @@ namespace DMS
             {
                 var temporaryDirectory = Path.Combine(Path.GetTempPath(), "DMS-update");
                 Directory.CreateDirectory(temporaryDirectory);
-                var installerPath = Path.Combine(temporaryDirectory, $"DMS-Setup-{version}.exe");
+                var installerPath = Path.Combine(temporaryDirectory, $"DMS-Setup-{version}-{Guid.NewGuid():N}.exe");
 
                 using var client = new HttpClient();
                 client.DefaultRequestHeaders.UserAgent.ParseAdd("DMS-Update-Installer/1.0");
-                using var installerStream = await client.GetStreamAsync(downloadUrl);
-                using var installerFile = File.Create(installerPath);
-                await installerStream.CopyToAsync(installerFile);
+                var installerBytes = await client.GetByteArrayAsync(downloadUrl);
+                await File.WriteAllBytesAsync(installerPath, installerBytes);
 
                 Current.Dispatcher.Invoke(() =>
                 {
@@ -181,11 +178,17 @@ namespace DMS
             }
             catch (Exception ex)
             {
-                Current.Dispatcher.Invoke(() => MessageBox.Show(
-                    $"The update could not be installed automatically. Please download it from GitHub.\n\nDetails: {ex.Message}",
-                    "DMS update",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning));
+                Current.Dispatcher.Invoke(() =>
+                {
+                    var result = MessageBox.Show(
+                        $"The update could not be installed automatically. Select Yes to retry or No to cancel.\n\nDetails: {ex.Message}",
+                        "DMS update",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+                    if (result == MessageBoxResult.Yes)
+                        _ = DownloadAndInstallUpdateAsync(downloadUrl, version);
+                });
             }
         }
 
