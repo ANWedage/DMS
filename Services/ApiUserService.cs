@@ -29,7 +29,9 @@ public sealed class ApiUserService : IUserService, IDisposable
         var response = Send(HttpMethod.Post, "api/auth/register", new { email, contactNumber, password });
         var auth = Read<AuthResponse>(response);
         AppSession.SetAccessToken(auth.Token);
-        return new User { Id = auth.UserId, Email = email, ContactNumber = contactNumber, Username = auth.Username };
+        var user = new User { Id = auth.UserId, Email = email, ContactNumber = contactNumber, Username = auth.Username };
+        AppSession.SetCurrentUser(user);
+        return user;
     }
 
     public void SetUsername(string userId, string username)
