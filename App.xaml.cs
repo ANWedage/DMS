@@ -106,29 +106,25 @@ namespace DMS
                 using var release = await JsonDocument.ParseAsync(responseStream);
                 var root = release.RootElement;
                 var tagName = root.GetProperty("tag_name").GetString()?.TrimStart('v');
-                var releaseUrl = root.GetProperty("html_url").GetString();
-                var downloadUrl = FindZipAssetUrl(root);
+                var downloadUrl = FindInstallerAssetUrl(root);
 
                 if (!Version.TryParse(tagName, out var latestVersion)
                     || !Version.TryParse(CurrentVersion, out var currentVersion)
                     || latestVersion <= currentVersion
-                    || string.IsNullOrWhiteSpace(releaseUrl))
+                    || string.IsNullOrWhiteSpace(downloadUrl))
                     return;
 
                 Current.Dispatcher.Invoke(() =>
                 {
                     var result = MessageBox.Show(
-                        $"A new DMS update is available (version {latestVersion}). Download and install it now?",
+                        $"A new DMS update (version {latestVersion}) is required. Select OK to download and install it now.",
                         "DMS update available",
-                        MessageBoxButton.YesNo,
+                        MessageBoxButton.OK,
                         MessageBoxImage.Information);
 
-                    if (result == MessageBoxResult.Yes)
+                    if (result == MessageBoxResult.OK)
                     {
-                        if (string.IsNullOrWhiteSpace(downloadUrl))
-                            Process.Start(new ProcessStartInfo(releaseUrl) { UseShellExecute = true });
-                        else
-                            _ = DownloadAndInstallUpdateAsync(downloadUrl, latestVersion.ToString());
+                        _ = DownloadAndInstallUpdateAsync(downloadUrl, latestVersion.ToString());
                     }
                 });
             }
@@ -138,7 +134,7 @@ namespace DMS
             }
         }
 
-        private static string? FindZipAssetUrl(JsonElement release)
+        private static string? FindInstallerAssetUrl(JsonElement release)
         {
             if (!release.TryGetProperty("assets", out var assets))
                 return null;
@@ -146,7 +142,8 @@ namespace DMS
             foreach (var asset in assets.EnumerateArray())
             {
                 var name = asset.GetProperty("name").GetString();
-                if (name?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true)
+                if (name?.StartsWith("DMS-Setup-", StringComparison.OrdinalIgnoreCase) == true
+                    && name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                     return asset.GetProperty("browser_download_url").GetString();
             }
 
@@ -157,36 +154,28 @@ namespace DMS
         {
             try
             {
-                var currentExecutable = Environment.ProcessPath;
-                var installDirectory = Path.GetDirectoryName(currentExecutable);
-                if (string.IsNullOrWhiteSpace(currentExecutable) || string.IsNullOrWhiteSpace(installDirectory))
-                    throw new InvalidOperationException("The current application path could not be determined.");
-
                 var temporaryDirectory = Path.Combine(Path.GetTempPath(), "DMS-update");
                 Directory.CreateDirectory(temporaryDirectory);
-                var zipPath = Path.Combine(temporaryDirectory, $"DMS-{version}.zip");
-                var scriptPath = Path.Combine(temporaryDirectory, "install-update.cmd");
+                var installerPath = Path.Combine(temporaryDirectory, $"DMS-Setup-{version}.exe");
 
                 using var client = new HttpClient();
                 client.DefaultRequestHeaders.UserAgent.ParseAdd("DMS-Update-Installer/1.0");
-                using var downloadStream = await client.GetStreamAsync(downloadUrl);
-                using var zipStream = File.Create(zipPath);
-                await downloadStream.CopyToAsync(zipStream);
-
-                var escapedZipPath = zipPath.Replace("'", "''");
-                var escapedInstallDirectory = installDirectory.Replace("'", "''");
-                var escapedExecutable = currentExecutable.Replace("'", "''");
-                var script = $"@echo off\r\ntimeout /t 2 /nobreak >nul\r\npowershell -NoProfile -ExecutionPolicy Bypass -Command \"Expand-Archive -LiteralPath '{escapedZipPath}' -DestinationPath '{escapedInstallDirectory}' -Force\"\r\nstart \"\" \"{escapedExecutable}\"\r\ndel \"%~f0\"\r\n";
-                await File.WriteAllTextAsync(scriptPath, script);
+                using var installerStream = await client.GetStreamAsync(downloadUrl);
+                using var installerFile = File.Create(installerPath);
+                await installerStream.CopyToAsync(installerFile);
 
                 Current.Dispatcher.Invoke(() =>
                 {
                     MessageBox.Show(
-                        "The update has been downloaded. DMS will close, install the update, and restart.",
+                        "The update has been downloaded. DMS will close and the installer will request permission to upgrade it.",
                         "Installing DMS update",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
-                    Process.Start(new ProcessStartInfo(scriptPath) { UseShellExecute = true, WorkingDirectory = temporaryDirectory });
+                    Process.Start(new ProcessStartInfo(installerPath)
+                    {
+                        UseShellExecute = true,
+                        Verb = "runas"
+                    });
                     Current.Shutdown();
                 });
             }
