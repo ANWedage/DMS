@@ -24,7 +24,7 @@ namespace DMS.Data
             if (throwIfMissing)
             {
                 throw new InvalidOperationException(
-                    "DMS_MONGO_CONNECTION_STRING is not configured. Add it to .env or your environment before starting the app.");
+                    "DMS_MONGO_CONNECTION_STRING is not configured. Add it to a .env file beside DMS.exe or set it as an environment variable before starting the app.");
             }
 
             return LocalDevelopmentConnectionString;
