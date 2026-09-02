@@ -51,6 +51,20 @@ public sealed class ApiUserService : IUserService, IDisposable
     public bool DeleteUserAccount(string userId)
     {
         using var response = Send(HttpMethod.Post, $"api/admin/users/{Uri.EscapeDataString(userId)}/delete", allowErrorResponse: true);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            response.Dispose();
+            using var deleteResponse = Send(HttpMethod.Delete, $"api/admin/users/{Uri.EscapeDataString(userId)}", allowErrorResponse: true);
+            EnsureDeleteSucceeded(deleteResponse);
+            return true;
+        }
+
+        EnsureDeleteSucceeded(response);
+        return true;
+    }
+
+    private static void EnsureDeleteSucceeded(HttpResponseMessage response)
+    {
         if (!response.IsSuccessStatusCode)
         {
             var message = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
@@ -59,8 +73,6 @@ public sealed class ApiUserService : IUserService, IDisposable
                     ? $"The API returned {(int)response.StatusCode} ({response.StatusCode})."
                     : message);
         }
-
-        return response.IsSuccessStatusCode;
     }
 
     public User? Login(string username, string password)
