@@ -48,6 +48,12 @@ public sealed class ApiUserService : IUserService, IDisposable
         return response.IsSuccessStatusCode;
     }
 
+    public bool DeleteUserAccount(string userId)
+    {
+        using var response = Send(HttpMethod.Delete, $"api/admin/users/{Uri.EscapeDataString(userId)}");
+        return response.IsSuccessStatusCode;
+    }
+
     public User? Login(string username, string password)
     {
         using var response = Send(HttpMethod.Post, "api/auth/login", new { username, password }, allowErrorResponse: true);

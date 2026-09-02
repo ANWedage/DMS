@@ -85,6 +85,15 @@ namespace DMS.Services
             return result.ModifiedCount > 0;
         }
 
+        public bool DeleteUserAccount(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return false;
+
+            _context.Attendance.DeleteMany(a => a.UserId == userId);
+            return _context.Users.DeleteOne(u => u.Id == userId).DeletedCount > 0;
+        }
+
         public User? Login(string username, string password)
         {
             var normalizedUsername = SecurityValidator.NormalizeUsername(username);

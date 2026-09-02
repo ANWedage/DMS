@@ -106,6 +106,20 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
+                            <GridViewColumn Header="Actions" Width="100">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Delete"
+                                                Tag="{Binding Id}"
+                                                Click="DeleteButton_Click"
+                                                Padding="10,4"
+                                                Foreground="#FFFFFF"
+                                                Background="#B3261E"
+                                                BorderThickness="0"
+                                                ToolTip="Delete this developer account"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
                         </GridView>
                     </ListView.View>
                 </ListView>

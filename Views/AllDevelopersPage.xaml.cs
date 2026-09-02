@@ -104,6 +104,44 @@ namespace DMS.Views
             }
         }
 
+        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button || button.Tag is not string userId)
+                return;
+
+            var user = _allUsers.FirstOrDefault(u => u.Id == userId);
+            if (user is null)
+                return;
+
+            var displayName = user.Username ?? user.Email;
+            var result = MessageBox.Show(
+                $"Are you sure you want to permanently delete the developer account for {displayName}? This will also delete attendance records.",
+                "Confirm account deletion",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            try
+            {
+                if (!_userService.DeleteUserAccount(userId))
+                {
+                    MessageBox.Show("The developer account could not be found.", "Delete developer", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                _allUsers.Remove(user);
+                UpdateDeactivatedByColumnVisibility();
+                ApplyFilter();
+                MessageBox.Show($"Developer account {displayName} was deleted.", "Delete developer", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to delete the developer account: {ex.Message}", "Delete developer", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private void ApplyFilter()
         {
             var searchText = SearchTextBox?.Text ?? string.Empty;
