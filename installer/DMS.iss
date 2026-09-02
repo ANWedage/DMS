@@ -18,6 +18,7 @@ AppPublisher={#AppPublisher}
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 UninstallDisplayIcon={app}\{#AppExeName}
+SetupIconFile=..\Assets\dms-logo.ico
 OutputDir=..\publish
 OutputBaseFilename=DMS-Setup-{#AppVersion}
 Compression=lzma
@@ -33,8 +34,8 @@ Source: "{#PublishDirectory}\{#AppExeName}"; DestDir: "{app}"; Flags: ignorevers
 Source: "{#PublishDirectory}\.env"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\{#AppExeName}"
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\{#AppExeName}"
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: postinstall nowait skipifsilent
