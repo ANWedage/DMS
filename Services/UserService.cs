@@ -313,7 +313,12 @@ namespace DMS.Services
         {
             try
             {
-                var timeZone = TimeZoneInfo.FindSystemTimeZoneById(settings.TimeZoneId);
+                var timeZoneId = settings.TimeZoneId;
+                if (OperatingSystem.IsLinux()
+                    && string.Equals(timeZoneId, "Sri Lanka Standard Time", StringComparison.OrdinalIgnoreCase))
+                    timeZoneId = "Asia/Colombo";
+
+                var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
                 return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
             }
             catch (TimeZoneNotFoundException)
