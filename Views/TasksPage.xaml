@@ -39,7 +39,11 @@
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"/>
                                             <TextBlock Text="{Binding Description}" Foreground="#66727D" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                             <TextBlock Text="{Binding Status}" Foreground="#126E70" Margin="0,4,0,0"/>
-                                            <TextBlock Text="{Binding DueDate, StringFormat=Due: {0:d}}" Foreground="#66727D" FontSize="12" Margin="0,3,0,0"/>
+                                            <Grid Margin="0,3,0,0">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding DueDate, StringFormat=Due: {0:d}}" Foreground="#66727D" FontSize="12" VerticalAlignment="Center"/>
+                                                <Button Grid.Column="1" Content="✕" Tag="{Binding Id}" Click="DeleteProjectButton_Click" Width="24" Height="24" Padding="0" Background="#B3261E" Foreground="White" BorderThickness="0" ToolTip="Delete project and all related task data"/>
+                                            </Grid>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>

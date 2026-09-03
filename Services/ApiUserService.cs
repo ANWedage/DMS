@@ -177,6 +177,12 @@ public sealed class ApiUserService : IUserService, IDisposable
     public TaskProject UpdateProject(TaskProject project) =>
         Read<TaskProject>(Send(HttpMethod.Put, $"api/admin/projects/{Uri.EscapeDataString(project.Id)}", project));
 
+    public bool DeleteProject(string projectId)
+    {
+        using var response = Send(HttpMethod.Delete, $"api/admin/projects/{Uri.EscapeDataString(projectId)}");
+        return response.IsSuccessStatusCode;
+    }
+
     public List<TaskComponent> GetProjectComponents(string projectId) =>
         Read<List<TaskComponent>>(Send(HttpMethod.Get, $"api/admin/projects/{Uri.EscapeDataString(projectId)}/components"));
 

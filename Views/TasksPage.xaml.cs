@@ -70,6 +70,46 @@ namespace DMS.Views
         catch (Exception ex) { MessageBox.Show($"Unable to create project: {ex.Message}", "Project", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
+    private async void DeleteProjectButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string projectId })
+            return;
+
+        var project = _projects.FirstOrDefault(item => item.Id == projectId);
+        if (project == null)
+            return;
+
+        if (MessageBox.Show(
+                $"Delete project '{project.Name}' and all its components, assignments, and daily updates? This cannot be undone.",
+                "Confirm project deletion",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            if (!await Task.Run(() => _userService.DeleteProject(projectId)))
+            {
+                MessageBox.Show("The project could not be found.", "Delete project", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (_selectedProject?.Id == projectId)
+            {
+                _selectedProject = null;
+                _selectedComponent = null;
+                ComponentListView.ItemsSource = null;
+                ProjectReportGrid.ItemsSource = null;
+                SelectedProjectText.Text = "Select a project";
+                SelectedProjectDescriptionText.Text = string.Empty;
+            }
+
+            await LoadProjectsAsync();
+            MessageBox.Show("Project and related task data were deleted.", "Delete project", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex) { MessageBox.Show($"Unable to delete project: {ex.Message}", "Delete project", MessageBoxButton.OK, MessageBoxImage.Error); }
+    }
+
     private async void ProjectListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         _selectedProject = ProjectListBox.SelectedItem as TaskProject;

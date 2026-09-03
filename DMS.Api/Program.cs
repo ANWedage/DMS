@@ -237,6 +237,14 @@ authenticated.MapPut("/admin/projects/{projectId}", (string projectId, TaskProje
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
 
+authenticated.MapDelete("/admin/projects/{projectId}", (string projectId, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin")) return Results.Forbid();
+    return users.DeleteProject(projectId)
+        ? Results.NoContent()
+        : Results.NotFound();
+});
+
 authenticated.MapGet("/admin/projects/{projectId}/components", (string projectId, ClaimsPrincipal principal, IUserService users) =>
     principal.IsInRole("Admin") ? Results.Ok(users.GetProjectComponents(projectId)) : Results.Forbid());
 

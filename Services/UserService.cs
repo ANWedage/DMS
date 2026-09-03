@@ -403,6 +403,24 @@ namespace DMS.Services
             return project;
         }
 
+        public bool DeleteProject(string projectId)
+        {
+            if (string.IsNullOrWhiteSpace(projectId))
+                return false;
+
+            var componentIds = _context.Components.Find(c => c.ProjectId == projectId)
+                .Project(c => c.Id)
+                .ToList();
+            if (componentIds.Count > 0)
+            {
+                _context.DailyTaskUpdates.DeleteMany(u => componentIds.Contains(u.ComponentId));
+                _context.ComponentAssignments.DeleteMany(a => componentIds.Contains(a.ComponentId));
+                _context.Components.DeleteMany(c => componentIds.Contains(c.Id));
+            }
+
+            return _context.Projects.DeleteOne(p => p.Id == projectId).DeletedCount > 0;
+        }
+
         public List<TaskComponent> GetProjectComponents(string projectId) =>
             _context.Components.Find(c => c.ProjectId == projectId).SortBy(c => c.DueDate).ToList();
 
