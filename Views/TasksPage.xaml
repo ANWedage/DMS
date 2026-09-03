@@ -85,56 +85,70 @@
                             </Grid>
                         </StackPanel>
                     </Border>
-                    <Grid Grid.Row="2" MinHeight="480">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="250"/></Grid.ColumnDefinitions>
-                        <ListView x:Name="ComponentListView" SelectionChanged="ComponentListView_SelectionChanged" BorderThickness="0">
+                    <StackPanel Grid.Row="2">
+                        <TextBlock Text="Project Components" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                        <ListView x:Name="ComponentListView" Height="220" SelectionChanged="ComponentListView_SelectionChanged" BorderThickness="0">
                             <ListView.View><GridView>
-                                <GridViewColumn Header="Component" DisplayMemberBinding="{Binding Name}" Width="190"/>
-                                <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="220"/>
-                                <GridViewColumn Header="Priority" DisplayMemberBinding="{Binding Priority}" Width="90"/>
-                                <GridViewColumn Header="Due" DisplayMemberBinding="{Binding DueDate, StringFormat=d}" Width="100"/>
-                                <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="120"/>
+                                <GridViewColumn Header="Component" DisplayMemberBinding="{Binding Name}" Width="170"/>
+                                <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="300"/>
+                                <GridViewColumn Header="Priority" DisplayMemberBinding="{Binding Priority}" Width="95"/>
+                                <GridViewColumn Header="Due" DisplayMemberBinding="{Binding DueDate, StringFormat=d}" Width="110"/>
+                                <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="130"/>
                             </GridView></ListView.View>
                         </ListView>
-                        <StackPanel Grid.Column="1" Margin="18,0,0,0">
-                            <TextBlock Text="Edit Selected Component" FontSize="17" FontWeight="SemiBold"/>
-                            <TextBlock Text="Update component details and status." Foreground="#66727D" Margin="0,4,0,0" TextWrapping="Wrap"/>
-                            <TextBlock x:Name="SelectedComponentText" Text="Select a component" Foreground="#66727D" Margin="0,5,0,8" TextWrapping="Wrap"/>
-                            <TextBox x:Name="EditComponentNameTextBox" ToolTip="Component name"/>
-                            <TextBox x:Name="EditComponentDescriptionTextBox" Height="55" Margin="0,8,0,0" AcceptsReturn="True" TextWrapping="Wrap" ToolTip="Component description"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                <ComboBox x:Name="EditComponentPriorityComboBox" Width="100">
-                                    <ComboBoxItem Content="Low"/><ComboBoxItem Content="Medium"/><ComboBoxItem Content="High"/>
-                                </ComboBox>
-                                <ComboBox x:Name="EditComponentStatusComboBox" Width="120" Margin="8,0,0,0">
-                                    <ComboBoxItem Content="Not started"/><ComboBoxItem Content="In progress"/><ComboBoxItem Content="Blocked"/><ComboBoxItem Content="Completed"/>
-                                </ComboBox>
-                                <DatePicker x:Name="EditComponentDueDatePicker" Width="125" Margin="8,0,0,0"/>
-                            </StackPanel>
-                            <Button Content="Update Component" Click="UpdateComponentButton_Click" Margin="0,10,0,0"/>
-                            <TextBlock Text="Assign Members" FontSize="17" FontWeight="SemiBold" Margin="0,18,0,0"/>
-                            <TextBlock Text="Select one or more active members." Foreground="#66727D" Margin="0,4,0,6" TextWrapping="Wrap"/>
-                            <ListBox x:Name="MembersListBox" BorderThickness="0">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsSelected, Mode=TwoWay}" Padding="4"/>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                            <Button Content="Save Assignments" Click="SaveAssignmentsButton_Click" Margin="0,10,0,0"/>
-                            <TextBlock Text="Track Daily Updates" FontSize="17" FontWeight="SemiBold" Margin="0,18,0,0"/>
-                            <TextBlock Text="Review work descriptions submitted by assigned members." Foreground="#66727D" Margin="0,4,0,6" TextWrapping="Wrap"/>
-                            <Button Content="View Daily Updates" Click="ViewUpdatesButton_Click" Margin="0,4,0,0"/>
-                            <ListView x:Name="UpdatesListView" Height="180" Margin="0,8,0,0" BorderThickness="0">
-                                <ListView.View><GridView>
-                                    <GridViewColumn Header="User" DisplayMemberBinding="{Binding UserId}" Width="120"/>
-                                    <GridViewColumn Header="Date" DisplayMemberBinding="{Binding UpdateDate, StringFormat=d}" Width="75"/>
-                                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="90"/>
-                                    <GridViewColumn Header="Work" DisplayMemberBinding="{Binding Description}" Width="220"/>
-                                </GridView></ListView.View>
-                            </ListView>
-                        </StackPanel>
-                    </Grid>
+                        <Expander x:Name="ComponentWorkspaceExpander" Header="Selected Component Workspace" IsExpanded="True" Margin="0,16,0,0">
+                            <Border Background="#F7F9F9" Padding="16" BorderBrush="#DDE3E5" BorderThickness="1">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                    <StackPanel>
+                                        <TextBlock x:Name="SelectedComponentText" Text="Select a component" FontSize="18" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Edit component details and status." Foreground="#66727D" Margin="0,4,0,0"/>
+                                        <Grid Margin="0,12,0,0">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="2*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="120"/><ColumnDefinition Width="130"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <TextBox x:Name="EditComponentNameTextBox" Grid.Column="0" ToolTip="Component name"/>
+                                            <TextBox x:Name="EditComponentDescriptionTextBox" Grid.Column="1" Margin="8,0,0,0" ToolTip="Component description"/>
+                                            <ComboBox x:Name="EditComponentPriorityComboBox" Grid.Column="2" Margin="8,0,0,0">
+                                                <ComboBoxItem Content="Low"/><ComboBoxItem Content="Medium"/><ComboBoxItem Content="High"/>
+                                            </ComboBox>
+                                            <ComboBox x:Name="EditComponentStatusComboBox" Grid.Column="3" Margin="8,0,0,0">
+                                                <ComboBoxItem Content="Not started"/><ComboBoxItem Content="In progress"/><ComboBoxItem Content="Blocked"/><ComboBoxItem Content="Completed"/>
+                                            </ComboBox>
+                                            <DatePicker x:Name="EditComponentDueDatePicker" Grid.Column="4" Margin="8,0,0,0"/>
+                                            <Button Grid.Column="5" Content="Update Component" Click="UpdateComponentButton_Click" Margin="8,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                    <Grid Grid.Row="1" Margin="0,18,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="300"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Assign Members" FontSize="17" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Select one or more active members." Foreground="#66727D" Margin="0,4,0,6"/>
+                                            <ListBox x:Name="MembersListBox" Height="145" BorderThickness="0">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsSelected, Mode=TwoWay}" Padding="4"/>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                            <Button Content="Save Assignments" Click="SaveAssignmentsButton_Click" Margin="0,10,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Track Daily Updates" FontSize="17" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Review work descriptions submitted by assigned members." Foreground="#66727D" Margin="0,4,0,6"/>
+                                            <Button Content="View Daily Updates" Click="ViewUpdatesButton_Click" HorizontalAlignment="Left"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <ListView Grid.Row="2" x:Name="UpdatesListView" Height="190" Margin="0,18,0,0" BorderThickness="0">
+                                        <ListView.View><GridView>
+                                            <GridViewColumn Header="User" DisplayMemberBinding="{Binding UserName}" Width="170"/>
+                                            <GridViewColumn Header="Date" DisplayMemberBinding="{Binding UpdateDate, StringFormat=d}" Width="100"/>
+                                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="120"/>
+                                            <GridViewColumn Header="Today's Work" DisplayMemberBinding="{Binding Description}" Width="520"/>
+                                        </GridView></ListView.View>
+                                    </ListView>
+                                </Grid>
+                            </Border>
+                        </Expander>
+                    </StackPanel>
                 </Grid>
                 </ScrollViewer>
             </Border>

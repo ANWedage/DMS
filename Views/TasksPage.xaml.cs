@@ -200,8 +200,16 @@ namespace DMS.Views
         if (_selectedComponent == null) { MessageBox.Show("Select a component first.", "Daily updates", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
         try
         {
-            UpdatesListView.ItemsSource = await Task.Run(() => _userService.GetTaskUpdates(
+            var updates = await Task.Run(() => _userService.GetTaskUpdates(
                 _selectedComponent.Id, AppSession.CurrentUserId ?? string.Empty, true));
+            var userNames = _users.ToDictionary(user => user.Id, user => user.Username ?? user.Email);
+            UpdatesListView.ItemsSource = updates.Select(update => new DailyUpdateDisplayRow
+            {
+                UserName = userNames.TryGetValue(update.UserId, out var userName) ? userName : "Unknown member",
+                UpdateDate = update.UpdateDate,
+                Status = update.Status,
+                Description = update.Description
+            }).ToList();
         }
         catch (Exception ex) { MessageBox.Show($"Unable to load daily updates: {ex.Message}", "Daily updates", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
@@ -212,6 +220,14 @@ namespace DMS.Views
         public bool IsSelected { get; set; }
         public string DisplayName => User.Username ?? User.Email;
         public MemberOption(User user) => User = user;
+    }
+
+    private sealed class DailyUpdateDisplayRow
+    {
+        public string UserName { get; init; } = string.Empty;
+        public DateTime UpdateDate { get; init; }
+        public string Status { get; init; } = string.Empty;
+        public string Description { get; init; } = string.Empty;
     }
 }
 }
