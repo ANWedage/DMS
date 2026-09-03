@@ -117,9 +117,15 @@ authenticated.MapPost("/attendance/present", (ClaimsPrincipal principal, Attenda
     if (principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId))
         return Results.Forbid();
 
-    return users.MarkAttendancePresent(userId, request.MeetingType, request.Date.Date)
-        ? Results.NoContent()
-        : Results.BadRequest(new { error = "Attendance could not be marked present." });
+    try
+    {
+        users.MarkAttendancePresent(userId, request.MeetingType, request.Date.Date);
+        return Results.NoContent();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
 });
 
 authenticated.MapGet("/admin/users", (ClaimsPrincipal principal, IUserService users) =>

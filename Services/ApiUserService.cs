@@ -134,6 +134,14 @@ public sealed class ApiUserService : IUserService, IDisposable
     {
         EnsureCurrentUser(userId);
         using var response = Send(HttpMethod.Post, "api/attendance/present", new { meetingType, date }, allowErrorResponse: true);
+        if (!response.IsSuccessStatusCode)
+        {
+            var message = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(message)
+                ? "The API could not mark attendance."
+                : message);
+        }
+
         return response.IsSuccessStatusCode;
     }
 

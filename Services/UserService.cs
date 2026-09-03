@@ -198,13 +198,17 @@ namespace DMS.Services
         public bool MarkAttendancePresent(string userId, string meetingType, DateTime date)
         {
             if (string.IsNullOrWhiteSpace(userId) || !IsValidMeetingType(meetingType))
-                return false;
+                throw new InvalidOperationException("The attendance request is invalid.");
 
             EnsureDailyAttendance(date);
             var settings = GetMeetingSettings();
             var now = GetApplicationNow(settings);
             if (date.Date != now.Date || !IsWithinAttendanceWindow(meetingType, settings, now))
-                return false;
+            {
+                var start = GetMeetingStart(meetingType, settings, now.Date);
+                throw new InvalidOperationException(
+                    $"Attendance is only available from {start:HH:mm} to {start.AddMinutes(15):HH:mm} (Sri Lanka time). Current time: {now:HH:mm}.");
+            }
 
             var filter = Builders<AttendanceRecord>.Filter.And(
                 Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, userId),
@@ -218,7 +222,11 @@ namespace DMS.Services
                 .Set(a => a.MarkedBy, "User")
                 .Set(a => a.UpdatedAt, DateTime.UtcNow);
 
-            return _context.Attendance.UpdateOne(filter, update).ModifiedCount > 0;
+            var result = _context.Attendance.UpdateOne(filter, update);
+            if (result.ModifiedCount == 0)
+                throw new InvalidOperationException("This attendance record is no longer pending or could not be found.");
+
+            return true;
         }
 
         public bool UpdateAttendanceStatus(string attendanceId, string status, string adminId, string adminName, string? note)
