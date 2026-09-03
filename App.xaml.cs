@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using DMS.Data;
 using DMS.Helpers;
 using DMS.Models;
@@ -14,12 +15,27 @@ namespace DMS
 {
     public partial class App : Application
     {
+        private static Mutex? _singleInstanceMutex;
         private const string CurrentVersion = "1.0.0";
         private const string LatestReleaseApiUrl = "https://api.github.com/repos/ANWedage/DMS/releases/latest";
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            _singleInstanceMutex = new Mutex(true, "DMS.SingleInstance", out var createdNew);
+            if (!createdNew)
+            {
+                _singleInstanceMutex.Dispose();
+                _singleInstanceMutex = null;
+                MessageBox.Show(
+                    "DMS is already running. Please use the open DMS window.",
+                    "DMS already running",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                Shutdown();
+                return;
+            }
 
             IUserService userService;
             var apiBaseUrl = MongoConfig.GetEnvironmentValue("DMS_API_BASE_URL");
