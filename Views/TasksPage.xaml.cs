@@ -47,7 +47,7 @@ namespace DMS.Views
         if (MessageBox.Show("Create this project?", "Confirm project", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {
-            await Task.Run(() => _userService.CreateProject(new TaskProject
+            var project = new TaskProject
             {
                 Name = ProjectNameTextBox.Text,
                 Description = ProjectDescriptionTextBox.Text,
@@ -55,7 +55,8 @@ namespace DMS.Views
                 DueDate = ProjectDueDatePicker.SelectedDate ?? DateTime.Today.AddDays(30),
                 Status = (ProjectStatusComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? ProjectStatuses.Draft,
                 CreatedByAdminId = AppSession.CurrentUserId ?? string.Empty
-            }));
+            };
+            await Task.Run(() => _userService.CreateProject(project));
             ProjectNameTextBox.Clear(); ProjectDescriptionTextBox.Clear(); await LoadProjectsAsync();
         }
         catch (Exception ex) { MessageBox.Show($"Unable to create project: {ex.Message}", "Project", MessageBoxButton.OK, MessageBoxImage.Error); }
@@ -78,13 +79,14 @@ namespace DMS.Views
         if (MessageBox.Show("Add this component?", "Confirm component", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {
-            await Task.Run(() => _userService.CreateTaskComponent(new TaskComponent
+            var component = new TaskComponent
             {
                 ProjectId = _selectedProject.Id, Name = ComponentNameTextBox.Text,
                 Description = ComponentDescriptionTextBox.Text,
                 Priority = (ComponentPriorityComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? TaskPriorities.Medium,
                 DueDate = ComponentDueDatePicker.SelectedDate ?? DateTime.Today.AddDays(7)
-            }));
+            };
+            await Task.Run(() => _userService.CreateTaskComponent(component));
             ComponentNameTextBox.Clear(); ComponentDescriptionTextBox.Clear();
             ComponentListView.ItemsSource = await Task.Run(() => _userService.GetProjectComponents(_selectedProject.Id));
         }
