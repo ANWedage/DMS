@@ -74,10 +74,12 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
                     <StackPanel Orientation="Horizontal">
-                        <StackPanel Margin="0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Username}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding Email}" Style="{StaticResource MutedStyle}" FontSize="12"/>
-                        </StackPanel>
+                        <Border Background="#F8FBFB" BorderBrush="#B7D6DD" BorderThickness="1" CornerRadius="8" Padding="12,7">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Username}" Foreground="#17212B" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Email}" Style="{StaticResource MutedStyle}" FontSize="12"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                     <Button Content="⏻" Click="SignOutButton_Click" Margin="16,2,0,0"
                             Width="36" Height="36" Padding="0" FontSize="20"

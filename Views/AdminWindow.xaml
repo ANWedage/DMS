@@ -70,11 +70,13 @@
             </Grid.RowDefinitions>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <StackPanel Margin="0" VerticalAlignment="Center">
-                    <TextBlock Text="Administrator" FontWeight="SemiBold"/>
-                    <TextBlock Text="{x:Static helpers:AppSession.CurrentDisplayName}" Foreground="#66727D" FontSize="12"/>
-                </StackPanel>
-                <Button Content="⏻" Click="SignOutButton_Click" Margin="18,0,0,0" Width="36" Height="36"
+                <Border Background="#F8FBFB" BorderBrush="#B7D6DD" BorderThickness="1" CornerRadius="8" Padding="12,7">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Administrator" Foreground="#17212B" FontWeight="SemiBold"/>
+                        <TextBlock Text="{x:Static helpers:AppSession.CurrentDisplayName}" Foreground="#66727D" FontSize="12"/>
+                    </StackPanel>
+                </Border>
+                <Button Content="⏻" Click="SignOutButton_Click" Margin="12,0,0,0" Width="36" Height="36"
                         Background="#0F4C5C" Foreground="White" FontSize="20" ToolTip="Sign out"
                         BorderThickness="0" Padding="0" Cursor="Hand"/>
             </StackPanel>
