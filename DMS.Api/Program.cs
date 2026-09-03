@@ -119,7 +119,7 @@ authenticated.MapPost("/attendance/present", (ClaimsPrincipal principal, Attenda
 
     try
     {
-        users.MarkAttendancePresent(userId, request.MeetingType, request.Date.Date);
+        users.MarkAttendancePresent(userId, request.MeetingType, request.Date.ToDateTime(TimeOnly.MinValue));
         return Results.NoContent();
     }
     catch (InvalidOperationException ex)

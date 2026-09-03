@@ -207,7 +207,7 @@ namespace DMS.Services
             {
                 var start = GetMeetingStart(meetingType, settings, now.Date);
                 throw new InvalidOperationException(
-                    $"Attendance is only available from {start:HH:mm} to {start.AddMinutes(15):HH:mm} (Sri Lanka time). Current time: {now:HH:mm}.");
+                    $"Attendance is only available from {start:HH:mm} to {start.AddMinutes(15):HH:mm} (Sri Lanka time). Current time: {now:HH:mm} on {now:yyyy-MM-dd}; requested date: {date:yyyy-MM-dd}.");
             }
 
             var filter = Builders<AttendanceRecord>.Filter.And(
