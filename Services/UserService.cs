@@ -370,6 +370,8 @@ namespace DMS.Services
             if (project.DueDate.Date < project.StartDate.Date)
                 throw new InvalidOperationException("Project due date cannot be before its start date.");
 
+            project.StartDate = DateTime.SpecifyKind(project.StartDate.Date, DateTimeKind.Unspecified);
+            project.DueDate = DateTime.SpecifyKind(project.DueDate.Date, DateTimeKind.Unspecified);
             project.Name = project.Name.Trim();
             project.Description = project.Description?.Trim() ?? string.Empty;
             project.CreatedAt = DateTime.UtcNow;
@@ -387,6 +389,8 @@ namespace DMS.Services
             if (!_context.Projects.Find(p => p.Id == project.Id).Any())
                 throw new InvalidOperationException("The project could not be found.");
 
+            project.StartDate = DateTime.SpecifyKind(project.StartDate.Date, DateTimeKind.Unspecified);
+            project.DueDate = DateTime.SpecifyKind(project.DueDate.Date, DateTimeKind.Unspecified);
             project.Name = project.Name.Trim();
             project.Description = project.Description?.Trim() ?? string.Empty;
             project.UpdatedAt = DateTime.UtcNow;
@@ -431,6 +435,7 @@ namespace DMS.Services
             if (!_context.Projects.Find(p => p.Id == component.ProjectId).Any())
                 throw new InvalidOperationException("The project could not be found.");
 
+            component.DueDate = DateTime.SpecifyKind(component.DueDate.Date, DateTimeKind.Unspecified);
             component.Name = component.Name.Trim();
             component.Description = component.Description?.Trim() ?? string.Empty;
             component.CreatedAt = DateTime.UtcNow;
@@ -446,6 +451,7 @@ namespace DMS.Services
             if (!_context.Components.Find(c => c.Id == component.Id).Any())
                 throw new InvalidOperationException("The component could not be found.");
 
+            component.DueDate = DateTime.SpecifyKind(component.DueDate.Date, DateTimeKind.Unspecified);
             component.Name = component.Name.Trim();
             component.Description = component.Description?.Trim() ?? string.Empty;
             component.UpdatedAt = DateTime.UtcNow;
@@ -536,7 +542,7 @@ namespace DMS.Services
             if (!_context.ComponentAssignments.Find(a => a.ComponentId == update.ComponentId && a.UserId == update.UserId && a.IsActive).Any())
                 throw new InvalidOperationException("This task is not assigned to your account.");
 
-            update.UpdateDate = update.UpdateDate.Date;
+            update.UpdateDate = DateTime.SpecifyKind(update.UpdateDate.Date, DateTimeKind.Unspecified);
             update.Description = update.Description.Trim();
             update.BlockedReason = string.IsNullOrWhiteSpace(update.BlockedReason) ? null : update.BlockedReason.Trim();
             update.UpdatedAt = DateTime.UtcNow;
@@ -550,6 +556,7 @@ namespace DMS.Services
 
         public List<ProjectDailyTaskReportRow> GetProjectDailyTaskReport(string projectId, DateTime date)
         {
+            var calendarDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Unspecified);
             var project = _context.Projects.Find(p => p.Id == projectId).FirstOrDefault()
                 ?? throw new InvalidOperationException("The project could not be found.");
             var components = _context.Components.Find(c => c.ProjectId == projectId).ToList();
@@ -562,7 +569,7 @@ namespace DMS.Services
                 foreach (var assignment in assignments)
                 {
                     var update = _context.DailyTaskUpdates.Find(u => u.ComponentId == component.Id
-                        && u.UserId == assignment.UserId && u.UpdateDate == date.Date).FirstOrDefault();
+                        && u.UserId == assignment.UserId && u.UpdateDate == calendarDate).FirstOrDefault();
                     rows.Add(new ProjectDailyTaskReportRow
                     {
                         ProjectId = project.Id,
@@ -574,7 +581,7 @@ namespace DMS.Services
                         UserName = users.TryGetValue(assignment.UserId, out var name) ? name : "Unknown member",
                         Status = update?.Status ?? "Not submitted",
                         DailyWork = update?.Description ?? "No update submitted",
-                        UpdateDate = date.Date,
+                        UpdateDate = calendarDate,
                         HasSubmittedUpdate = update != null
                     });
                 }

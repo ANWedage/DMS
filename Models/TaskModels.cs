@@ -33,7 +33,9 @@ public class TaskProject
     public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    [BsonDateTimeOptions(Kind = DateTimeKind.Unspecified)]
     public DateTime StartDate { get; set; } = DateTime.Today;
+    [BsonDateTimeOptions(Kind = DateTimeKind.Unspecified)]
     public DateTime DueDate { get; set; } = DateTime.Today.AddDays(30);
     public string Status { get; set; } = ProjectStatuses.Draft;
     public string CreatedByAdminId { get; set; } = string.Empty;
@@ -50,6 +52,7 @@ public class TaskComponent
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Priority { get; set; } = TaskPriorities.Medium;
+    [BsonDateTimeOptions(Kind = DateTimeKind.Unspecified)]
     public DateTime DueDate { get; set; } = DateTime.Today.AddDays(7);
     public string Status { get; set; } = TaskStatuses.NotStarted;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -75,6 +78,7 @@ public class DailyTaskUpdate
     public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
     public string ComponentId { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
+    [BsonDateTimeOptions(Kind = DateTimeKind.Unspecified)]
     public DateTime UpdateDate { get; set; } = DateTime.Today;
     public string Description { get; set; } = string.Empty;
     public string Status { get; set; } = TaskStatuses.InProgress;
@@ -101,6 +105,7 @@ public sealed class ProjectDailyTaskReportRow
     public string UserName { get; init; } = string.Empty;
     public string Status { get; init; } = "Not submitted";
     public string DailyWork { get; init; } = "No update submitted";
+    [BsonDateTimeOptions(Kind = DateTimeKind.Unspecified)]
     public DateTime UpdateDate { get; init; }
     public bool HasSubmittedUpdate { get; init; }
 }

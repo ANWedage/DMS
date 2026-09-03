@@ -171,11 +171,19 @@ public sealed class ApiUserService : IUserService, IDisposable
 
     public List<TaskProject> GetProjects() => Read<List<TaskProject>>(Send(HttpMethod.Get, "api/admin/projects"));
 
-    public TaskProject CreateProject(TaskProject project) =>
-        Read<TaskProject>(Send(HttpMethod.Post, "api/admin/projects", project));
+    public TaskProject CreateProject(TaskProject project)
+    {
+        project.StartDate = DateTime.SpecifyKind(project.StartDate.Date, DateTimeKind.Unspecified);
+        project.DueDate = DateTime.SpecifyKind(project.DueDate.Date, DateTimeKind.Unspecified);
+        return Read<TaskProject>(Send(HttpMethod.Post, "api/admin/projects", project));
+    }
 
-    public TaskProject UpdateProject(TaskProject project) =>
-        Read<TaskProject>(Send(HttpMethod.Put, $"api/admin/projects/{Uri.EscapeDataString(project.Id)}", project));
+    public TaskProject UpdateProject(TaskProject project)
+    {
+        project.StartDate = DateTime.SpecifyKind(project.StartDate.Date, DateTimeKind.Unspecified);
+        project.DueDate = DateTime.SpecifyKind(project.DueDate.Date, DateTimeKind.Unspecified);
+        return Read<TaskProject>(Send(HttpMethod.Put, $"api/admin/projects/{Uri.EscapeDataString(project.Id)}", project));
+    }
 
     public bool DeleteProject(string projectId)
     {
@@ -186,11 +194,17 @@ public sealed class ApiUserService : IUserService, IDisposable
     public List<TaskComponent> GetProjectComponents(string projectId) =>
         Read<List<TaskComponent>>(Send(HttpMethod.Get, $"api/admin/projects/{Uri.EscapeDataString(projectId)}/components"));
 
-    public TaskComponent CreateTaskComponent(TaskComponent component) =>
-        Read<TaskComponent>(Send(HttpMethod.Post, "api/admin/components", component));
+    public TaskComponent CreateTaskComponent(TaskComponent component)
+    {
+        component.DueDate = DateTime.SpecifyKind(component.DueDate.Date, DateTimeKind.Unspecified);
+        return Read<TaskComponent>(Send(HttpMethod.Post, "api/admin/components", component));
+    }
 
-    public TaskComponent UpdateTaskComponent(TaskComponent component) =>
-        Read<TaskComponent>(Send(HttpMethod.Put, $"api/admin/components/{Uri.EscapeDataString(component.Id)}", component));
+    public TaskComponent UpdateTaskComponent(TaskComponent component)
+    {
+        component.DueDate = DateTime.SpecifyKind(component.DueDate.Date, DateTimeKind.Unspecified);
+        return Read<TaskComponent>(Send(HttpMethod.Put, $"api/admin/components/{Uri.EscapeDataString(component.Id)}", component));
+    }
 
     public List<ComponentAssignment> GetComponentAssignments(string componentId) =>
         Read<List<ComponentAssignment>>(Send(HttpMethod.Get, $"api/admin/components/{Uri.EscapeDataString(componentId)}/assignments"));
@@ -216,6 +230,7 @@ public sealed class ApiUserService : IUserService, IDisposable
     public DailyTaskUpdate SaveDailyTaskUpdate(DailyTaskUpdate update)
     {
         EnsureCurrentUser(update.UserId);
+        update.UpdateDate = DateTime.SpecifyKind(update.UpdateDate.Date, DateTimeKind.Unspecified);
         return Read<DailyTaskUpdate>(Send(HttpMethod.Post, $"api/tasks/{Uri.EscapeDataString(update.ComponentId)}/updates", update));
     }
 
