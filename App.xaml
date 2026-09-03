@@ -85,17 +85,27 @@
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{StaticResource TealDarkBrush}"/></Trigger>
                             <Trigger Property="IsPressed" Value="True"><Setter Property="Opacity" Value="0.84"/></Trigger>
                             <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource TealDarkBrush}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
         <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Background" Value="#E8F0EF"/>
             <Setter Property="Foreground" Value="{StaticResource TealDarkBrush}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#D3E8E5"/>
+                    <Setter Property="Foreground" Value="{StaticResource TealDarkBrush}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
         <Style x:Key="LinkStyle" TargetType="Hyperlink">
             <Setter Property="Foreground" Value="{StaticResource TealBrush}"/>

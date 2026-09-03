@@ -43,8 +43,8 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0">
                                     <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16"/>
-                                    <Button Content="Mark read" DockPanel.Dock="Right" Tag="{Binding Id}" Padding="10,4"
-                                            Click="MarkReadButton_Click">
+                                    <Button Content="Mark read" DockPanel.Dock="Right" Tag="{Binding Id}" Width="92" Height="28"
+                                            Padding="6,2" HorizontalAlignment="Right" Click="MarkReadButton_Click">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -79,7 +79,17 @@
                             <ComboBoxItem Content="Admins" Tag="Admin"/>
                         </ComboBox>
                         <CheckBox x:Name="SendToAllBox" Content="Send to everyone in this group" Margin="0,14,0,6" IsChecked="True" Click="SendToAllBox_Click"/>
-                        <ListBox x:Name="RecipientList" Height="120" SelectionMode="Multiple" IsEnabled="False"/>
+                        <TextBox x:Name="RecipientSearchBox" Height="36" Margin="0,6,0,6" IsEnabled="False"
+                                 TextChanged="RecipientSearchBox_TextChanged"
+                                 ToolTip="Search by username or email"/>
+                        <ComboBox x:Name="RecipientComboBox" Height="38" IsEnabled="False"
+                                  SelectionChanged="RecipientComboBox_SelectionChanged">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DisplayName}" TextWrapping="Wrap"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                         <TextBlock Text="Title" Style="{StaticResource LabelStyle}" Margin="0,16,0,0"/>
                         <TextBox x:Name="TitleBox"/>
                         <TextBlock Text="Message" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
