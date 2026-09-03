@@ -60,16 +60,19 @@ public partial class MyTasksPage : Page
     {
         if (_selectedTask == null) { MessageText.Text = "Select a task first."; return; }
         var status = (TaskStatusComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? TaskStatuses.InProgress;
-        if (string.IsNullOrWhiteSpace(DailyDescriptionTextBox.Text)) { MessageText.Text = "Describe the work completed today."; return; }
-        if (status == TaskStatuses.Blocked && string.IsNullOrWhiteSpace(BlockedReasonTextBox.Text)) { MessageText.Text = "Explain what is blocking this task."; return; }
+        var description = DailyDescriptionTextBox.Text.Trim();
+        var blockedReason = BlockedReasonTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(description)) { MessageText.Text = "Describe the work completed today."; return; }
+        if (status == TaskStatuses.Blocked && string.IsNullOrWhiteSpace(blockedReason)) { MessageText.Text = "Explain what is blocking this task."; return; }
         if (MessageBox.Show("Save today's task update?", "Confirm daily update", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         try
         {
-            await Task.Run(() => _userService.SaveDailyTaskUpdate(new DailyTaskUpdate
+            var update = new DailyTaskUpdate
             {
                 ComponentId = _selectedTask.Component.Id, UserId = _userId, UpdateDate = DateTime.Today,
-                Description = DailyDescriptionTextBox.Text, Status = status, BlockedReason = BlockedReasonTextBox.Text
-            }));
+                Description = description, Status = status, BlockedReason = blockedReason
+            };
+            await Task.Run(() => _userService.SaveDailyTaskUpdate(update));
             MessageText.Text = "Today's update saved successfully.";
             await TaskListBox_SelectionChangedAsync();
         }
