@@ -79,9 +79,28 @@
                             <ComboBoxItem Content="Admins" Tag="Admin"/>
                         </ComboBox>
                         <CheckBox x:Name="SendToAllBox" Content="Send to everyone in this group" Margin="0,14,0,6" IsChecked="True" Click="SendToAllBox_Click"/>
-                        <TextBox x:Name="RecipientSearchBox" Height="36" Margin="0,6,0,6" IsEnabled="False"
-                                 TextChanged="RecipientSearchBox_TextChanged"
-                                 ToolTip="Search by username or email"/>
+                        <Grid Height="36" Margin="0,6,0,6">
+                            <TextBox x:Name="RecipientSearchBox" Height="36"
+                                     TextChanged="RecipientSearchBox_TextChanged"
+                                     ToolTip="Search by username or email"/>
+                            <TextBlock Text="Search recipients by username or email..."
+                                       Margin="12,0" VerticalAlignment="Center"
+                                       Foreground="#88949B" IsHitTestVisible="False">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=RecipientSearchBox}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsEnabled, ElementName=RecipientSearchBox}" Value="False">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
                         <ComboBox x:Name="RecipientComboBox" Height="38" IsEnabled="False"
                                   SelectionChanged="RecipientComboBox_SelectionChanged">
                             <ComboBox.ItemTemplate>
