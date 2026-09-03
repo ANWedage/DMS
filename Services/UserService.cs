@@ -118,6 +118,40 @@ namespace DMS.Services
                 : null;
         }
 
+        public AdminAccountInfo UpdateAdminUsername(string adminId, string currentPassword, string newUsername)
+        {
+            var admin = GetAdminForUpdate(adminId, currentPassword);
+            var normalizedUsername = SecurityValidator.NormalizeUsername(newUsername);
+            if (!SecurityValidator.IsValidUsername(normalizedUsername))
+                throw new InvalidOperationException("Username must be 3-20 characters, letters/numbers/underscore only, and contain no spaces.");
+            if (_context.Admins.Find(a => a.Username == normalizedUsername && a.Id != adminId).Any())
+                throw new InvalidOperationException("That username is already taken.");
+
+            _context.Admins.UpdateOne(a => a.Id == adminId,
+                Builders<AdminUser>.Update.Set(a => a.Username, normalizedUsername));
+            admin.Username = normalizedUsername;
+            return new AdminAccountInfo(admin.Id, admin.Name, admin.Username);
+        }
+
+        public void UpdateAdminPassword(string adminId, string currentPassword, string newPassword)
+        {
+            GetAdminForUpdate(adminId, currentPassword);
+            if (!SecurityValidator.IsStrongPassword(newPassword))
+                throw new InvalidOperationException("Password must be at least 8 characters and include uppercase, lowercase, a number, and a symbol.");
+
+            var (hash, salt) = PasswordHasher.HashPassword(newPassword);
+            _context.Admins.UpdateOne(a => a.Id == adminId,
+                Builders<AdminUser>.Update.Set(a => a.PasswordHash, hash).Set(a => a.PasswordSalt, salt));
+        }
+
+        private AdminUser GetAdminForUpdate(string adminId, string currentPassword)
+        {
+            var admin = _context.Admins.Find(a => a.Id == adminId).FirstOrDefault();
+            if (admin == null || !PasswordHasher.Verify(currentPassword ?? string.Empty, admin.PasswordHash, admin.PasswordSalt))
+                throw new InvalidOperationException("The current password is incorrect.");
+            return admin;
+        }
+
         public User GetUserById(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -143,8 +177,10 @@ namespace DMS.Services
             return _context.Users.CountDocuments(u => u.IsActive);
         }
 
-        public List<AdminUser> GetAllAdmins() => _context.Admins.Find(_ => true).ToList()
-            .OrderBy(a => a.Username).ToList();
+        public List<AdminAccountInfo> GetAllAdmins() => _context.Admins.Find(_ => true).ToList()
+            .OrderBy(a => a.Username)
+            .Select(a => new AdminAccountInfo(a.Id, a.Name, a.Username))
+            .ToList();
 
         public List<Notification> GetNotifications(string recipientId, string recipientRole)
         {

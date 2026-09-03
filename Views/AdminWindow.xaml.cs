@@ -45,6 +45,19 @@ namespace DMS.Views
             MainContentFrame.Navigate(new NotificationsPage(_userService, () => _ = UpdateNotificationCountAsync()));
         }
 
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentFrame.Navigate(new AdminSettingsPage(_userService, OnPasswordChanged));
+        }
+
+        private void OnPasswordChanged()
+        {
+            AppSession.Clear();
+            var loginWindow = new LoginWindow(_userService);
+            loginWindow.Show();
+            Close();
+        }
+
         private async Task UpdateNotificationCountAsync()
         {
             try

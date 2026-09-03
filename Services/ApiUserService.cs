@@ -106,6 +106,20 @@ public sealed class ApiUserService : IUserService, IDisposable
         return new AdminUser { Id = auth.UserId, Username = auth.Username ?? username, Name = auth.DisplayName ?? username };
     }
 
+    public AdminAccountInfo UpdateAdminUsername(string adminId, string currentPassword, string newUsername)
+    {
+        EnsureCurrentAdmin(adminId);
+        var admin = Read<AdminAccountInfo>(Send(HttpMethod.Put, "api/admin/me/username", new { currentPassword, newUsername }));
+        AppSession.SetAdmin(admin.Name, admin.Username, admin.Id);
+        return admin;
+    }
+
+    public void UpdateAdminPassword(string adminId, string currentPassword, string newPassword)
+    {
+        EnsureCurrentAdmin(adminId);
+        Send(HttpMethod.Put, "api/admin/me/password", new { currentPassword, newPassword }).Dispose();
+    }
+
     public User GetUserById(string userId)
     {
         EnsureCurrentUser(userId);
@@ -117,7 +131,7 @@ public sealed class ApiUserService : IUserService, IDisposable
 
     public long GetActiveUserCount() => Read<long>(Send(HttpMethod.Get, "api/admin/users/active-count"));
 
-    public List<AdminUser> GetAllAdmins() => Read<List<AdminUser>>(Send(HttpMethod.Get, "api/admin/notification-recipients/admins"));
+    public List<AdminAccountInfo> GetAllAdmins() => Read<List<AdminAccountInfo>>(Send(HttpMethod.Get, "api/admin/notification-recipients/admins"));
 
     public List<Notification> GetNotifications(string recipientId, string recipientRole)
     {
@@ -318,6 +332,12 @@ public sealed class ApiUserService : IUserService, IDisposable
         if (!string.Equals(AppSession.CurrentUserId, recipientId, StringComparison.Ordinal)
             || !string.Equals(AppSession.CurrentRole, recipientRole, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("You do not have access to these notifications.");
+    }
+
+    private static void EnsureCurrentAdmin(string adminId)
+    {
+        if (!AppSession.IsAdmin || !string.Equals(AppSession.CurrentUserId, adminId, StringComparison.Ordinal))
+            throw new InvalidOperationException("You do not have access to this admin account.");
     }
 
     public void Dispose() => _httpClient.Dispose();

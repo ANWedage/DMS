@@ -14,10 +14,15 @@
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0" Background="#0F4C5C" Padding="24,28">
-            <StackPanel>
-                <TextBlock Text="DMS Admin" Foreground="White" FontSize="28" FontWeight="Bold"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0">
+                    <TextBlock Text="DMS Admin" Foreground="White" FontSize="28" FontWeight="Bold"/>
 
-                <StackPanel Margin="0,28,0,0">
+                    <StackPanel Margin="0,28,0,0">
                     <Button Height="42" Margin="0,0,0,10" Background="#146A7A" Foreground="White"
                             BorderThickness="0" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="16,0,0,0"
                             Click="AllDevelopersButton_Click"><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE716;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="30"/><TextBlock Text="Developer Management" VerticalAlignment="Center"/></StackPanel></Button>
@@ -37,8 +42,14 @@
                                 <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE715;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="30"/><TextBlock Text="Notifications" VerticalAlignment="Center"/></StackPanel>
                             </DockPanel>
                         </Button>
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
+                <Button Grid.Row="1" Height="42" Margin="0,16,0,0" Background="#146A7A" Foreground="White"
+                        BorderThickness="0" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="16,0,0,0"
+                        Click="SettingsButton_Click" ToolTip="Open admin settings">
+                    <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="30"/><TextBlock Text="Settings" VerticalAlignment="Center"/></StackPanel>
+                </Button>
+            </Grid>
         </Border>
 
         <Grid Grid.Column="1" Margin="42,34,42,36">

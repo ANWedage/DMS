@@ -34,13 +34,15 @@ namespace DMS.Services
 
         /// <summary>Returns the configured admin account matching the supplied username, or null.</summary>
         AdminUser? LoginAdmin(string username, string password);
+        AdminAccountInfo UpdateAdminUsername(string adminId, string currentPassword, string newUsername);
+        void UpdateAdminPassword(string adminId, string currentPassword, string newPassword);
 
         /// <summary>Loads a user profile by ID so a session can only ever show its own account.</summary>
         User GetUserById(string userId);
 
         /// <summary>Returns all registered users so administrators can review the developer list.</summary>
         List<User> GetAllUsers();
-        List<AdminUser> GetAllAdmins();
+        List<AdminAccountInfo> GetAllAdmins();
 
         /// <summary>Returns the number of currently active user accounts.</summary>
         long GetActiveUserCount();
