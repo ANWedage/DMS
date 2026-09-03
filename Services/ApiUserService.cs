@@ -106,18 +106,12 @@ public sealed class ApiUserService : IUserService, IDisposable
         return new AdminUser { Id = auth.UserId, Username = auth.Username ?? username, Name = auth.DisplayName ?? username };
     }
 
-    public AdminAccountInfo UpdateAdminUsername(string adminId, string currentPassword, string newUsername)
+    public AdminAccountInfo UpdateAdminProfile(string adminId, AdminProfileUpdate update)
     {
         EnsureCurrentAdmin(adminId);
-        var admin = Read<AdminAccountInfo>(Send(HttpMethod.Put, "api/admin/me/username", new { currentPassword, newUsername }));
+        var admin = Read<AdminAccountInfo>(Send(HttpMethod.Put, "api/admin/me/profile", update));
         AppSession.SetAdmin(admin.Name, admin.Username, admin.Id);
         return admin;
-    }
-
-    public void UpdateAdminPassword(string adminId, string currentPassword, string newPassword)
-    {
-        EnsureCurrentAdmin(adminId);
-        Send(HttpMethod.Put, "api/admin/me/password", new { currentPassword, newPassword }).Dispose();
     }
 
     public User GetUserById(string userId)

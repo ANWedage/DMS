@@ -34,8 +34,7 @@ namespace DMS.Services
 
         /// <summary>Returns the configured admin account matching the supplied username, or null.</summary>
         AdminUser? LoginAdmin(string username, string password);
-        AdminAccountInfo UpdateAdminUsername(string adminId, string currentPassword, string newUsername);
-        void UpdateAdminPassword(string adminId, string currentPassword, string newPassword);
+        AdminAccountInfo UpdateAdminProfile(string adminId, AdminProfileUpdate update);
 
         /// <summary>Loads a user profile by ID so a session can only ever show its own account.</summary>
         User GetUserById(string userId);

@@ -146,24 +146,13 @@ authenticated.MapGet("/admin/users/active-count", (ClaimsPrincipal principal, IU
 authenticated.MapGet("/admin/notification-recipients/admins", (ClaimsPrincipal principal, IUserService users) =>
     principal.IsInRole("Admin") ? Results.Ok(users.GetAllAdmins()) : Results.Forbid());
 
-authenticated.MapPut("/admin/me/username", (AdminUsernameChangeRequest request, ClaimsPrincipal principal, IUserService users) =>
+authenticated.MapPut("/admin/me/profile", (AdminProfileUpdate request, ClaimsPrincipal principal, IUserService users) =>
 {
     if (!principal.IsInRole("Admin")) return Results.Forbid();
     try
     {
-        var admin = users.UpdateAdminUsername(GetSubject(principal) ?? string.Empty, request.CurrentPassword, request.NewUsername);
+        var admin = users.UpdateAdminProfile(GetSubject(principal) ?? string.Empty, request);
         return Results.Ok(admin);
-    }
-    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
-});
-
-authenticated.MapPut("/admin/me/password", (AdminPasswordChangeRequest request, ClaimsPrincipal principal, IUserService users) =>
-{
-    if (!principal.IsInRole("Admin")) return Results.Forbid();
-    try
-    {
-        users.UpdateAdminPassword(GetSubject(principal) ?? string.Empty, request.CurrentPassword, request.NewPassword);
-        return Results.NoContent();
     }
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });

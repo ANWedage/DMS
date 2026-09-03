@@ -118,37 +118,31 @@ namespace DMS.Services
                 : null;
         }
 
-        public AdminAccountInfo UpdateAdminUsername(string adminId, string currentPassword, string newUsername)
+        public AdminAccountInfo UpdateAdminProfile(string adminId, AdminProfileUpdate update)
         {
-            var admin = GetAdminForUpdate(adminId, currentPassword);
-            var normalizedUsername = SecurityValidator.NormalizeUsername(newUsername);
+            var admin = GetAdminForUpdate(adminId, update.CurrentUsername, update.CurrentPassword);
+            var normalizedUsername = SecurityValidator.NormalizeUsername(update.NewUsername);
             if (!SecurityValidator.IsValidUsername(normalizedUsername))
                 throw new InvalidOperationException("Username must be 3-20 characters, letters/numbers/underscore only, and contain no spaces.");
             if (_context.Admins.Find(a => a.Username == normalizedUsername && a.Id != adminId).Any())
                 throw new InvalidOperationException("That username is already taken.");
-
-            _context.Admins.UpdateOne(a => a.Id == adminId,
-                Builders<AdminUser>.Update.Set(a => a.Username, normalizedUsername));
-            admin.Username = normalizedUsername;
-            return new AdminAccountInfo(admin.Id, admin.Name, admin.Username);
-        }
-
-        public void UpdateAdminPassword(string adminId, string currentPassword, string newPassword)
-        {
-            GetAdminForUpdate(adminId, currentPassword);
-            if (!SecurityValidator.IsStrongPassword(newPassword))
+            if (!SecurityValidator.IsStrongPassword(update.NewPassword))
                 throw new InvalidOperationException("Password must be at least 8 characters and include uppercase, lowercase, a number, and a symbol.");
 
-            var (hash, salt) = PasswordHasher.HashPassword(newPassword);
+            var (hash, salt) = PasswordHasher.HashPassword(update.NewPassword);
             _context.Admins.UpdateOne(a => a.Id == adminId,
-                Builders<AdminUser>.Update.Set(a => a.PasswordHash, hash).Set(a => a.PasswordSalt, salt));
+                Builders<AdminUser>.Update.Set(a => a.Username, normalizedUsername)
+                    .Set(a => a.PasswordHash, hash)
+                    .Set(a => a.PasswordSalt, salt));
+            return new AdminAccountInfo(admin.Id, admin.Name, normalizedUsername);
         }
 
-        private AdminUser GetAdminForUpdate(string adminId, string currentPassword)
+        private AdminUser GetAdminForUpdate(string adminId, string currentUsername, string currentPassword)
         {
             var admin = _context.Admins.Find(a => a.Id == adminId).FirstOrDefault();
-            if (admin == null || !PasswordHasher.Verify(currentPassword ?? string.Empty, admin.PasswordHash, admin.PasswordSalt))
-                throw new InvalidOperationException("The current password is incorrect.");
+            if (admin == null || !string.Equals(admin.Username, SecurityValidator.NormalizeUsername(currentUsername), StringComparison.Ordinal)
+                || !PasswordHasher.Verify(currentPassword ?? string.Empty, admin.PasswordHash, admin.PasswordSalt))
+                throw new InvalidOperationException("The current username or password is incorrect.");
             return admin;
         }
 

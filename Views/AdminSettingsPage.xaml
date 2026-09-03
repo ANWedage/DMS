@@ -5,33 +5,22 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Background="#F5F7F8" Margin="30">
             <TextBlock Text="Settings" Style="{StaticResource HeadingStyle}"/>
-            <TextBlock Text="Manage your administrator account." Style="{StaticResource MutedStyle}" Margin="0,8,0,24"/>
-
-            <Border Background="White" CornerRadius="10" Padding="22" Margin="0,0,0,18">
-                <StackPanel>
-                    <TextBlock Text="Change username" Style="{StaticResource SectionHeadingStyle}"/>
-                    <TextBlock Text="Current username" Style="{StaticResource LabelStyle}" Margin="0,18,0,0"/>
-                    <TextBlock x:Name="CurrentUsernameText" Margin="0,6,0,0" FontSize="15"/>
-                    <TextBlock Text="New username" Style="{StaticResource LabelStyle}" Margin="0,14,0,0"/>
-                    <TextBox x:Name="NewUsernameBox"/>
-                    <TextBlock Text="Current password" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
-                    <PasswordBox x:Name="UsernameCurrentPasswordBox"/>
-                    <TextBlock x:Name="UsernameErrorText" Style="{StaticResource ErrorStyle}" Margin="0,8,0,0"/>
-                    <Button Content="Update username" HorizontalAlignment="Left" Margin="0,8,0,0" Click="UpdateUsernameButton_Click"/>
-                </StackPanel>
-            </Border>
+            <TextBlock Text="Update your administrator username and password together." Style="{StaticResource MutedStyle}" Margin="0,8,0,24"/>
 
             <Border Background="White" CornerRadius="10" Padding="22">
                 <StackPanel>
-                    <TextBlock Text="Change password" Style="{StaticResource SectionHeadingStyle}"/>
-                    <TextBlock Text="Current password" Style="{StaticResource LabelStyle}" Margin="0,18,0,0"/>
+                    <TextBlock Text="Current username" Style="{StaticResource LabelStyle}" Margin="0,18,0,0"/>
+                    <TextBox x:Name="CurrentUsernameBox" IsReadOnly="True" Background="#F0F3F4"/>
+                    <TextBlock Text="New username" Style="{StaticResource LabelStyle}" Margin="0,14,0,0"/>
+                    <TextBox x:Name="NewUsernameBox"/>
+                    <TextBlock Text="Current password" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
                     <PasswordBox x:Name="PasswordCurrentPasswordBox"/>
                     <TextBlock Text="New password" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
                     <PasswordBox x:Name="NewPasswordBox"/>
                     <TextBlock Text="Confirm new password" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
                     <PasswordBox x:Name="ConfirmPasswordBox"/>
-                    <TextBlock x:Name="PasswordErrorText" Style="{StaticResource ErrorStyle}" Margin="0,8,0,0"/>
-                    <Button Content="Update password" HorizontalAlignment="Left" Margin="0,8,0,0" Click="UpdatePasswordButton_Click"/>
+                    <TextBlock x:Name="ProfileErrorText" Style="{StaticResource ErrorStyle}" Margin="0,8,0,0"/>
+                    <Button Content="Update profile" HorizontalAlignment="Left" Margin="0,8,0,0" Click="UpdateProfileButton_Click"/>
                 </StackPanel>
             </Border>
         </StackPanel>
