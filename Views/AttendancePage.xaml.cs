@@ -109,8 +109,22 @@ namespace DMS.Views
             {
                 var date = AttendanceDatePicker.SelectedDate ?? DateTime.Today;
                 var marked = await Task.Run(() => _userService.MarkAttendancePresent(_userId, meetingType, date));
-                MessageText.Text = marked ? "Attendance marked as Present." : "Attendance could not be marked. Check the meeting time window.";
-                await LoadAttendanceAsync();
+                if (!marked)
+                {
+                    MessageText.Text = "Attendance could not be marked. Check the meeting time window.";
+                    return;
+                }
+
+                var rows = AttendanceItems.ItemsSource?.Cast<AttendanceRow>().ToArray();
+                var row = rows?.FirstOrDefault(item => item.MeetingType == meetingType);
+                if (row != null)
+                {
+                    row.Status = AttendanceStatuses.Present;
+                    row.CanMarkPresent = false;
+                    AttendanceItems.ItemsSource = rows;
+                }
+
+                MessageText.Text = "Attendance marked as Present.";
             }
             catch (Exception ex)
             {
@@ -144,8 +158,8 @@ namespace DMS.Views
             public string MeetingType { get; init; } = string.Empty;
             public string MeetingTime { get; init; } = string.Empty;
             public string MeetingLink { get; init; } = string.Empty;
-            public string Status { get; init; } = AttendanceStatuses.Pending;
-            public bool CanMarkPresent { get; init; }
+            public string Status { get; set; } = AttendanceStatuses.Pending;
+            public bool CanMarkPresent { get; set; }
         }
     }
 }
