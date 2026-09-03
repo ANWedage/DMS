@@ -311,17 +311,15 @@ namespace DMS.Services
 
         private static DateTime GetApplicationNow(MeetingSettings settings)
         {
+            var configuredTimeZone = settings.TimeZoneId?.Trim();
+            if (string.IsNullOrWhiteSpace(configuredTimeZone)
+                || string.Equals(configuredTimeZone, "Sri Lanka Standard Time", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(configuredTimeZone, "Asia/Colombo", StringComparison.OrdinalIgnoreCase))
+                return DateTime.UtcNow.AddHours(5.5);
+
             try
             {
-                var timeZoneId = settings.TimeZoneId?.Trim();
-                if (string.IsNullOrWhiteSpace(timeZoneId))
-                    timeZoneId = OperatingSystem.IsWindows() ? "Sri Lanka Standard Time" : "Asia/Colombo";
-                else if (string.Equals(timeZoneId, "Sri Lanka Standard Time", StringComparison.OrdinalIgnoreCase))
-                    timeZoneId = OperatingSystem.IsWindows() ? "Sri Lanka Standard Time" : "Asia/Colombo";
-                else if (string.Equals(timeZoneId, "Asia/Colombo", StringComparison.OrdinalIgnoreCase))
-                    timeZoneId = OperatingSystem.IsWindows() ? "Sri Lanka Standard Time" : "Asia/Colombo";
-
-                var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                var timeZone = TimeZoneInfo.FindSystemTimeZoneById(configuredTimeZone);
                 return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
             }
             catch (TimeZoneNotFoundException)
