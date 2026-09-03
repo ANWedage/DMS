@@ -11,6 +11,7 @@ public sealed record SetUsernameRequest(string Username);
 public sealed record AttendanceRequest(string MeetingType, DateOnly Date);
 public sealed record UserStatusRequest(bool IsActive);
 public sealed record AttendanceStatusRequest(string Status, string? Note);
+public sealed record ComponentAssignmentsRequest(IReadOnlyCollection<string> UserIds);
 public sealed record AuthResponse(string Token, string UserId, string? Username, string Role, string? DisplayName = null);
 
 public sealed class JwtTokenService

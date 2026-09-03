@@ -36,7 +36,7 @@ namespace DMS.Views
 
         private void TasksButton_Click(object sender, RoutedEventArgs e)
         {
-            MainContentFrame.Navigate(new TasksPage());
+            MainContentFrame.Navigate(new TasksPage(_userService));
         }
 
         private void AttendanceTrackingButton_Click(object sender, RoutedEventArgs e)

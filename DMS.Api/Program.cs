@@ -21,7 +21,9 @@ var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "DMS.Api";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "DMS.Desktop";
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
 
-builder.Services.AddSingleton(new MongoDbContext());
+var mongoContext = new MongoDbContext();
+mongoContext.EnsureIndexes();
+builder.Services.AddSingleton(mongoContext);
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton(new JwtTokenService(jwtIssuer, jwtAudience, signingKey));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -208,6 +210,73 @@ authenticated.MapPut("/admin/meeting-settings", (MeetingSettings settings, Claim
     {
         return Results.BadRequest(new { error = ex.Message });
     }
+});
+
+authenticated.MapGet("/admin/projects", (ClaimsPrincipal principal, IUserService users) =>
+    principal.IsInRole("Admin") ? Results.Ok(users.GetProjects()) : Results.Forbid());
+
+authenticated.MapPost("/admin/projects", (TaskProject project, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin")) return Results.Forbid();
+    try
+    {
+        project.CreatedByAdminId = GetSubject(principal) ?? string.Empty;
+        return Results.Ok(users.CreateProject(project));
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
+authenticated.MapGet("/admin/projects/{projectId}/components", (string projectId, ClaimsPrincipal principal, IUserService users) =>
+    principal.IsInRole("Admin") ? Results.Ok(users.GetProjectComponents(projectId)) : Results.Forbid());
+
+authenticated.MapPost("/admin/components", (TaskComponent component, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin")) return Results.Forbid();
+    try { return Results.Ok(users.CreateTaskComponent(component)); }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
+authenticated.MapGet("/admin/components/{componentId}/assignments", (string componentId, ClaimsPrincipal principal, IUserService users) =>
+    principal.IsInRole("Admin") ? Results.Ok(users.GetComponentAssignments(componentId)) : Results.Forbid());
+
+authenticated.MapPut("/admin/components/{componentId}/assignments", (string componentId, ComponentAssignmentsRequest request, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin")) return Results.Forbid();
+    try
+    {
+        users.SetComponentAssignments(componentId, request.UserIds, GetSubject(principal) ?? string.Empty);
+        return Results.NoContent();
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
+authenticated.MapGet("/tasks/my", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    return principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId)
+        ? Results.Forbid()
+        : Results.Ok(users.GetMyTasks(userId));
+});
+
+authenticated.MapGet("/tasks/{componentId}/updates", (string componentId, ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    return string.IsNullOrWhiteSpace(userId)
+        ? Results.Forbid()
+        : Results.Ok(users.GetTaskUpdates(componentId, userId, principal.IsInRole("Admin")));
+});
+
+authenticated.MapPost("/tasks/{componentId}/updates", (string componentId, DailyTaskUpdate update, ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    if (principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
+    try
+    {
+        update.ComponentId = componentId;
+        update.UserId = userId;
+        return Results.Ok(users.SaveDailyTaskUpdate(update));
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
 
 app.Run();

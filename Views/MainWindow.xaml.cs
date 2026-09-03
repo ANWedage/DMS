@@ -46,7 +46,7 @@ namespace DMS.Views
 
         private void MyTasksButton_Click(object sender, RoutedEventArgs e)
         {
-            MainContentFrame.Navigate(new UserSectionPage("My Tasks"));
+            MainContentFrame.Navigate(new MyTasksPage(_userService, _currentUserId));
         }
 
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)

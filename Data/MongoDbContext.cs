@@ -17,6 +17,10 @@ namespace DMS.Data
         public IMongoCollection<AdminUser> Admins => _database.GetCollection<AdminUser>("Admins");
         public IMongoCollection<AttendanceRecord> Attendance => _database.GetCollection<AttendanceRecord>("Attendance");
         public IMongoCollection<MeetingSettings> MeetingSettings => _database.GetCollection<MeetingSettings>("MeetingSettings");
+        public IMongoCollection<TaskProject> Projects => _database.GetCollection<TaskProject>("Projects");
+        public IMongoCollection<TaskComponent> Components => _database.GetCollection<TaskComponent>("ProjectComponents");
+        public IMongoCollection<ComponentAssignment> ComponentAssignments => _database.GetCollection<ComponentAssignment>("ComponentAssignments");
+        public IMongoCollection<DailyTaskUpdate> DailyTaskUpdates => _database.GetCollection<DailyTaskUpdate>("DailyTaskUpdates");
 
         /// <summary>Creates unique indexes on Email and Username (first run only - safe to call every startup).</summary>
         public void EnsureIndexes()
@@ -44,6 +48,13 @@ namespace DMS.Data
                 new CreateIndexOptions { Unique = true });
 
             Attendance.Indexes.CreateOne(attendanceIndex);
+
+            ComponentAssignments.Indexes.CreateOne(new CreateIndexModel<ComponentAssignment>(
+                Builders<ComponentAssignment>.IndexKeys.Ascending(a => a.ComponentId).Ascending(a => a.UserId),
+                new CreateIndexOptions { Unique = true }));
+            DailyTaskUpdates.Indexes.CreateOne(new CreateIndexModel<DailyTaskUpdate>(
+                Builders<DailyTaskUpdate>.IndexKeys.Ascending(u => u.ComponentId).Ascending(u => u.UserId).Ascending(u => u.UpdateDate),
+                new CreateIndexOptions { Unique = true }));
         }
     }
 }

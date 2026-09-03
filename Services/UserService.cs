@@ -361,6 +361,127 @@ namespace DMS.Services
             return date.Add(parsedTime);
         }
 
+        public List<TaskProject> GetProjects() => _context.Projects.Find(_ => true).SortByDescending(p => p.UpdatedAt).ToList();
+
+        public TaskProject CreateProject(TaskProject project)
+        {
+            if (string.IsNullOrWhiteSpace(project.Name))
+                throw new InvalidOperationException("Project name is required.");
+            if (project.DueDate.Date < project.StartDate.Date)
+                throw new InvalidOperationException("Project due date cannot be before its start date.");
+
+            project.Name = project.Name.Trim();
+            project.Description = project.Description?.Trim() ?? string.Empty;
+            project.CreatedAt = DateTime.UtcNow;
+            project.UpdatedAt = project.CreatedAt;
+            _context.Projects.InsertOne(project);
+            return project;
+        }
+
+        public List<TaskComponent> GetProjectComponents(string projectId) =>
+            _context.Components.Find(c => c.ProjectId == projectId).SortBy(c => c.DueDate).ToList();
+
+        public TaskComponent CreateTaskComponent(TaskComponent component)
+        {
+            if (string.IsNullOrWhiteSpace(component.ProjectId) || string.IsNullOrWhiteSpace(component.Name))
+                throw new InvalidOperationException("Project and component name are required.");
+            if (!_context.Projects.Find(p => p.Id == component.ProjectId).Any())
+                throw new InvalidOperationException("The project could not be found.");
+
+            component.Name = component.Name.Trim();
+            component.Description = component.Description?.Trim() ?? string.Empty;
+            component.CreatedAt = DateTime.UtcNow;
+            component.UpdatedAt = component.CreatedAt;
+            _context.Components.InsertOne(component);
+            return component;
+        }
+
+        public List<ComponentAssignment> GetComponentAssignments(string componentId) =>
+            _context.ComponentAssignments.Find(a => a.ComponentId == componentId && a.IsActive).ToList();
+
+        public bool SetComponentAssignments(string componentId, IReadOnlyCollection<string> userIds, string adminId)
+        {
+            if (!_context.Components.Find(c => c.Id == componentId).Any())
+                throw new InvalidOperationException("The component could not be found.");
+
+            var distinctUserIds = userIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToHashSet();
+            var existing = _context.ComponentAssignments.Find(a => a.ComponentId == componentId).ToList();
+            foreach (var assignment in existing)
+            {
+                var shouldBeActive = distinctUserIds.Contains(assignment.UserId);
+                _context.ComponentAssignments.UpdateOne(
+                    a => a.Id == assignment.Id,
+                    Builders<ComponentAssignment>.Update.Set(a => a.IsActive, shouldBeActive));
+            }
+
+            foreach (var userId in distinctUserIds.Where(id => existing.All(a => a.UserId != id)))
+                _context.ComponentAssignments.InsertOne(new ComponentAssignment
+                {
+                    ComponentId = componentId,
+                    UserId = userId,
+                    AssignedByAdminId = adminId
+                });
+
+            return true;
+        }
+
+        public List<AssignedTask> GetMyTasks(string userId)
+        {
+            var assignments = _context.ComponentAssignments.Find(a => a.UserId == userId && a.IsActive).ToList();
+            var result = new List<AssignedTask>();
+            foreach (var assignment in assignments)
+            {
+                var component = _context.Components.Find(c => c.Id == assignment.ComponentId).FirstOrDefault();
+                var project = component == null ? null : _context.Projects.Find(p => p.Id == component.ProjectId).FirstOrDefault();
+                if (component == null || project == null) continue;
+                result.Add(new AssignedTask
+                {
+                    Project = project,
+                    Component = component,
+                    LatestUpdate = _context.DailyTaskUpdates.Find(u => u.ComponentId == component.Id && u.UserId == userId)
+                        .SortByDescending(u => u.UpdateDate).FirstOrDefault()
+                });
+            }
+            return result.OrderBy(item => item.Component.DueDate).ToList();
+        }
+
+        public List<DailyTaskUpdate> GetTaskUpdates(string componentId, string userId, bool isAdmin)
+        {
+            if (!isAdmin && !_context.ComponentAssignments.Find(a => a.ComponentId == componentId && a.UserId == userId && a.IsActive).Any())
+                throw new InvalidOperationException("This task is not assigned to your account.");
+
+            var filter = isAdmin
+                ? Builders<DailyTaskUpdate>.Filter.Eq(u => u.ComponentId, componentId)
+                : Builders<DailyTaskUpdate>.Filter.And(
+                    Builders<DailyTaskUpdate>.Filter.Eq(u => u.ComponentId, componentId),
+                    Builders<DailyTaskUpdate>.Filter.Eq(u => u.UserId, userId));
+            return _context.DailyTaskUpdates.Find(filter).SortByDescending(u => u.UpdateDate).ToList();
+        }
+
+        public DailyTaskUpdate SaveDailyTaskUpdate(DailyTaskUpdate update)
+        {
+            if (string.IsNullOrWhiteSpace(update.ComponentId) || string.IsNullOrWhiteSpace(update.UserId)
+                || string.IsNullOrWhiteSpace(update.Description))
+                throw new InvalidOperationException("A daily work description is required.");
+            if (!new[] { TaskStatuses.NotStarted, TaskStatuses.InProgress, TaskStatuses.Blocked, TaskStatuses.Completed }.Contains(update.Status))
+                throw new InvalidOperationException("The selected task status is invalid.");
+            if (update.Status == TaskStatuses.Blocked && string.IsNullOrWhiteSpace(update.BlockedReason))
+                throw new InvalidOperationException("A blocked reason is required.");
+            if (!_context.ComponentAssignments.Find(a => a.ComponentId == update.ComponentId && a.UserId == update.UserId && a.IsActive).Any())
+                throw new InvalidOperationException("This task is not assigned to your account.");
+
+            update.UpdateDate = update.UpdateDate.Date;
+            update.Description = update.Description.Trim();
+            update.BlockedReason = string.IsNullOrWhiteSpace(update.BlockedReason) ? null : update.BlockedReason.Trim();
+            update.UpdatedAt = DateTime.UtcNow;
+            var filter = Builders<DailyTaskUpdate>.Filter.And(
+                Builders<DailyTaskUpdate>.Filter.Eq(u => u.ComponentId, update.ComponentId),
+                Builders<DailyTaskUpdate>.Filter.Eq(u => u.UserId, update.UserId),
+                Builders<DailyTaskUpdate>.Filter.Eq(u => u.UpdateDate, update.UpdateDate));
+            _context.DailyTaskUpdates.ReplaceOne(filter, update, new ReplaceOptions { IsUpsert = true });
+            return update;
+        }
+
         public bool CanAccessUser(string targetUserId)
         {
             var activeUserId = AppSession.CurrentUserId;

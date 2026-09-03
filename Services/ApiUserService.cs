@@ -169,6 +169,44 @@ public sealed class ApiUserService : IUserService, IDisposable
         return Read<bool>(Send(HttpMethod.Get, $"api/auth/username-exists?username={encodedUsername}"));
     }
 
+    public List<TaskProject> GetProjects() => Read<List<TaskProject>>(Send(HttpMethod.Get, "api/admin/projects"));
+
+    public TaskProject CreateProject(TaskProject project) =>
+        Read<TaskProject>(Send(HttpMethod.Post, "api/admin/projects", project));
+
+    public List<TaskComponent> GetProjectComponents(string projectId) =>
+        Read<List<TaskComponent>>(Send(HttpMethod.Get, $"api/admin/projects/{Uri.EscapeDataString(projectId)}/components"));
+
+    public TaskComponent CreateTaskComponent(TaskComponent component) =>
+        Read<TaskComponent>(Send(HttpMethod.Post, "api/admin/components", component));
+
+    public List<ComponentAssignment> GetComponentAssignments(string componentId) =>
+        Read<List<ComponentAssignment>>(Send(HttpMethod.Get, $"api/admin/components/{Uri.EscapeDataString(componentId)}/assignments"));
+
+    public bool SetComponentAssignments(string componentId, IReadOnlyCollection<string> userIds, string adminId)
+    {
+        using var response = Send(HttpMethod.Put, $"api/admin/components/{Uri.EscapeDataString(componentId)}/assignments", new { userIds });
+        return response.IsSuccessStatusCode;
+    }
+
+    public List<AssignedTask> GetMyTasks(string userId)
+    {
+        EnsureCurrentUser(userId);
+        return Read<List<AssignedTask>>(Send(HttpMethod.Get, "api/tasks/my"));
+    }
+
+    public List<DailyTaskUpdate> GetTaskUpdates(string componentId, string userId, bool isAdmin)
+    {
+        if (!isAdmin) EnsureCurrentUser(userId);
+        return Read<List<DailyTaskUpdate>>(Send(HttpMethod.Get, $"api/tasks/{Uri.EscapeDataString(componentId)}/updates"));
+    }
+
+    public DailyTaskUpdate SaveDailyTaskUpdate(DailyTaskUpdate update)
+    {
+        EnsureCurrentUser(update.UserId);
+        return Read<DailyTaskUpdate>(Send(HttpMethod.Post, $"api/tasks/{Uri.EscapeDataString(update.ComponentId)}/updates", update));
+    }
+
     private HttpResponseMessage Send(HttpMethod method, string path, object? body = null, bool allowErrorResponse = false)
     {
         using var request = new HttpRequestMessage(method, path);

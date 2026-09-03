@@ -56,5 +56,15 @@ namespace DMS.Services
 
         bool EmailExists(string email);
         bool UsernameExists(string username);
+
+        List<TaskProject> GetProjects();
+        TaskProject CreateProject(TaskProject project);
+        List<TaskComponent> GetProjectComponents(string projectId);
+        TaskComponent CreateTaskComponent(TaskComponent component);
+        List<ComponentAssignment> GetComponentAssignments(string componentId);
+        bool SetComponentAssignments(string componentId, IReadOnlyCollection<string> userIds, string adminId);
+        List<AssignedTask> GetMyTasks(string userId);
+        List<DailyTaskUpdate> GetTaskUpdates(string componentId, string userId, bool isAdmin);
+        DailyTaskUpdate SaveDailyTaskUpdate(DailyTaskUpdate update);
     }
 }
