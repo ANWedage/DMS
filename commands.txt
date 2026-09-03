@@ -10,3 +10,13 @@ git push origin main
 
 git tag v1.0.1
 git push origin v1.0.1
+
+
+
+
+
+
+
+$env:DMS_MONGO_CONNECTION_STRING = "your MongoDB connection string"
+
+.\scripts\create-admin.ps1
