@@ -133,7 +133,7 @@ public sealed class ApiUserService : IUserService, IDisposable
     public bool MarkAttendancePresent(string userId, string meetingType, DateTime date)
     {
         EnsureCurrentUser(userId);
-        using var response = Send(HttpMethod.Post, "api/attendance/present", new { meetingType, date });
+        using var response = Send(HttpMethod.Post, "api/attendance/present", new { meetingType, date }, allowErrorResponse: true);
         return response.IsSuccessStatusCode;
     }
 

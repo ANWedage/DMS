@@ -105,10 +105,17 @@ namespace DMS.Views
             if (confirmation != MessageBoxResult.Yes)
                 return;
 
-            var date = AttendanceDatePicker.SelectedDate ?? DateTime.Today;
-            var marked = await Task.Run(() => _userService.MarkAttendancePresent(_userId, meetingType, date));
-            MessageText.Text = marked ? "Attendance marked as Present." : "Attendance could not be marked. Check the meeting time window.";
-            await LoadAttendanceAsync();
+            try
+            {
+                var date = AttendanceDatePicker.SelectedDate ?? DateTime.Today;
+                var marked = await Task.Run(() => _userService.MarkAttendancePresent(_userId, meetingType, date));
+                MessageText.Text = marked ? "Attendance marked as Present." : "Attendance could not be marked. Check the meeting time window.";
+                await LoadAttendanceAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageText.Text = $"Unable to mark attendance: {ex.Message}";
+            }
         }
 
         private DateTime GetApplicationNow()
