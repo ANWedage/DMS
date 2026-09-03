@@ -40,9 +40,17 @@ namespace DMS.Services
 
         /// <summary>Returns all registered users so administrators can review the developer list.</summary>
         List<User> GetAllUsers();
+        List<AdminUser> GetAllAdmins();
 
         /// <summary>Returns the number of currently active user accounts.</summary>
         long GetActiveUserCount();
+
+        List<Notification> GetNotifications(string recipientId, string recipientRole);
+        long GetUnreadNotificationCount(string recipientId, string recipientRole);
+        bool MarkNotificationRead(string notificationId, string recipientId, string recipientRole);
+        bool MarkAllNotificationsRead(string recipientId, string recipientRole);
+        int SendNotification(string senderId, string senderName, string recipientRole, bool sendToAll,
+            IReadOnlyCollection<string> recipientIds, string title, string message);
 
         MeetingSettings GetMeetingSettings();
         void SaveMeetingSettings(MeetingSettings settings, string adminId, string adminName);

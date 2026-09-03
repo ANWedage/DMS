@@ -143,6 +143,79 @@ namespace DMS.Services
             return _context.Users.CountDocuments(u => u.IsActive);
         }
 
+        public List<AdminUser> GetAllAdmins() => _context.Admins.Find(_ => true).ToList()
+            .OrderBy(a => a.Username).ToList();
+
+        public List<Notification> GetNotifications(string recipientId, string recipientRole)
+        {
+            ValidateRecipient(recipientId, recipientRole);
+            return _context.Notifications.Find(n => n.RecipientId == recipientId && n.RecipientRole == recipientRole)
+                .SortByDescending(n => n.CreatedAt).ToList();
+        }
+
+        public long GetUnreadNotificationCount(string recipientId, string recipientRole)
+        {
+            ValidateRecipient(recipientId, recipientRole);
+            return _context.Notifications.CountDocuments(n => n.RecipientId == recipientId && n.RecipientRole == recipientRole && !n.IsRead);
+        }
+
+        public bool MarkNotificationRead(string notificationId, string recipientId, string recipientRole)
+        {
+            ValidateRecipient(recipientId, recipientRole);
+            var result = _context.Notifications.UpdateOne(
+                n => n.Id == notificationId && n.RecipientId == recipientId && n.RecipientRole == recipientRole,
+                Builders<Notification>.Update.Set(n => n.IsRead, true).Set(n => n.ReadAt, DateTime.UtcNow));
+            return result.ModifiedCount > 0;
+        }
+
+        public bool MarkAllNotificationsRead(string recipientId, string recipientRole)
+        {
+            ValidateRecipient(recipientId, recipientRole);
+            var result = _context.Notifications.UpdateMany(
+                n => n.RecipientId == recipientId && n.RecipientRole == recipientRole && !n.IsRead,
+                Builders<Notification>.Update.Set(n => n.IsRead, true).Set(n => n.ReadAt, DateTime.UtcNow));
+            return result.ModifiedCount > 0;
+        }
+
+        public int SendNotification(string senderId, string senderName, string recipientRole, bool sendToAll,
+            IReadOnlyCollection<string> recipientIds, string title, string message)
+        {
+            if (string.IsNullOrWhiteSpace(senderId) || string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(message))
+                throw new InvalidOperationException("A notification title and message are required.");
+            if (recipientRole != "User" && recipientRole != "Admin")
+                throw new InvalidOperationException("The notification recipient type is invalid.");
+
+            var validRecipientIds = recipientRole == "User"
+                ? _context.Users.Find(u => u.IsActive).ToList().Select(u => u.Id).ToHashSet()
+                : _context.Admins.Find(_ => true).ToList().Select(a => a.Id).ToHashSet();
+            if (!sendToAll && recipientIds.Any(id => !validRecipientIds.Contains(id)))
+                throw new InvalidOperationException("One or more selected recipients are no longer available.");
+
+            var recipients = sendToAll ? validRecipientIds : recipientIds;
+            var ids = recipients.Where(id => !string.IsNullOrWhiteSpace(id) && (recipientRole != "Admin" || id != senderId)).Distinct().ToList();
+            if (ids.Count == 0)
+                throw new InvalidOperationException("Select at least one notification recipient.");
+
+            var now = DateTime.UtcNow;
+            _context.Notifications.InsertMany(ids.Select(id => new Notification
+            {
+                RecipientId = id,
+                RecipientRole = recipientRole,
+                SenderId = senderId,
+                SenderName = senderName,
+                Title = title.Trim(),
+                Message = message.Trim(),
+                CreatedAt = now
+            }));
+            return ids.Count;
+        }
+
+        private static void ValidateRecipient(string recipientId, string recipientRole)
+        {
+            if (string.IsNullOrWhiteSpace(recipientId) || (recipientRole != "User" && recipientRole != "Admin"))
+                throw new InvalidOperationException("The notification recipient is invalid.");
+        }
+
         public MeetingSettings GetMeetingSettings()
         {
             var settings = _context.MeetingSettings.Find(s => s.Id == MeetingSettings.DefaultId).FirstOrDefault();

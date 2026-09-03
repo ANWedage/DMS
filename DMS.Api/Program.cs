@@ -143,6 +143,53 @@ authenticated.MapGet("/admin/users", (ClaimsPrincipal principal, IUserService us
 authenticated.MapGet("/admin/users/active-count", (ClaimsPrincipal principal, IUserService users) =>
     principal.IsInRole("Admin") ? Results.Ok(users.GetActiveUserCount()) : Results.Forbid());
 
+authenticated.MapGet("/admin/notification-recipients/admins", (ClaimsPrincipal principal, IUserService users) =>
+    principal.IsInRole("Admin") ? Results.Ok(users.GetAllAdmins()) : Results.Forbid());
+
+authenticated.MapGet("/notifications", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var recipientId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    return string.IsNullOrWhiteSpace(recipientId) ? Results.Forbid() : Results.Ok(users.GetNotifications(recipientId, role));
+});
+
+authenticated.MapGet("/notifications/unread-count", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var recipientId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    return string.IsNullOrWhiteSpace(recipientId) ? Results.Forbid() : Results.Ok(users.GetUnreadNotificationCount(recipientId, role));
+});
+
+authenticated.MapPost("/notifications/{notificationId}/read", (string notificationId, ClaimsPrincipal principal, IUserService users) =>
+{
+    var recipientId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    return string.IsNullOrWhiteSpace(recipientId) ? Results.Forbid()
+        : users.MarkNotificationRead(notificationId, recipientId, role) ? Results.NoContent() : Results.NotFound();
+});
+
+authenticated.MapPost("/notifications/read-all", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var recipientId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    return string.IsNullOrWhiteSpace(recipientId) ? Results.Forbid()
+        : Results.NoContent();
+});
+
+authenticated.MapPost("/admin/notifications", (NotificationRequest request, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin")) return Results.Forbid();
+    try
+    {
+        var senderId = GetSubject(principal) ?? string.Empty;
+        var senderName = principal.FindFirst("display_name")?.Value ?? principal.Identity?.Name ?? "Admin";
+        var count = users.SendNotification(senderId, senderName, request.RecipientRole, request.SendToAll,
+            request.RecipientIds, request.Title, request.Message);
+        return Results.Ok(count);
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
 authenticated.MapPost("/admin/users/{userId}/status", (string userId, UserStatusRequest request, ClaimsPrincipal principal, IUserService users) =>
 {
     if (!principal.IsInRole("Admin"))

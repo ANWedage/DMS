@@ -27,6 +27,7 @@ namespace DMS.Views
             DataContext = _viewModel;
             _viewModel.LogoutRequested = OnLogoutRequested;
             ShowDashboard();
+            _ = UpdateNotificationCountAsync();
         }
 
         private void ShowDashboard()
@@ -51,7 +52,21 @@ namespace DMS.Views
 
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
         {
-            MainContentFrame.Navigate(new UserSectionPage("Notifications"));
+            MainContentFrame.Navigate(new NotificationsPage(_userService, () => _ = UpdateNotificationCountAsync()));
+        }
+
+        private async Task UpdateNotificationCountAsync()
+        {
+            try
+            {
+                var count = await Task.Run(() => _userService.GetUnreadNotificationCount(_currentUserId, "User"));
+                UserNotificationCountText.Text = count > 99 ? "99+" : count.ToString();
+                UserNotificationBadge.Visibility = count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+            catch
+            {
+                UserNotificationBadge.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void SignOutButton_Click(object sender, RoutedEventArgs e)

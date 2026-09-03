@@ -21,6 +21,7 @@ namespace DMS.Data
         public IMongoCollection<TaskComponent> Components => _database.GetCollection<TaskComponent>("ProjectComponents");
         public IMongoCollection<ComponentAssignment> ComponentAssignments => _database.GetCollection<ComponentAssignment>("ComponentAssignments");
         public IMongoCollection<DailyTaskUpdate> DailyTaskUpdates => _database.GetCollection<DailyTaskUpdate>("DailyTaskUpdates");
+        public IMongoCollection<Notification> Notifications => _database.GetCollection<Notification>("Notifications");
 
         /// <summary>Creates unique indexes on Email and Username (first run only - safe to call every startup).</summary>
         public void EnsureIndexes()
@@ -55,6 +56,9 @@ namespace DMS.Data
             DailyTaskUpdates.Indexes.CreateOne(new CreateIndexModel<DailyTaskUpdate>(
                 Builders<DailyTaskUpdate>.IndexKeys.Ascending(u => u.ComponentId).Ascending(u => u.UserId).Ascending(u => u.UpdateDate),
                 new CreateIndexOptions { Unique = true }));
+
+            Notifications.Indexes.CreateOne(new CreateIndexModel<Notification>(
+                Builders<Notification>.IndexKeys.Ascending(n => n.RecipientId).Ascending(n => n.RecipientRole).Ascending(n => n.IsRead).Descending(n => n.CreatedAt)));
         }
     }
 }

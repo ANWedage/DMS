@@ -35,10 +35,10 @@ namespace DMS.Helpers
             Save();
         }
 
-        public static void SetAdmin(string name, string username)
+        public static void SetAdmin(string name, string username, string? userId = null)
         {
             CurrentRole = "Admin";
-            CurrentUserId = username;
+            CurrentUserId = string.IsNullOrWhiteSpace(userId) ? username : userId;
             CurrentUsername = username;
             CurrentDisplayName = name;
             Save();

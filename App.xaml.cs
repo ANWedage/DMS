@@ -80,7 +80,7 @@ namespace DMS
 
                     if (string.Equals(savedSession.Role, "Admin", StringComparison.OrdinalIgnoreCase))
                     {
-                        AppSession.SetAdmin(savedSession.DisplayName ?? savedSession.Username ?? "Admin", savedSession.Username ?? savedSession.UserId);
+                        AppSession.SetAdmin(savedSession.DisplayName ?? savedSession.Username ?? "Admin", savedSession.Username ?? savedSession.UserId, savedSession.UserId);
                         startupWindow = new AdminWindow(userService);
                     }
                     else

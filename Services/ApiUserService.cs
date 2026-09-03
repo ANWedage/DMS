@@ -117,6 +117,49 @@ public sealed class ApiUserService : IUserService, IDisposable
 
     public long GetActiveUserCount() => Read<long>(Send(HttpMethod.Get, "api/admin/users/active-count"));
 
+    public List<AdminUser> GetAllAdmins() => Read<List<AdminUser>>(Send(HttpMethod.Get, "api/admin/notification-recipients/admins"));
+
+    public List<Notification> GetNotifications(string recipientId, string recipientRole)
+    {
+        EnsureCurrentRecipient(recipientId, recipientRole);
+        return Read<List<Notification>>(Send(HttpMethod.Get, "api/notifications"));
+    }
+
+    public long GetUnreadNotificationCount(string recipientId, string recipientRole)
+    {
+        EnsureCurrentRecipient(recipientId, recipientRole);
+        return Read<long>(Send(HttpMethod.Get, "api/notifications/unread-count"));
+    }
+
+    public bool MarkNotificationRead(string notificationId, string recipientId, string recipientRole)
+    {
+        EnsureCurrentRecipient(recipientId, recipientRole);
+        using var response = Send(HttpMethod.Post, $"api/notifications/{Uri.EscapeDataString(notificationId)}/read");
+        return response.IsSuccessStatusCode;
+    }
+
+    public bool MarkAllNotificationsRead(string recipientId, string recipientRole)
+    {
+        EnsureCurrentRecipient(recipientId, recipientRole);
+        using var response = Send(HttpMethod.Post, "api/notifications/read-all");
+        return response.IsSuccessStatusCode;
+    }
+
+    public int SendNotification(string senderId, string senderName, string recipientRole, bool sendToAll,
+        IReadOnlyCollection<string> recipientIds, string title, string message)
+    {
+        if (!AppSession.IsAdmin || !string.Equals(senderId, AppSession.CurrentUserId, StringComparison.Ordinal))
+            throw new InvalidOperationException("Only the signed-in admin can send notifications.");
+        return Read<int>(Send(HttpMethod.Post, "api/admin/notifications", new
+        {
+            recipientRole,
+            sendToAll,
+            recipientIds,
+            title,
+            message
+        }));
+    }
+
     public MeetingSettings GetMeetingSettings() => Read<MeetingSettings>(Send(HttpMethod.Get, "api/meeting-settings"));
 
     public void SaveMeetingSettings(MeetingSettings settings, string adminId, string adminName)
@@ -268,6 +311,13 @@ public sealed class ApiUserService : IUserService, IDisposable
     {
         if (!string.Equals(AppSession.CurrentUserId, userId, StringComparison.Ordinal))
             throw new InvalidOperationException("You do not have access to this user account.");
+    }
+
+    private static void EnsureCurrentRecipient(string recipientId, string recipientRole)
+    {
+        if (!string.Equals(AppSession.CurrentUserId, recipientId, StringComparison.Ordinal)
+            || !string.Equals(AppSession.CurrentRole, recipientRole, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("You do not have access to these notifications.");
     }
 
     public void Dispose() => _httpClient.Dispose();

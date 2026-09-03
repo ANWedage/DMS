@@ -1,0 +1,94 @@
+<Page x:Class="DMS.Views.NotificationsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Notifications">
+    <Grid Background="#F5F7F8" Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Margin="0,0,0,18">
+            <StackPanel>
+                <TextBlock Text="Notifications" Style="{StaticResource HeadingStyle}"/>
+                <TextBlock x:Name="UnreadCountText" Text="Loading unread notifications..." Margin="0,8,0,0" Style="{StaticResource MutedStyle}"/>
+            </StackPanel>
+            <Button Content="Mark all as read" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Style="{StaticResource SecondaryButtonStyle}" Click="MarkAllReadButton_Click"/>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition x:Name="ComposeColumn" Width="0"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="White" CornerRadius="10" Padding="10">
+                <ListView x:Name="NotificationList" BorderThickness="0" Background="Transparent">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Padding" Value="8"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsRead}" Value="False">
+                                    <Setter Property="Background" Value="#E8F5F3"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="4,8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0">
+                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16"/>
+                                    <Button Content="Mark read" DockPanel.Dock="Right" Tag="{Binding Id}" Padding="10,4"
+                                            Click="MarkReadButton_Click">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsRead}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </DockPanel>
+                                <TextBlock Grid.Row="1" Text="{Binding Message}" TextWrapping="Wrap" Margin="0,7,0,0"/>
+                                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,7,0,0">
+                                    <TextBlock Text="From " Foreground="#66727D"/>
+                                    <TextBlock Text="{Binding SenderName}" Foreground="#66727D"/>
+                                    <TextBlock Text="  |  " Foreground="#66727D"/>
+                                    <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:dd MMM yyyy HH:mm}}" Foreground="#66727D"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Border>
+            <Border x:Name="ComposePanel" Grid.Column="1" Background="White" CornerRadius="10" Padding="20" Margin="18,0,0,0" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Send a notification" Style="{StaticResource SectionHeadingStyle}"/>
+                        <TextBlock Text="Audience" Style="{StaticResource LabelStyle}" Margin="0,18,0,0"/>
+                        <ComboBox x:Name="RecipientRoleBox" Height="36" Margin="0,6,0,0" SelectionChanged="RecipientRoleBox_SelectionChanged">
+                            <ComboBoxItem Content="Users" Tag="User" IsSelected="True"/>
+                            <ComboBoxItem Content="Admins" Tag="Admin"/>
+                        </ComboBox>
+                        <CheckBox x:Name="SendToAllBox" Content="Send to everyone in this group" Margin="0,14,0,6" IsChecked="True" Click="SendToAllBox_Click"/>
+                        <ListBox x:Name="RecipientList" Height="120" SelectionMode="Multiple" IsEnabled="False"/>
+                        <TextBlock Text="Title" Style="{StaticResource LabelStyle}" Margin="0,16,0,0"/>
+                        <TextBox x:Name="TitleBox"/>
+                        <TextBlock Text="Message" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
+                        <TextBox x:Name="MessageTextBox" Height="110" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top"/>
+                        <TextBlock x:Name="ComposeErrorText" Style="{StaticResource ErrorStyle}" Margin="0,8,0,0"/>
+                        <Button Content="Send notification" Margin="0,10,0,0" Click="SendButton_Click"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

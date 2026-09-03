@@ -130,7 +130,7 @@ namespace DMS.ViewModels
                     return;
                 }
 
-                AppSession.SetAdmin(admin.Name, admin.Username);
+                AppSession.SetAdmin(admin.Name, admin.Username, admin.Id);
                 LoginSucceeded?.Invoke(new User
                 {
                     Id = admin.Id,
