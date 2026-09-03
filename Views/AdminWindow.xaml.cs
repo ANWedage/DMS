@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Diagnostics;
+using System.Windows.Navigation;
 using DMS.Helpers;
 using DMS.Services;
 
@@ -48,6 +50,12 @@ namespace DMS.Views
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new AdminSettingsPage(_userService, OnPasswordChanged));
+        }
+
+        private void WebsiteHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
         }
 
         private void OnPasswordChanged()
