@@ -313,21 +313,24 @@ namespace DMS.Services
         {
             try
             {
-                var timeZoneId = settings.TimeZoneId;
-                if (OperatingSystem.IsLinux()
-                    && string.Equals(timeZoneId, "Sri Lanka Standard Time", StringComparison.OrdinalIgnoreCase))
-                    timeZoneId = "Asia/Colombo";
+                var timeZoneId = settings.TimeZoneId?.Trim();
+                if (string.IsNullOrWhiteSpace(timeZoneId))
+                    timeZoneId = OperatingSystem.IsWindows() ? "Sri Lanka Standard Time" : "Asia/Colombo";
+                else if (string.Equals(timeZoneId, "Sri Lanka Standard Time", StringComparison.OrdinalIgnoreCase))
+                    timeZoneId = OperatingSystem.IsWindows() ? "Sri Lanka Standard Time" : "Asia/Colombo";
+                else if (string.Equals(timeZoneId, "Asia/Colombo", StringComparison.OrdinalIgnoreCase))
+                    timeZoneId = OperatingSystem.IsWindows() ? "Sri Lanka Standard Time" : "Asia/Colombo";
 
                 var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
                 return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
             }
             catch (TimeZoneNotFoundException)
             {
-                return DateTime.Now;
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.Utc).AddHours(5.5);
             }
             catch (InvalidTimeZoneException)
             {
-                return DateTime.Now;
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.Utc).AddHours(5.5);
             }
         }
 
