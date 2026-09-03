@@ -16,18 +16,13 @@ namespace DMS.Views
         {
             InitializeComponent();
             _userService = userService;
-            ShowDashboard();
+            ShowDevelopers();
             _ = UpdateNotificationCountAsync();
         }
 
-        private void ShowDashboard()
+        private void ShowDevelopers()
         {
-            MainContentFrame.Navigate(new DashboardPage(_userService));
-        }
-
-        private void DashboardButton_Click(object sender, RoutedEventArgs e)
-        {
-            MainContentFrame.Navigate(new DashboardPage(_userService));
+            MainContentFrame.Navigate(new AllDevelopersPage(_userService));
         }
 
         private void AllDevelopersButton_Click(object sender, RoutedEventArgs e)

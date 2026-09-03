@@ -26,18 +26,13 @@ namespace DMS.Views
             _viewModel = new MainViewModel(safeUser);
             DataContext = _viewModel;
             _viewModel.LogoutRequested = OnLogoutRequested;
-            ShowDashboard();
+            ShowAttendance();
             _ = UpdateNotificationCountAsync();
         }
 
-        private void ShowDashboard()
+        private void ShowAttendance()
         {
-            MainContentFrame.Navigate(new UserSectionPage("Dashboard"));
-        }
-
-        private void DashboardButton_Click(object sender, RoutedEventArgs e)
-        {
-            ShowDashboard();
+            MainContentFrame.Navigate(new AttendancePage(_userService, _currentUserId));
         }
 
         private void AttendanceButton_Click(object sender, RoutedEventArgs e)
