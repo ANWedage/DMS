@@ -63,7 +63,7 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Column="1" Margin="42,34,42,36">
+        <Grid Grid.Column="1" Background="#E8EDEF" Margin="42,34,42,36">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
