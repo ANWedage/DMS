@@ -2,7 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Dashboard">
-    <Grid Background="#F5F7F8">
+    <Grid Background="#E8EDEF">
         <StackPanel Margin="30">
             <TextBlock Text="Dashboard" FontSize="32" FontWeight="Bold" Foreground="#17212B"/>
             <TextBlock Text="Overview of current operations and team status." Margin="0,12,0,0" Foreground="#66727D"/>

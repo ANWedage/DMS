@@ -6,7 +6,7 @@
         <helpers:StatusBrushConverter x:Key="StatusBrushConverter"/>
         <SolidColorBrush x:Key="InkBrush" Color="#17212B"/>
         <SolidColorBrush x:Key="MutedBrush" Color="#66727D"/>
-        <SolidColorBrush x:Key="CanvasBrush" Color="#F7F7F3"/>
+        <SolidColorBrush x:Key="CanvasBrush" Color="#EEF1F2"/>
         <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="LineBrush" Color="#DDE3E5"/>
         <SolidColorBrush x:Key="TealBrush" Color="#126E70"/>
