@@ -78,6 +78,9 @@ public sealed class ApiUserService : IUserService, IDisposable
     public User? Login(string username, string password)
     {
         using var response = Send(HttpMethod.Post, "api/auth/login", new { username, password }, allowErrorResponse: true);
+        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            throw new AccountDisabledException();
+
         if (!response.IsSuccessStatusCode)
             return null;
 

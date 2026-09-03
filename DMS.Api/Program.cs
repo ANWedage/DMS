@@ -63,9 +63,16 @@ app.MapPost("/api/auth/register", (RegisterRequest request, IUserService users, 
 
 app.MapPost("/api/auth/login", (LoginRequest request, IUserService users, JwtTokenService tokens) =>
 {
-    var user = users.Login(request.Username, request.Password);
-    if (user != null)
-        return Results.Ok(new AuthResponse(tokens.CreateUserToken(user), user.Id, user.Username, "User"));
+    try
+    {
+        var user = users.Login(request.Username, request.Password);
+        if (user != null)
+            return Results.Ok(new AuthResponse(tokens.CreateUserToken(user), user.Id, user.Username, "User"));
+    }
+    catch (AccountDisabledException ex)
+    {
+        return Results.Json(new { error = ex.Message }, statusCode: StatusCodes.Status403Forbidden);
+    }
 
     var admin = users.LoginAdmin(request.Username, request.Password);
     if (admin != null)

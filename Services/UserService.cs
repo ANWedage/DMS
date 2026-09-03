@@ -97,8 +97,10 @@ namespace DMS.Services
         public User? Login(string username, string password)
         {
             var normalizedUsername = SecurityValidator.NormalizeUsername(username);
-            var user = _context.Users.Find(u => u.Username == normalizedUsername && u.IsActive).FirstOrDefault();
+            var user = _context.Users.Find(u => u.Username == normalizedUsername).FirstOrDefault();
             if (user is null) return null;
+            if (!user.IsActive)
+                throw new AccountDisabledException();
 
             return PasswordHasher.Verify(password ?? string.Empty, user.PasswordHash, user.PasswordSalt)
                 ? user

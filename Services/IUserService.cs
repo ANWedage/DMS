@@ -2,6 +2,14 @@ using DMS.Models;
 
 namespace DMS.Services
 {
+    public sealed class AccountDisabledException : InvalidOperationException
+    {
+        public AccountDisabledException()
+            : base("Your account has been disabled by an administrator. Please contact an administrator for access.")
+        {
+        }
+    }
+
     public interface IUserService
     {
         /// <summary>Creates an account with email, contact number, and password. Username is not set yet.</summary>

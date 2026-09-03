@@ -152,6 +152,11 @@ namespace DMS.ViewModels
             {
                 user = _userService.Login(normalizedUsername, Password);
             }
+            catch (AccountDisabledException ex)
+            {
+                ErrorMessage = ex.Message;
+                return;
+            }
             catch (Exception)
             {
                 ErrorMessage = "We could not connect to the account service. Check the database connection and try again.";
