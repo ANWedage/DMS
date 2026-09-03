@@ -247,6 +247,17 @@ authenticated.MapPost("/admin/components", (TaskComponent component, ClaimsPrinc
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
 
+authenticated.MapPut("/admin/components/{componentId}", (string componentId, TaskComponent component, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin")) return Results.Forbid();
+    try
+    {
+        component.Id = componentId;
+        return Results.Ok(users.UpdateTaskComponent(component));
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
 authenticated.MapGet("/admin/components/{componentId}/assignments", (string componentId, ClaimsPrincipal principal, IUserService users) =>
     principal.IsInRole("Admin") ? Results.Ok(users.GetComponentAssignments(componentId)) : Results.Forbid());
 

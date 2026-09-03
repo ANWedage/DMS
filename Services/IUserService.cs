@@ -62,6 +62,7 @@ namespace DMS.Services
         TaskProject UpdateProject(TaskProject project);
         List<TaskComponent> GetProjectComponents(string projectId);
         TaskComponent CreateTaskComponent(TaskComponent component);
+        TaskComponent UpdateTaskComponent(TaskComponent component);
         List<ComponentAssignment> GetComponentAssignments(string componentId);
         bool SetComponentAssignments(string componentId, IReadOnlyCollection<string> userIds, string adminId);
         List<AssignedTask> GetMyTasks(string userId);

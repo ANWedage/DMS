@@ -23,6 +23,8 @@ namespace DMS.Views
         ComponentDueDatePicker.SelectedDate = DateTime.Today.AddDays(7);
         ProjectStatusComboBox.SelectedIndex = 0;
         ComponentPriorityComboBox.SelectedIndex = 1;
+        EditComponentPriorityComboBox.SelectedIndex = 1;
+        EditComponentStatusComboBox.SelectedIndex = 0;
         Loaded += async (_, _) => await LoadProjectsAsync();
         }
 
@@ -135,12 +137,51 @@ namespace DMS.Views
     {
         _selectedComponent = ComponentListView.SelectedItem as TaskComponent;
         SelectedComponentText.Text = _selectedComponent?.Name ?? "Select a component";
+        EditComponentNameTextBox.Text = _selectedComponent?.Name ?? string.Empty;
+        EditComponentDescriptionTextBox.Text = _selectedComponent?.Description ?? string.Empty;
+        EditComponentDueDatePicker.SelectedDate = _selectedComponent?.DueDate;
+        EditComponentPriorityComboBox.SelectedIndex = _selectedComponent == null
+            ? -1
+            : Array.FindIndex(new[] { TaskPriorities.Low, TaskPriorities.Medium, TaskPriorities.High }, priority => priority == _selectedComponent.Priority);
+        EditComponentStatusComboBox.SelectedIndex = _selectedComponent == null
+            ? -1
+            : Array.FindIndex(new[] { TaskStatuses.NotStarted, TaskStatuses.InProgress, TaskStatuses.Blocked, TaskStatuses.Completed }, status => status == _selectedComponent.Status);
         var assigned = _selectedComponent == null
             ? new List<ComponentAssignment>()
             : await Task.Run(() => _userService.GetComponentAssignments(_selectedComponent.Id));
         foreach (var option in (MembersListBox.ItemsSource as IEnumerable<MemberOption>) ?? Enumerable.Empty<MemberOption>())
             option.IsSelected = assigned.Any(a => a.UserId == option.User.Id);
         MembersListBox.Items.Refresh();
+    }
+
+    private async void UpdateComponentButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedComponent == null) { MessageBox.Show("Select a component first.", "Component", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+        if (string.IsNullOrWhiteSpace(EditComponentNameTextBox.Text)) { MessageBox.Show("Enter a component name.", "Component", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+        if (MessageBox.Show("Update this component?", "Confirm component update", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+        var component = new TaskComponent
+        {
+            Id = _selectedComponent.Id,
+            ProjectId = _selectedComponent.ProjectId,
+            Name = EditComponentNameTextBox.Text,
+            Description = EditComponentDescriptionTextBox.Text,
+            Priority = (EditComponentPriorityComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? TaskPriorities.Medium,
+            Status = (EditComponentStatusComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? TaskStatuses.NotStarted,
+            DueDate = EditComponentDueDatePicker.SelectedDate ?? _selectedComponent.DueDate,
+            CreatedAt = _selectedComponent.CreatedAt
+        };
+
+        try
+        {
+            var updated = await Task.Run(() => _userService.UpdateTaskComponent(component));
+            _selectedComponent = updated;
+            SelectedComponentText.Text = updated.Name;
+            ComponentListView.ItemsSource = await Task.Run(() => _userService.GetProjectComponents(updated.ProjectId));
+            ComponentListView.SelectedItem = (ComponentListView.ItemsSource as IEnumerable<TaskComponent>)?.FirstOrDefault(item => item.Id == updated.Id);
+            MessageBox.Show("Component updated successfully.", "Component", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex) { MessageBox.Show($"Unable to update component: {ex.Message}", "Component", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
     private async void SaveAssignmentsButton_Click(object sender, RoutedEventArgs e)

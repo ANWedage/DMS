@@ -183,6 +183,9 @@ public sealed class ApiUserService : IUserService, IDisposable
     public TaskComponent CreateTaskComponent(TaskComponent component) =>
         Read<TaskComponent>(Send(HttpMethod.Post, "api/admin/components", component));
 
+    public TaskComponent UpdateTaskComponent(TaskComponent component) =>
+        Read<TaskComponent>(Send(HttpMethod.Put, $"api/admin/components/{Uri.EscapeDataString(component.Id)}", component));
+
     public List<ComponentAssignment> GetComponentAssignments(string componentId) =>
         Read<List<ComponentAssignment>>(Send(HttpMethod.Get, $"api/admin/components/{Uri.EscapeDataString(componentId)}/assignments"));
 

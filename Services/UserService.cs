@@ -421,6 +421,29 @@ namespace DMS.Services
             return component;
         }
 
+        public TaskComponent UpdateTaskComponent(TaskComponent component)
+        {
+            if (string.IsNullOrWhiteSpace(component.Id) || string.IsNullOrWhiteSpace(component.Name))
+                throw new InvalidOperationException("Component and component name are required.");
+            if (!_context.Components.Find(c => c.Id == component.Id).Any())
+                throw new InvalidOperationException("The component could not be found.");
+
+            component.Name = component.Name.Trim();
+            component.Description = component.Description?.Trim() ?? string.Empty;
+            component.UpdatedAt = DateTime.UtcNow;
+            var update = Builders<TaskComponent>.Update
+                .Set(c => c.Name, component.Name)
+                .Set(c => c.Description, component.Description)
+                .Set(c => c.Priority, component.Priority)
+                .Set(c => c.DueDate, component.DueDate.Date)
+                .Set(c => c.Status, component.Status)
+                .Set(c => c.UpdatedAt, component.UpdatedAt);
+            var result = _context.Components.UpdateOne(c => c.Id == component.Id, update);
+            if (result.MatchedCount == 0)
+                throw new InvalidOperationException("The component could not be found.");
+            return component;
+        }
+
         public List<ComponentAssignment> GetComponentAssignments(string componentId) =>
             _context.ComponentAssignments.Find(a => a.ComponentId == componentId && a.IsActive).ToList();
 
