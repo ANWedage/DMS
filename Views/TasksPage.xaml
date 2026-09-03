@@ -34,6 +34,17 @@
                     <StackPanel>
                         <TextBlock x:Name="SelectedProjectText" Text="Select a project" FontSize="22" FontWeight="Bold"/>
                         <TextBlock x:Name="SelectedProjectDescriptionText" Foreground="#66727D" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="110"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <TextBox x:Name="EditProjectNameTextBox" Grid.Column="0" ToolTip="Project name"/>
+                            <TextBox x:Name="EditProjectDescriptionTextBox" Grid.Column="1" Margin="8,0,0,0" ToolTip="Project description"/>
+                            <DatePicker x:Name="EditProjectStartDatePicker" Grid.Column="2" Margin="8,0,0,0"/>
+                            <DatePicker x:Name="EditProjectDueDatePicker" Grid.Column="3" Margin="8,0,0,0"/>
+                            <ComboBox x:Name="EditProjectStatusComboBox" Grid.Column="4" Margin="8,0,0,0">
+                                <ComboBoxItem Content="Draft"/><ComboBoxItem Content="Active"/><ComboBoxItem Content="Completed"/><ComboBoxItem Content="Archived"/>
+                            </ComboBox>
+                        </Grid>
+                        <Button Content="Update Project" Click="UpdateProjectButton_Click" HorizontalAlignment="Left" Margin="0,10,0,0"/>
                     </StackPanel>
                     <Border Grid.Row="1" Background="#F7F9F9" Padding="12" Margin="0,16,0,16">
                         <StackPanel>

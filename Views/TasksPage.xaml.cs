@@ -68,8 +68,46 @@ namespace DMS.Views
         _selectedComponent = null;
         SelectedProjectText.Text = _selectedProject?.Name ?? "Select a project";
         SelectedProjectDescriptionText.Text = _selectedProject?.Description ?? string.Empty;
+        EditProjectNameTextBox.Text = _selectedProject?.Name ?? string.Empty;
+        EditProjectDescriptionTextBox.Text = _selectedProject?.Description ?? string.Empty;
+        EditProjectStartDatePicker.SelectedDate = _selectedProject?.StartDate;
+        EditProjectDueDatePicker.SelectedDate = _selectedProject?.DueDate;
+        EditProjectStatusComboBox.SelectedIndex = _selectedProject == null
+            ? -1
+            : Array.FindIndex(new[] { ProjectStatuses.Draft, ProjectStatuses.Active, ProjectStatuses.Completed, ProjectStatuses.Archived }, status => status == _selectedProject.Status);
         SelectedComponentText.Text = "Select a component";
         ComponentListView.ItemsSource = _selectedProject == null ? null : await Task.Run(() => _userService.GetProjectComponents(_selectedProject.Id));
+    }
+
+    private async void UpdateProjectButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedProject == null) { MessageBox.Show("Select a project first.", "Project", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+        if (string.IsNullOrWhiteSpace(EditProjectNameTextBox.Text)) { MessageBox.Show("Enter a project name.", "Project", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+        if (MessageBox.Show("Update this project?", "Confirm project update", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+        var project = new TaskProject
+        {
+            Id = _selectedProject.Id,
+            Name = EditProjectNameTextBox.Text,
+            Description = EditProjectDescriptionTextBox.Text,
+            StartDate = EditProjectStartDatePicker.SelectedDate ?? _selectedProject.StartDate,
+            DueDate = EditProjectDueDatePicker.SelectedDate ?? _selectedProject.DueDate,
+            Status = (EditProjectStatusComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? ProjectStatuses.Draft,
+            CreatedByAdminId = _selectedProject.CreatedByAdminId,
+            CreatedAt = _selectedProject.CreatedAt
+        };
+
+        try
+        {
+            var updated = await Task.Run(() => _userService.UpdateProject(project));
+            _selectedProject = updated;
+            SelectedProjectText.Text = updated.Name;
+            SelectedProjectDescriptionText.Text = updated.Description;
+            await LoadProjectsAsync();
+            ProjectListBox.SelectedItem = _projects.FirstOrDefault(item => item.Id == updated.Id);
+            MessageBox.Show("Project updated successfully.", "Project", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex) { MessageBox.Show($"Unable to update project: {ex.Message}", "Project", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
     private async void AddComponentButton_Click(object sender, RoutedEventArgs e)

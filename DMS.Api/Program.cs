@@ -226,6 +226,17 @@ authenticated.MapPost("/admin/projects", (TaskProject project, ClaimsPrincipal p
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
 
+authenticated.MapPut("/admin/projects/{projectId}", (string projectId, TaskProject project, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin")) return Results.Forbid();
+    try
+    {
+        project.Id = projectId;
+        return Results.Ok(users.UpdateProject(project));
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
 authenticated.MapGet("/admin/projects/{projectId}/components", (string projectId, ClaimsPrincipal principal, IUserService users) =>
     principal.IsInRole("Admin") ? Results.Ok(users.GetProjectComponents(projectId)) : Results.Forbid());
 

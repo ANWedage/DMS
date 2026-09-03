@@ -378,6 +378,31 @@ namespace DMS.Services
             return project;
         }
 
+        public TaskProject UpdateProject(TaskProject project)
+        {
+            if (string.IsNullOrWhiteSpace(project.Id) || string.IsNullOrWhiteSpace(project.Name))
+                throw new InvalidOperationException("Project and project name are required.");
+            if (project.DueDate.Date < project.StartDate.Date)
+                throw new InvalidOperationException("Project due date cannot be before its start date.");
+            if (!_context.Projects.Find(p => p.Id == project.Id).Any())
+                throw new InvalidOperationException("The project could not be found.");
+
+            project.Name = project.Name.Trim();
+            project.Description = project.Description?.Trim() ?? string.Empty;
+            project.UpdatedAt = DateTime.UtcNow;
+            var update = Builders<TaskProject>.Update
+                .Set(p => p.Name, project.Name)
+                .Set(p => p.Description, project.Description)
+                .Set(p => p.StartDate, project.StartDate.Date)
+                .Set(p => p.DueDate, project.DueDate.Date)
+                .Set(p => p.Status, project.Status)
+                .Set(p => p.UpdatedAt, project.UpdatedAt);
+            var result = _context.Projects.UpdateOne(p => p.Id == project.Id, update);
+            if (result.MatchedCount == 0)
+                throw new InvalidOperationException("The project could not be found.");
+            return project;
+        }
+
         public List<TaskComponent> GetProjectComponents(string projectId) =>
             _context.Components.Find(c => c.ProjectId == projectId).SortBy(c => c.DueDate).ToList();
 

@@ -59,6 +59,7 @@ namespace DMS.Services
 
         List<TaskProject> GetProjects();
         TaskProject CreateProject(TaskProject project);
+        TaskProject UpdateProject(TaskProject project);
         List<TaskComponent> GetProjectComponents(string projectId);
         TaskComponent CreateTaskComponent(TaskComponent component);
         List<ComponentAssignment> GetComponentAssignments(string componentId);
