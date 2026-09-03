@@ -9,7 +9,7 @@
                 <TextBlock Text="Review attendance for both daily Google Meet standups."
                            Margin="0,8,0,20" Foreground="#66727D"/>
 
-                <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" Padding="18">
+                <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="18">
                     <StackPanel>
                         <TextBlock Text="Meeting settings" Style="{StaticResource SectionHeadingStyle}"/>
                         <Grid Margin="0,14,0,0">
@@ -45,8 +45,9 @@
                 </StackPanel>
                 <TextBlock x:Name="AttendanceMessageText" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
-                <DataGrid x:Name="AttendanceGrid" AutoGenerateColumns="False" CanUserAddRows="False"
-                          IsReadOnly="False" Background="White" BorderBrush="#DDE3E5" BorderThickness="1">
+                <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10">
+                    <DataGrid x:Name="AttendanceGrid" AutoGenerateColumns="False" CanUserAddRows="False"
+                              IsReadOnly="False" Background="Transparent" BorderThickness="0">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Member" Binding="{Binding MemberName}" IsReadOnly="True" Width="170"/>
                         <DataGridTextColumn Header="Meeting" Binding="{Binding MeetingType}" IsReadOnly="True" Width="100"/>
@@ -90,7 +91,8 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
-                </DataGrid>
+                    </DataGrid>
+                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -10,7 +10,7 @@
         </StackPanel>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions><ColumnDefinition Width="285"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Background="White" Padding="16" BorderBrush="#DDE3E5" BorderThickness="1">
+            <Border Grid.Column="0" Background="White" Padding="16" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
                         <TextBlock Text="Create New Project" FontSize="18" FontWeight="SemiBold"/>
@@ -34,7 +34,7 @@
                         <ListBox x:Name="ProjectListBox" SelectionChanged="ProjectListBox_SelectionChanged" BorderThickness="0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Padding="10" Margin="0,0,0,8" BorderBrush="#DDE3E5" BorderThickness="1">
+                                    <Border Padding="10" Margin="0,0,0,8" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="6">
                                         <StackPanel>
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"/>
                                             <TextBlock Text="{Binding Description}" Foreground="#66727D" TextWrapping="Wrap" Margin="0,4,0,0"/>
@@ -52,7 +52,7 @@
                     </ScrollViewer>
                 </DockPanel>
             </Border>
-            <Border Grid.Column="2" Background="White" Padding="18" BorderBrush="#DDE3E5" BorderThickness="1">
+            <Border Grid.Column="2" Background="White" Padding="18" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
@@ -73,7 +73,7 @@
                         </Grid>
                         <Button Content="Update Project" Click="UpdateProjectButton_Click" HorizontalAlignment="Left" Margin="0,10,0,0"/>
                     </StackPanel>
-                    <Border Grid.Row="1" Background="#F7F9F9" Padding="12" Margin="0,16,0,16">
+                    <Border Grid.Row="1" Background="#F7F9F9" Padding="12" Margin="0,16,0,16" CornerRadius="8">
                         <StackPanel>
                             <TextBlock Text="Add New Component" FontSize="17" FontWeight="SemiBold"/>
                             <TextBlock Text="Create a work item for this project." Foreground="#66727D" Margin="0,4,0,0"/>
@@ -101,7 +101,7 @@
                             </GridView></ListView.View>
                         </ListView>
                         <Expander x:Name="ComponentWorkspaceExpander" Header="Selected Component Workspace" IsExpanded="True" Margin="0,16,0,0">
-                            <Border Background="#F7F9F9" Padding="16" BorderBrush="#DDE3E5" BorderThickness="1">
+                            <Border Background="#F7F9F9" Padding="16" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="8">
                                 <Grid>
                                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                     <StackPanel>
@@ -152,7 +152,7 @@
                                 </Grid>
                             </Border>
                         </Expander>
-                        <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" Padding="16" Margin="0,18,0,0">
+                        <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,18,0,0">
                             <StackPanel>
                                 <TextBlock Text="Project Daily Report" FontSize="19" FontWeight="SemiBold"/>
                                 <TextBlock Text="View every component and assigned member update for one date, then generate one report." Foreground="#66727D" Margin="0,4,0,0" TextWrapping="Wrap"/>

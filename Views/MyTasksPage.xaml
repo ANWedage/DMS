@@ -10,10 +10,10 @@
         </StackPanel>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions><ColumnDefinition Width="300"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Background="White" Padding="14" BorderBrush="#DDE3E5" BorderThickness="1">
+            <Border Grid.Column="0" Background="White" Padding="14" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10">
                 <ListBox x:Name="TaskListBox" SelectionChanged="TaskListBox_SelectionChanged" BorderThickness="0">
                     <ListBox.ItemTemplate><DataTemplate>
-                        <Border Padding="10" Margin="0,0,0,8" BorderBrush="#DDE3E5" BorderThickness="1">
+                        <Border Padding="10" Margin="0,0,0,8" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="6">
                             <StackPanel>
                                 <TextBlock Text="{Binding Component.Name}" FontSize="16" FontWeight="SemiBold"/>
                                 <TextBlock Text="{Binding Project.Name}" Foreground="#66727D" Margin="0,4,0,0"/>
@@ -24,7 +24,7 @@
                     </DataTemplate></ListBox.ItemTemplate>
                 </ListBox>
             </Border>
-            <Border Grid.Column="2" Background="White" Padding="20" BorderBrush="#DDE3E5" BorderThickness="1">
+            <Border Grid.Column="2" Background="White" Padding="20" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10">
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <StackPanel>
@@ -33,7 +33,7 @@
                         <TextBlock x:Name="DescriptionText" TextWrapping="Wrap" Margin="0,12,0,0"/>
                         <TextBlock x:Name="DueDateText" Foreground="#66727D" Margin="0,7,0,0"/>
                     </StackPanel>
-                    <Border Grid.Row="1" Background="#F7F9F9" Padding="14" Margin="0,18,0,18">
+                    <Border Grid.Row="1" Background="#F7F9F9" Padding="14" Margin="0,18,0,18" CornerRadius="8">
                         <StackPanel>
                             <TextBlock Text="Daily Work Update" FontSize="18" FontWeight="SemiBold"/>
                             <TextBlock Text="Describe the work you completed today." Margin="0,6,0,0" Foreground="#66727D"/>

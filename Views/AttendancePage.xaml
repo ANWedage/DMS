@@ -14,7 +14,7 @@
                 <ItemsControl x:Name="AttendanceItems" Margin="0,18,0,0">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1"
+                            <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10"
                                     Padding="18" Margin="0,0,0,12">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
