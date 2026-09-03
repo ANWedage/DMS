@@ -288,6 +288,13 @@ authenticated.MapGet("/tasks/{componentId}/updates", (string componentId, Claims
         : Results.Ok(users.GetTaskUpdates(componentId, userId, principal.IsInRole("Admin")));
 });
 
+authenticated.MapGet("/admin/projects/{projectId}/daily-task-report", (string projectId, DateTime? date, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin")) return Results.Forbid();
+    try { return Results.Ok(users.GetProjectDailyTaskReport(projectId, date?.Date ?? DateTime.Today)); }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
 authenticated.MapPost("/tasks/{componentId}/updates", (string componentId, DailyTaskUpdate update, ClaimsPrincipal principal, IUserService users) =>
 {
     var userId = GetSubject(principal);

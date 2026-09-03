@@ -213,6 +213,10 @@ public sealed class ApiUserService : IUserService, IDisposable
         return Read<DailyTaskUpdate>(Send(HttpMethod.Post, $"api/tasks/{Uri.EscapeDataString(update.ComponentId)}/updates", update));
     }
 
+    public List<ProjectDailyTaskReportRow> GetProjectDailyTaskReport(string projectId, DateTime date) =>
+        Read<List<ProjectDailyTaskReportRow>>(Send(HttpMethod.Get,
+            $"api/admin/projects/{Uri.EscapeDataString(projectId)}/daily-task-report?date={date:yyyy-MM-dd}"));
+
     private HttpResponseMessage Send(HttpMethod method, string path, object? body = null, bool allowErrorResponse = false)
     {
         using var request = new HttpRequestMessage(method, path);

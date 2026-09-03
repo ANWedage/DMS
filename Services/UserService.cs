@@ -530,6 +530,41 @@ namespace DMS.Services
             return update;
         }
 
+        public List<ProjectDailyTaskReportRow> GetProjectDailyTaskReport(string projectId, DateTime date)
+        {
+            var project = _context.Projects.Find(p => p.Id == projectId).FirstOrDefault()
+                ?? throw new InvalidOperationException("The project could not be found.");
+            var components = _context.Components.Find(c => c.ProjectId == projectId).ToList();
+            var users = _context.Users.Find(_ => true).ToList().ToDictionary(u => u.Id, u => u.Username ?? u.Email);
+            var rows = new List<ProjectDailyTaskReportRow>();
+
+            foreach (var component in components)
+            {
+                var assignments = _context.ComponentAssignments.Find(a => a.ComponentId == component.Id && a.IsActive).ToList();
+                foreach (var assignment in assignments)
+                {
+                    var update = _context.DailyTaskUpdates.Find(u => u.ComponentId == component.Id
+                        && u.UserId == assignment.UserId && u.UpdateDate == date.Date).FirstOrDefault();
+                    rows.Add(new ProjectDailyTaskReportRow
+                    {
+                        ProjectId = project.Id,
+                        ProjectName = project.Name,
+                        ComponentId = component.Id,
+                        ComponentName = component.Name,
+                        ComponentDescription = component.Description,
+                        UserId = assignment.UserId,
+                        UserName = users.TryGetValue(assignment.UserId, out var name) ? name : "Unknown member",
+                        Status = update?.Status ?? "Not submitted",
+                        DailyWork = update?.Description ?? "No update submitted",
+                        UpdateDate = date.Date,
+                        HasSubmittedUpdate = update != null
+                    });
+                }
+            }
+
+            return rows.OrderBy(row => row.ComponentName).ThenBy(row => row.UserName).ToList();
+        }
+
         public bool CanAccessUser(string targetUserId)
         {
             var activeUserId = AppSession.CurrentUserId;

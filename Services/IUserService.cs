@@ -68,5 +68,6 @@ namespace DMS.Services
         List<AssignedTask> GetMyTasks(string userId);
         List<DailyTaskUpdate> GetTaskUpdates(string componentId, string userId, bool isAdmin);
         DailyTaskUpdate SaveDailyTaskUpdate(DailyTaskUpdate update);
+        List<ProjectDailyTaskReportRow> GetProjectDailyTaskReport(string projectId, DateTime date);
     }
 }

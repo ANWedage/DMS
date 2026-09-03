@@ -89,3 +89,18 @@ public sealed class AssignedTask
     public TaskComponent Component { get; init; } = new();
     public DailyTaskUpdate? LatestUpdate { get; init; }
 }
+
+public sealed class ProjectDailyTaskReportRow
+{
+    public string ProjectId { get; init; } = string.Empty;
+    public string ProjectName { get; init; } = string.Empty;
+    public string ComponentId { get; init; } = string.Empty;
+    public string ComponentName { get; init; } = string.Empty;
+    public string ComponentDescription { get; init; } = string.Empty;
+    public string UserId { get; init; } = string.Empty;
+    public string UserName { get; init; } = string.Empty;
+    public string Status { get; init; } = "Not submitted";
+    public string DailyWork { get; init; } = "No update submitted";
+    public DateTime UpdateDate { get; init; }
+    public bool HasSubmittedUpdate { get; init; }
+}

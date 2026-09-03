@@ -148,6 +148,28 @@
                                 </Grid>
                             </Border>
                         </Expander>
+                        <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" Padding="16" Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Project Daily Report" FontSize="19" FontWeight="SemiBold"/>
+                                <TextBlock Text="View every component and assigned member update for one date, then generate one report." Foreground="#66727D" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,12">
+                                    <TextBlock Text="Report date" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <DatePicker x:Name="ProjectReportDatePicker" Width="130"/>
+                                    <Button Content="Load Project Report" Click="LoadProjectReportButton_Click" Margin="10,0,0,0"/>
+                                    <Button Content="Generate PDF Report" Click="GenerateProjectReportButton_Click" Margin="10,0,0,0"/>
+                                </StackPanel>
+                                <DataGrid x:Name="ProjectReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="260" Background="White" BorderBrush="#DDE3E5" BorderThickness="1">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Component" Binding="{Binding ComponentName}" Width="170"/>
+                                        <DataGridTextColumn Header="Description" Binding="{Binding ComponentDescription}" Width="240"/>
+                                        <DataGridTextColumn Header="Member" Binding="{Binding UserName}" Width="150"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
+                                        <DataGridTextColumn Header="Today's Work" Binding="{Binding DailyWork}" Width="*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock x:Name="ProjectReportMessageText" Foreground="#66727D" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Grid>
                 </ScrollViewer>

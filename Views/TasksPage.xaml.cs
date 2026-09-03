@@ -1,8 +1,12 @@
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Win32;
 using DMS.Helpers;
 using DMS.Models;
 using DMS.Services;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace DMS.Views
 {
@@ -13,6 +17,7 @@ namespace DMS.Views
     private List<User> _users = new();
     private TaskProject? _selectedProject;
     private TaskComponent? _selectedComponent;
+    private List<ProjectDailyTaskReportRow> _projectReportRows = new();
 
     public TasksPage(IUserService userService)
     {
@@ -23,6 +28,7 @@ namespace DMS.Views
         ComponentDueDatePicker.SelectedDate = DateTime.Today.AddDays(7);
         ProjectStatusComboBox.SelectedIndex = 0;
         ComponentPriorityComboBox.SelectedIndex = 1;
+        ProjectReportDatePicker.SelectedDate = DateTime.Today;
         EditComponentPriorityComboBox.SelectedIndex = 1;
         EditComponentStatusComboBox.SelectedIndex = 0;
         Loaded += async (_, _) => await LoadProjectsAsync();
@@ -213,6 +219,103 @@ namespace DMS.Views
         }
         catch (Exception ex) { MessageBox.Show($"Unable to load daily updates: {ex.Message}", "Daily updates", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
+
+    private async void LoadProjectReportButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedProject == null) { ProjectReportMessageText.Text = "Select a project first."; return; }
+        var projectId = _selectedProject.Id;
+        var date = ProjectReportDatePicker.SelectedDate ?? DateTime.Today;
+        try
+        {
+            _projectReportRows = await Task.Run(() => _userService.GetProjectDailyTaskReport(projectId, date));
+            ProjectReportGrid.ItemsSource = _projectReportRows;
+            ProjectReportMessageText.Text = _projectReportRows.Count == 0
+                ? "No assigned components were found for this project."
+                : $"Loaded {_projectReportRows.Count} component-member row(s) for {date:yyyy-MM-dd}.";
+        }
+        catch (Exception ex) { ProjectReportMessageText.Text = $"Unable to load project report: {ex.Message}"; }
+    }
+
+    private void GenerateProjectReportButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedProject == null) { ProjectReportMessageText.Text = "Select a project first."; return; }
+        if (_projectReportRows.Count == 0)
+        {
+            ProjectReportMessageText.Text = "Load the project report before generating the PDF.";
+            return;
+        }
+
+        var date = ProjectReportDatePicker.SelectedDate ?? DateTime.Today;
+        if (MessageBox.Show($"Generate the project daily report for {date:yyyy-MM-dd}?", "Confirm PDF report", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Save project daily task report",
+            Filter = "PDF files (*.pdf)|*.pdf",
+            FileName = $"{_selectedProject.Name}-Daily-Tasks-{date:yyyy-MM-dd}.pdf",
+            AddExtension = true,
+            OverwritePrompt = true
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        try
+        {
+            QuestPDF.Settings.License = LicenseType.Community;
+            var projectName = _selectedProject.Name;
+            var rows = _projectReportRows.ToList();
+            Document.Create(document => document.Page(page =>
+            {
+                page.Margin(30);
+                page.Header().Column(column =>
+                {
+                    column.Item().Text("DMS Project Daily Task Report").FontSize(20).Bold();
+                    column.Item().Text($"Project: {projectName}").FontSize(11);
+                    column.Item().Text($"Date: {date:yyyy-MM-dd}").FontSize(11);
+                });
+                page.Content().PaddingTop(18).Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.RelativeColumn(1.5f);
+                        columns.RelativeColumn(2);
+                        columns.RelativeColumn(1.3f);
+                        columns.RelativeColumn(1.1f);
+                        columns.RelativeColumn(3);
+                    });
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(ReportHeaderCell).Text("Component");
+                        header.Cell().Element(ReportHeaderCell).Text("Description");
+                        header.Cell().Element(ReportHeaderCell).Text("Member");
+                        header.Cell().Element(ReportHeaderCell).Text("Status");
+                        header.Cell().Element(ReportHeaderCell).Text("Today's Work");
+                    });
+                    foreach (var row in rows)
+                    {
+                        table.Cell().Element(ReportBodyCell).Text(row.ComponentName);
+                        table.Cell().Element(ReportBodyCell).Text(row.ComponentDescription);
+                        table.Cell().Element(ReportBodyCell).Text(row.UserName);
+                        table.Cell().Element(ReportBodyCell).Text(row.Status);
+                        table.Cell().Element(ReportBodyCell).Text(row.DailyWork);
+                    }
+                });
+                page.Footer().AlignCenter().Text(text =>
+                {
+                    text.Span("Generated by ");
+                    text.Span(AppSession.CurrentDisplayName ?? AppSession.CurrentUsername ?? "Administrator").Bold();
+                });
+            })).GeneratePdf(dialog.FileName);
+            ProjectReportMessageText.Text = $"PDF report saved to {dialog.FileName}";
+        }
+        catch (Exception ex) { ProjectReportMessageText.Text = $"Unable to generate PDF report: {ex.Message}"; }
+    }
+
+    private static IContainer ReportHeaderCell(IContainer container) =>
+        container.Background(Colors.Grey.Darken2).Padding(5).DefaultTextStyle(style => style.FontColor(Colors.White).Bold());
+
+    private static IContainer ReportBodyCell(IContainer container) =>
+        container.BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5);
 
     private sealed class MemberOption
     {
