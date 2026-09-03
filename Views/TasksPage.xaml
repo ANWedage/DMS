@@ -13,27 +13,50 @@
             <Border Grid.Column="0" Background="White" Padding="16" BorderBrush="#DDE3E5" BorderThickness="1">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Text="New Project" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="Create New Project" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="Enter the project details and choose its starting status." Foreground="#66727D" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                        <TextBlock Text="Project name" FontWeight="SemiBold" Margin="0,12,0,0"/>
                         <TextBox x:Name="ProjectNameTextBox" Margin="0,10,0,0" ToolTip="Project name"/>
+                        <TextBlock Text="Description" FontWeight="SemiBold" Margin="0,8,0,0"/>
                         <TextBox x:Name="ProjectDescriptionTextBox" Height="58" Margin="0,8,0,0" AcceptsReturn="True" TextWrapping="Wrap" ToolTip="Project description"/>
+                        <TextBlock Text="Dates" FontWeight="SemiBold" Margin="0,8,0,0"/>
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                             <DatePicker x:Name="ProjectStartDatePicker" Width="118"/>
                             <DatePicker x:Name="ProjectDueDatePicker" Width="118" Margin="8,0,0,0"/>
                         </StackPanel>
+                        <TextBlock Text="Status" FontWeight="SemiBold" Margin="0,8,0,0"/>
                         <ComboBox x:Name="ProjectStatusComboBox" Margin="0,8,0,0">
                             <ComboBoxItem Content="Draft"/><ComboBoxItem Content="Active"/><ComboBoxItem Content="Completed"/><ComboBoxItem Content="Archived"/>
                         </ComboBox>
                         <Button Content="Create Project" Click="CreateProjectButton_Click" Margin="0,10,0,16"/>
                     </StackPanel>
-                    <ListBox x:Name="ProjectListBox" SelectionChanged="ProjectListBox_SelectionChanged" BorderThickness="0"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ListBox x:Name="ProjectListBox" SelectionChanged="ProjectListBox_SelectionChanged" BorderThickness="0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="10" Margin="0,0,0,8" BorderBrush="#DDE3E5" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"/>
+                                            <TextBlock Text="{Binding Description}" Foreground="#66727D" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                            <TextBlock Text="{Binding Status}" Foreground="#126E70" Margin="0,4,0,0"/>
+                                            <TextBlock Text="{Binding DueDate, StringFormat=Due: {0:d}}" Foreground="#66727D" FontSize="12" Margin="0,3,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
                 </DockPanel>
             </Border>
             <Border Grid.Column="2" Background="White" Padding="18" BorderBrush="#DDE3E5" BorderThickness="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <StackPanel>
                         <TextBlock x:Name="SelectedProjectText" Text="Select a project" FontSize="22" FontWeight="Bold"/>
                         <TextBlock x:Name="SelectedProjectDescriptionText" Foreground="#66727D" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                        <TextBlock Text="Edit Project" FontSize="17" FontWeight="SemiBold" Margin="0,14,0,0"/>
+                        <TextBlock Text="Update project information or change its status." Foreground="#66727D" Margin="0,4,0,0"/>
                         <Grid Margin="0,12,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="110"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <TextBox x:Name="EditProjectNameTextBox" Grid.Column="0" ToolTip="Project name"/>
@@ -48,7 +71,8 @@
                     </StackPanel>
                     <Border Grid.Row="1" Background="#F7F9F9" Padding="12" Margin="0,16,0,16">
                         <StackPanel>
-                            <TextBlock Text="Add Component" FontWeight="SemiBold"/>
+                            <TextBlock Text="Add New Component" FontSize="17" FontWeight="SemiBold"/>
+                            <TextBlock Text="Create a work item for this project." Foreground="#66727D" Margin="0,4,0,0"/>
                             <Grid Margin="0,8,0,0">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="130"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <TextBox x:Name="ComponentNameTextBox" Grid.Column="0" ToolTip="Component name"/>
@@ -61,18 +85,20 @@
                             </Grid>
                         </StackPanel>
                     </Border>
-                    <Grid Grid.Row="2">
+                    <Grid Grid.Row="2" MinHeight="480">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="250"/></Grid.ColumnDefinitions>
                         <ListView x:Name="ComponentListView" SelectionChanged="ComponentListView_SelectionChanged" BorderThickness="0">
                             <ListView.View><GridView>
                                 <GridViewColumn Header="Component" DisplayMemberBinding="{Binding Name}" Width="190"/>
+                                <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="220"/>
                                 <GridViewColumn Header="Priority" DisplayMemberBinding="{Binding Priority}" Width="90"/>
                                 <GridViewColumn Header="Due" DisplayMemberBinding="{Binding DueDate, StringFormat=d}" Width="100"/>
                                 <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="120"/>
                             </GridView></ListView.View>
                         </ListView>
                         <StackPanel Grid.Column="1" Margin="18,0,0,0">
-                            <TextBlock Text="Assigned Members" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock Text="Edit Selected Component" FontSize="17" FontWeight="SemiBold"/>
+                            <TextBlock Text="Update component details and status." Foreground="#66727D" Margin="0,4,0,0" TextWrapping="Wrap"/>
                             <TextBlock x:Name="SelectedComponentText" Text="Select a component" Foreground="#66727D" Margin="0,5,0,8" TextWrapping="Wrap"/>
                             <TextBox x:Name="EditComponentNameTextBox" ToolTip="Component name"/>
                             <TextBox x:Name="EditComponentDescriptionTextBox" Height="55" Margin="0,8,0,0" AcceptsReturn="True" TextWrapping="Wrap" ToolTip="Component description"/>
@@ -86,6 +112,8 @@
                                 <DatePicker x:Name="EditComponentDueDatePicker" Width="125" Margin="8,0,0,0"/>
                             </StackPanel>
                             <Button Content="Update Component" Click="UpdateComponentButton_Click" Margin="0,10,0,0"/>
+                            <TextBlock Text="Assign Members" FontSize="17" FontWeight="SemiBold" Margin="0,18,0,0"/>
+                            <TextBlock Text="Select one or more active members." Foreground="#66727D" Margin="0,4,0,6" TextWrapping="Wrap"/>
                             <ListBox x:Name="MembersListBox" BorderThickness="0">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
@@ -94,9 +122,10 @@
                                 </ListBox.ItemTemplate>
                             </ListBox>
                             <Button Content="Save Assignments" Click="SaveAssignmentsButton_Click" Margin="0,10,0,0"/>
-                            <Button Content="View Daily Updates" Click="ViewUpdatesButton_Click" Margin="0,8,0,0"/>
-                            <TextBlock x:Name="UpdatesHeadingText" Text="Daily updates" FontWeight="SemiBold" Margin="0,16,0,6"/>
-                            <ListView x:Name="UpdatesListView" Height="180" BorderThickness="0">
+                            <TextBlock Text="Track Daily Updates" FontSize="17" FontWeight="SemiBold" Margin="0,18,0,0"/>
+                            <TextBlock Text="Review work descriptions submitted by assigned members." Foreground="#66727D" Margin="0,4,0,6" TextWrapping="Wrap"/>
+                            <Button Content="View Daily Updates" Click="ViewUpdatesButton_Click" Margin="0,4,0,0"/>
+                            <ListView x:Name="UpdatesListView" Height="180" Margin="0,8,0,0" BorderThickness="0">
                                 <ListView.View><GridView>
                                     <GridViewColumn Header="User" DisplayMemberBinding="{Binding UserId}" Width="120"/>
                                     <GridViewColumn Header="Date" DisplayMemberBinding="{Binding UpdateDate, StringFormat=d}" Width="75"/>
@@ -107,6 +136,7 @@
                         </StackPanel>
                     </Grid>
                 </Grid>
+                </ScrollViewer>
             </Border>
         </Grid>
     </Grid>
