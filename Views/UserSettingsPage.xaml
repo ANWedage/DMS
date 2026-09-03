@@ -1,0 +1,27 @@
+<Page x:Class="DMS.Views.UserSettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="User Settings">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Background="#F5F7F8" Margin="30">
+            <TextBlock Text="Settings" Style="{StaticResource HeadingStyle}"/>
+            <TextBlock Text="Update your username and password together." Style="{StaticResource MutedStyle}" Margin="0,8,0,24"/>
+            <Border Background="White" CornerRadius="10" Padding="22">
+                <StackPanel>
+                    <TextBlock Text="Current username" Style="{StaticResource LabelStyle}" Margin="0,4,0,0"/>
+                    <TextBox x:Name="CurrentUsernameBox" IsReadOnly="True" Background="#F0F3F4"/>
+                    <TextBlock Text="New username" Style="{StaticResource LabelStyle}" Margin="0,14,0,0"/>
+                    <TextBox x:Name="NewUsernameBox"/>
+                    <TextBlock Text="Current password" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
+                    <PasswordBox x:Name="CurrentPasswordBox"/>
+                    <TextBlock Text="New password" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
+                    <PasswordBox x:Name="NewPasswordBox"/>
+                    <TextBlock Text="Confirm new password" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
+                    <PasswordBox x:Name="ConfirmPasswordBox"/>
+                    <TextBlock x:Name="ErrorText" Style="{StaticResource ErrorStyle}" Margin="0,8,0,0"/>
+                    <Button Content="Update profile" HorizontalAlignment="Left" Margin="0,8,0,0" Click="UpdateProfileButton_Click"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

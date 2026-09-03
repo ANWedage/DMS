@@ -107,6 +107,29 @@ namespace DMS.Services
                 : null;
         }
 
+        public UserAccountInfo UpdateUserProfile(string userId, UserProfileUpdate update)
+        {
+            var user = _context.Users.Find(u => u.Id == userId).FirstOrDefault();
+            if (user == null || !string.Equals(user.Username, SecurityValidator.NormalizeUsername(update.CurrentUsername), StringComparison.Ordinal)
+                || !PasswordHasher.Verify(update.CurrentPassword ?? string.Empty, user.PasswordHash, user.PasswordSalt))
+                throw new InvalidOperationException("The current username or password is incorrect.");
+
+            var normalizedUsername = SecurityValidator.NormalizeUsername(update.NewUsername);
+            if (!SecurityValidator.IsValidUsername(normalizedUsername))
+                throw new InvalidOperationException("Username must be 3-20 characters, letters/numbers/underscore only, and contain no spaces.");
+            if (_context.Users.Find(u => u.Username == normalizedUsername && u.Id != userId).Any())
+                throw new InvalidOperationException("That username is already taken.");
+            if (!SecurityValidator.IsStrongPassword(update.NewPassword))
+                throw new InvalidOperationException("Password must be at least 8 characters and include uppercase, lowercase, a number, and a symbol.");
+
+            var (hash, salt) = PasswordHasher.HashPassword(update.NewPassword);
+            _context.Users.UpdateOne(u => u.Id == userId,
+                Builders<User>.Update.Set(u => u.Username, normalizedUsername)
+                    .Set(u => u.PasswordHash, hash)
+                    .Set(u => u.PasswordSalt, salt));
+            return new UserAccountInfo(user.Id, normalizedUsername, user.Email, user.ContactNumber);
+        }
+
         public AdminUser? LoginAdmin(string username, string password)
         {
             var normalizedUsername = SecurityValidator.NormalizeUsername(username);

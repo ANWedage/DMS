@@ -31,6 +31,7 @@ namespace DMS.Services
 
         /// <summary>Validates username + password. Returns the user on success, null otherwise.</summary>
         User? Login(string username, string password);
+        UserAccountInfo UpdateUserProfile(string userId, UserProfileUpdate update);
 
         /// <summary>Returns the configured admin account matching the supplied username, or null.</summary>
         AdminUser? LoginAdmin(string username, string password);

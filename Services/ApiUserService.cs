@@ -92,6 +92,12 @@ public sealed class ApiUserService : IUserService, IDisposable
         return Read<User>(Send(HttpMethod.Get, "api/users/me"));
     }
 
+    public UserAccountInfo UpdateUserProfile(string userId, UserProfileUpdate update)
+    {
+        EnsureCurrentUser(userId);
+        return Read<UserAccountInfo>(Send(HttpMethod.Put, "api/users/me/profile", update));
+    }
+
     public AdminUser? LoginAdmin(string username, string password)
     {
         using var response = Send(HttpMethod.Post, "api/auth/login", new { username, password }, allowErrorResponse: true);

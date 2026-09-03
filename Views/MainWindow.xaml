@@ -48,6 +48,10 @@
                 </StackPanel>
                 
                 <TextBlock Grid.Row="6" Text="Created By Adeepa Wedage" Foreground="#D7EFEC"/>
+                <Button Grid.Row="5" Height="42" Margin="0,0,0,12" VerticalAlignment="Bottom" Background="#2B8585" Foreground="White"
+                    HorizontalContentAlignment="Left" Padding="12,0" Click="SettingsButton_Click" ToolTip="Open profile settings">
+                    <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="28"/><TextBlock Text="Settings" VerticalAlignment="Center"/></StackPanel>
+                </Button>
             </Grid>
         </Border>
 

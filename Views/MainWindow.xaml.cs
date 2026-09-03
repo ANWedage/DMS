@@ -50,6 +50,19 @@ namespace DMS.Views
             MainContentFrame.Navigate(new NotificationsPage(_userService, () => _ = UpdateNotificationCountAsync()));
         }
 
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentFrame.Navigate(new UserSettingsPage(_userService, OnProfileChanged));
+        }
+
+        private void OnProfileChanged()
+        {
+            AppSession.Clear();
+            var loginWindow = new LoginWindow(_userService);
+            loginWindow.Show();
+            Close();
+        }
+
         private async Task UpdateNotificationCountAsync()
         {
             try

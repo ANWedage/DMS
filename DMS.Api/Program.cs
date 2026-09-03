@@ -111,6 +111,19 @@ authenticated.MapPost("/users/me/username", (ClaimsPrincipal principal, SetUsern
     }
 });
 
+authenticated.MapPut("/users/me/profile", (UserProfileUpdate request, ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    if (principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId))
+        return Results.Forbid();
+
+    try
+    {
+        return Results.Ok(users.UpdateUserProfile(userId, request));
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
 authenticated.MapGet("/attendance", (ClaimsPrincipal principal, DateTime? date, IUserService users) =>
 {
     var userId = GetSubject(principal);

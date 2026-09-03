@@ -4,4 +4,7 @@ namespace DMS.Models
 
     public sealed record AdminProfileUpdate(string CurrentUsername, string NewUsername,
         string CurrentPassword, string NewPassword);
+
+    public sealed record UserProfileUpdate(string CurrentUsername, string NewUsername,
+        string CurrentPassword, string NewPassword);
 }
