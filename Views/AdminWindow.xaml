@@ -70,10 +70,7 @@
             </Grid.RowDefinitions>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <Border Width="42" Height="42" Background="#E8F0EF" CornerRadius="21">
-                    <TextBlock Text="A" Foreground="#0D5558" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                <StackPanel Margin="0" VerticalAlignment="Center">
                     <TextBlock Text="Administrator" FontWeight="SemiBold"/>
                     <TextBlock Text="{x:Static helpers:AppSession.CurrentDisplayName}" Foreground="#66727D" FontSize="12"/>
                 </StackPanel>

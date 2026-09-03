@@ -6,7 +6,7 @@
         Height="680" Width="1120"
         MinHeight="600" MinWidth="900"
         WindowStartupLocation="CenterScreen">
-    <Grid>
+    <Grid Background="#E8EDEF">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="232"/>
             <ColumnDefinition Width="*"/>
@@ -74,11 +74,7 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
                     <StackPanel Orientation="Horizontal">
-                        <Border Width="38" Height="38" Background="#E8F0EF" CornerRadius="19">
-                            <TextBlock Text="{Binding Initials}" Foreground="{StaticResource TealDarkBrush}"
-                                       FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                        <StackPanel Margin="0" VerticalAlignment="Center">
                             <TextBlock Text="{Binding Username}" FontWeight="SemiBold"/>
                             <TextBlock Text="{Binding Email}" Style="{StaticResource MutedStyle}" FontSize="12"/>
                         </StackPanel>
