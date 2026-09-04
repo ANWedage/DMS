@@ -14,16 +14,63 @@
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0" Background="{StaticResource TealBrush}" Padding="42">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Image Source="/Assets/dms-logo.png" Width="270" Height="270"
-                       Stretch="Uniform" HorizontalAlignment="Center"
-                       RenderOptions.BitmapScalingMode="HighQuality" ToolTip="DMS logo"/>
-                <TextBlock Text="Developer Management System"
-                           FontFamily="pack://application:,,,/DMS;component/Assets/#Lato"
-                           Foreground="White"
-                           FontSize="16" FontWeight="SemiBold" TextAlignment="Center"
-                           Margin="0,14,0,0"/>
-            </StackPanel>
+            <Grid>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="/Assets/dms-logo.png" Width="270" Height="270"
+                           Stretch="Uniform" HorizontalAlignment="Center"
+                           RenderOptions.BitmapScalingMode="HighQuality" ToolTip="DMS logo"/>
+                    <TextBlock Text="Developer Management System"
+                               FontFamily="pack://application:,,,/DMS;component/Assets/#Lato"
+                               Foreground="White"
+                               FontSize="16" FontWeight="SemiBold" TextAlignment="Center"
+                               Margin="0,14,0,0"/>
+                </StackPanel>
+
+                <Border HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                        CornerRadius="8" Padding="10,7" Margin="-22,0,0,-22">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="#24000000"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasConnectionError}" Value="True">
+                                    <Setter Property="Background" Value="#45A63C31"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Fill" Value="#9FE3BF"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsConnecting}" Value="True">
+                                            <Setter Property="Fill" Value="#F5C451"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding HasConnectionError}" Value="True">
+                                            <Setter Property="Fill" Value="#FFB4A8"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <ProgressBar Width="18" Height="12" IsIndeterminate="True" Margin="0,0,7,0">
+                            <ProgressBar.Style>
+                                <Style TargetType="ProgressBar">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsConnecting}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ProgressBar.Style>
+                        </ProgressBar>
+                        <TextBlock Text="{Binding ConnectionStatus}" Foreground="White" FontSize="11"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Border>
 
         <Button Grid.Column="1" Width="38" Height="38" HorizontalAlignment="Right" VerticalAlignment="Bottom"
