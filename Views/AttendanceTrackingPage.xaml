@@ -6,7 +6,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="30">
                 <TextBlock Text="Track Attendance" Style="{StaticResource HeadingStyle}"/>
-                <TextBlock Text="Review attendance for both daily Google Meet standups."
+                <TextBlock Text="Review attendance for the scheduled meetings."
                            Margin="0,8,0,20" Foreground="#66727D"/>
 
                 <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="18">
@@ -21,13 +21,17 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="10 AM time" VerticalAlignment="Center"/>
+                            <TextBlock Text="Morning time" VerticalAlignment="Center"/>
                             <TextBox x:Name="MorningTimeTextBox" Grid.Column="1" Margin="8,0,18,8"/>
                             <TextBox x:Name="MorningLinkTextBox" Grid.Column="2" Margin="0,0,0,8" ToolTip="Google Meet link"/>
-                            <TextBlock Text="5 PM time" Grid.Row="1" VerticalAlignment="Center"/>
-                            <TextBox x:Name="EveningTimeTextBox" Grid.Row="1" Grid.Column="1" Margin="8,0,18,0"/>
-                            <TextBox x:Name="EveningLinkTextBox" Grid.Row="1" Grid.Column="2" ToolTip="Google Meet link"/>
+                            <TextBlock Text="Weekly time" Grid.Row="1" VerticalAlignment="Center"/>
+                            <TextBox x:Name="WeeklyTimeTextBox" Grid.Row="1" Grid.Column="1" Margin="8,0,18,8" ToolTip="Use HH:mm, for example 10:00"/>
+                            <TextBox x:Name="WeeklyLinkTextBox" Grid.Row="1" Grid.Column="2" Margin="0,0,0,8" ToolTip="Google Meet link"/>
+                            <TextBlock Text="Evening time" Grid.Row="2" VerticalAlignment="Center"/>
+                            <TextBox x:Name="EveningTimeTextBox" Grid.Row="2" Grid.Column="1" Margin="8,0,18,0"/>
+                            <TextBox x:Name="EveningLinkTextBox" Grid.Row="2" Grid.Column="2" ToolTip="Google Meet link"/>
                         </Grid>
                         <Button Content="Save meeting settings" Click="SaveSettingsButton_Click"
                                 HorizontalAlignment="Left" Margin="0,14,0,0"/>

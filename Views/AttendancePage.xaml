@@ -23,7 +23,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="{Binding MeetingType, StringFormat={}{0} Standup}" FontSize="19" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding MeetingDisplayName}" FontSize="19" FontWeight="SemiBold"/>
                                         <TextBlock Text="{Binding MeetingTime, StringFormat=Scheduled for {0}}" Margin="0,6,0,0" Foreground="#66727D"/>
                                         <TextBlock Text="{Binding Status}" Margin="0,10,0,0" FontWeight="SemiBold">
                                             <TextBlock.Style>

@@ -21,6 +21,12 @@ namespace DMS.Models
         [BsonElement("EveningMeetingLink")]
         public string EveningMeetingLink { get; set; } = string.Empty;
 
+        [BsonElement("WeeklyTime")]
+        public string WeeklyTime { get; set; } = "10:00";
+
+        [BsonElement("WeeklyMeetingLink")]
+        public string WeeklyMeetingLink { get; set; } = string.Empty;
+
         [BsonElement("DailyTaskFormLink")]
         public string DailyTaskFormLink { get; set; } = string.Empty;
 

@@ -48,11 +48,9 @@ namespace DMS.Views
                 _settings = settingsTask.Result;
                 var records = attendanceTask.Result;
                 
-                var rows = new[]
-                {
-                    CreateRow(records, MeetingTypes.Morning, _settings.MorningTime, _settings.MorningMeetingLink),
-                    CreateRow(records, MeetingTypes.Evening, _settings.EveningTime, _settings.EveningMeetingLink)
-                };
+                var rows = MeetingSchedule.ForDate(_settings, date)
+                    .Select(slot => CreateRow(records, slot, date))
+                    .ToArray();
                 AttendanceItems.ItemsSource = rows;
                 MessageText.Text = string.Empty;
             }
@@ -63,21 +61,22 @@ namespace DMS.Views
             }
         }
 
-        private AttendanceRow CreateRow(List<AttendanceRecord> records, string meetingType, string meetingTime, string meetingLink)
+        private AttendanceRow CreateRow(List<AttendanceRecord> records, MeetingSlot slot, DateTime date)
         {
-            var record = records.FirstOrDefault(item => item.MeetingType == meetingType)
-                ?? new AttendanceRecord { MeetingType = meetingType, Status = AttendanceStatuses.Pending };
+            var record = records.FirstOrDefault(item => item.MeetingType == slot.Type)
+                ?? new AttendanceRecord { MeetingType = slot.Type, Status = AttendanceStatuses.Pending };
             var now = GetApplicationNow();
-            var start = ParseMeetingStart(meetingTime, now.Date);
+            var start = ParseMeetingStart(slot.Time, now.Date);
             return new AttendanceRow
             {
                 RecordId = record.Id,
-                MeetingType = meetingType,
-                MeetingTime = meetingTime,
-                MeetingLink = meetingLink,
+                MeetingType = slot.Type,
+                MeetingDisplayName = slot.DisplayName,
+                MeetingTime = slot.Time,
+                MeetingLink = slot.Link,
                 Status = record.Status,
                 CanMarkPresent = record.Status == AttendanceStatuses.Pending
-                    && now.Date == (AttendanceDatePicker.SelectedDate ?? DateTime.Today).Date
+                    && now.Date == date.Date
                     && now >= start && now <= start.AddMinutes(15)
             };
         }
@@ -106,7 +105,7 @@ namespace DMS.Views
                 return;
 
             var confirmation = MessageBox.Show(
-                $"Confirm that you attended the {meetingType} standup?",
+                $"Confirm that you attended the {(meetingType == MeetingTypes.Weekly ? "Weekly Meeting" : $"{meetingType} Meeting")}?",
                 "Confirm attendance",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
@@ -164,6 +163,7 @@ namespace DMS.Views
         {
             public string RecordId { get; init; } = string.Empty;
             public string MeetingType { get; init; } = string.Empty;
+            public string MeetingDisplayName { get; init; } = string.Empty;
             public string MeetingTime { get; init; } = string.Empty;
             public string MeetingLink { get; init; } = string.Empty;
             public string Status { get; set; } = AttendanceStatuses.Pending;

@@ -489,10 +489,12 @@ namespace DMS.Services
         public void SaveMeetingSettings(MeetingSettings settings, string adminId, string adminName)
         {
             if (!TimeSpan.TryParseExact(settings.MorningTime, @"hh\:mm", CultureInfo.InvariantCulture, out _)
-                || !TimeSpan.TryParseExact(settings.EveningTime, @"hh\:mm", CultureInfo.InvariantCulture, out _))
+                || !TimeSpan.TryParseExact(settings.EveningTime, @"hh\:mm", CultureInfo.InvariantCulture, out _)
+                || !TimeSpan.TryParseExact(settings.WeeklyTime, @"hh\:mm", CultureInfo.InvariantCulture, out _))
                 throw new InvalidOperationException("Meeting times must use HH:mm format.");
 
-            if (!IsValidMeetingLink(settings.MorningMeetingLink) || !IsValidMeetingLink(settings.EveningMeetingLink))
+            if (!IsValidMeetingLink(settings.MorningMeetingLink) || !IsValidMeetingLink(settings.EveningMeetingLink)
+                || !IsValidMeetingLink(settings.WeeklyMeetingLink))
                 throw new InvalidOperationException("Meeting links must be valid http or https URLs.");
             if (!IsValidMeetingLink(settings.DailyTaskFormLink) || !IsValidMeetingLink(settings.LeaveFormLink))
                 throw new InvalidOperationException("Daily task and leave form links must be valid http or https URLs.");
@@ -500,8 +502,10 @@ namespace DMS.Services
             var update = Builders<MeetingSettings>.Update
                 .Set(s => s.MorningTime, settings.MorningTime)
                 .Set(s => s.EveningTime, settings.EveningTime)
+                .Set(s => s.WeeklyTime, settings.WeeklyTime)
                 .Set(s => s.MorningMeetingLink, settings.MorningMeetingLink?.Trim() ?? string.Empty)
                 .Set(s => s.EveningMeetingLink, settings.EveningMeetingLink?.Trim() ?? string.Empty)
+                .Set(s => s.WeeklyMeetingLink, settings.WeeklyMeetingLink?.Trim() ?? string.Empty)
                 .Set(s => s.DailyTaskFormLink, settings.DailyTaskFormLink?.Trim() ?? string.Empty)
                 .Set(s => s.LeaveFormLink, settings.LeaveFormLink?.Trim() ?? string.Empty)
                 .Set(s => s.TimeZoneId, settings.TimeZoneId)
@@ -521,9 +525,11 @@ namespace DMS.Services
                 return new List<AttendanceRecord>();
 
             EnsureUserDailyAttendance(userId, date);
+            var activeTypes = MeetingSchedule.ForDate(GetMeetingSettings(), date).Select(slot => slot.Type).ToHashSet();
             return _context.Attendance.Find(a => a.UserId == userId && a.MeetingDate == FormatDate(date))
                 .ToList()
-                .OrderBy(a => a.MeetingType == MeetingTypes.Morning ? 0 : 1)
+                .Where(a => activeTypes.Contains(a.MeetingType))
+                .OrderBy(a => activeTypes.ToList().IndexOf(a.MeetingType))
                 .ToList();
         }
 
@@ -598,7 +604,7 @@ namespace DMS.Services
             var now = GetApplicationNow(settings);
 
             // Only ensure records for the current user, not all users
-            foreach (var meetingType in new[] { MeetingTypes.Morning, MeetingTypes.Evening })
+            foreach (var meetingType in MeetingSchedule.ForDate(settings, date).Select(slot => slot.Type))
             {
                 var filter = Builders<AttendanceRecord>.Filter.And(
                     Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, userId),
@@ -625,7 +631,7 @@ namespace DMS.Services
                 return;
 
             // Auto-mark absent if attendance window is closed
-            foreach (var meetingType in new[] { MeetingTypes.Morning, MeetingTypes.Evening })
+            foreach (var meetingType in MeetingSchedule.ForDate(settings, date).Select(slot => slot.Type))
             {
                 if (!IsWindowClosed(meetingType, settings, now))
                     continue;
@@ -652,7 +658,7 @@ namespace DMS.Services
             // Used by admin operations to ensure all users have attendance records
             foreach (var user in activeUsers)
             {
-                foreach (var meetingType in new[] { MeetingTypes.Morning, MeetingTypes.Evening })
+                foreach (var meetingType in MeetingSchedule.ForDate(settings, date).Select(slot => slot.Type))
                 {
                     var filter = Builders<AttendanceRecord>.Filter.And(
                         Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, user.Id),
@@ -679,7 +685,7 @@ namespace DMS.Services
             if (date.Date != now.Date)
                 return;
 
-            foreach (var meetingType in new[] { MeetingTypes.Morning, MeetingTypes.Evening })
+            foreach (var meetingType in MeetingSchedule.ForDate(settings, date).Select(slot => slot.Type))
             {
                 if (!IsWindowClosed(meetingType, settings, now))
                     continue;
@@ -698,7 +704,7 @@ namespace DMS.Services
         private static string FormatDate(DateTime date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
         private static bool IsValidMeetingType(string meetingType) =>
-            meetingType == MeetingTypes.Morning || meetingType == MeetingTypes.Evening;
+            meetingType == MeetingTypes.Morning || meetingType == MeetingTypes.Weekly || meetingType == MeetingTypes.Evening;
 
         private static bool IsValidMeetingLink(string? link)
         {
@@ -743,9 +749,19 @@ namespace DMS.Services
 
         private static DateTime GetMeetingStart(string meetingType, MeetingSettings settings, DateTime date)
         {
-            var time = meetingType == MeetingTypes.Morning ? settings.MorningTime : settings.EveningTime;
+            var time = meetingType switch
+            {
+                MeetingTypes.Morning => settings.MorningTime,
+                MeetingTypes.Weekly => settings.WeeklyTime,
+                _ => settings.EveningTime
+            };
             if (!TimeSpan.TryParseExact(time, @"hh\:mm", CultureInfo.InvariantCulture, out var parsedTime))
-                parsedTime = meetingType == MeetingTypes.Morning ? new TimeSpan(10, 0, 0) : new TimeSpan(17, 0, 0);
+                parsedTime = meetingType switch
+                {
+                    MeetingTypes.Morning => new TimeSpan(10, 0, 0),
+                    MeetingTypes.Weekly => new TimeSpan(10, 0, 0),
+                    _ => new TimeSpan(17, 0, 0)
+                };
             return date.Add(parsedTime);
         }
 

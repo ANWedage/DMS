@@ -156,8 +156,10 @@ namespace DMS.Views
                 var settings = settingsTask.Result;
                 MorningTimeTextBox.Text = settings.MorningTime;
                 EveningTimeTextBox.Text = settings.EveningTime;
+                WeeklyTimeTextBox.Text = settings.WeeklyTime;
                 MorningLinkTextBox.Text = settings.MorningMeetingLink;
                 EveningLinkTextBox.Text = settings.EveningMeetingLink;
+                WeeklyLinkTextBox.Text = settings.WeeklyMeetingLink;
                 UpdateLastSettingsText(settings);
             }
             catch (Exception ex)
@@ -173,20 +175,23 @@ namespace DMS.Views
                 var date = AttendanceDatePicker.SelectedDate ?? DateTime.Today;
                 var usersTask = Task.Run(_userService.GetAllUsers);
                 var attendanceTask = Task.Run(() => _userService.GetAllAttendance(date));
-                await Task.WhenAll(usersTask, attendanceTask);
+                var settingsTask = Task.Run(_userService.GetMeetingSettings);
+                await Task.WhenAll(usersTask, attendanceTask, settingsTask);
 
                 var records = attendanceTask.Result;
+                var slots = MeetingSchedule.ForDate(settingsTask.Result, date);
                 _rows.Clear();
                 foreach (var user in usersTask.Result)
                 {
-                    foreach (var meetingType in new[] { MeetingTypes.Morning, MeetingTypes.Evening })
+                    for (var slotIndex = 0; slotIndex < slots.Count; slotIndex++)
                     {
-                        var record = records.FirstOrDefault(item => item.UserId == user.Id && item.MeetingType == meetingType);
+                        var slot = slots[slotIndex];
+                        var record = records.FirstOrDefault(item => item.UserId == user.Id && item.MeetingType == slot.Type);
                         _rows.Add(new AttendanceRow
                         {
                             RecordId = record?.Id ?? string.Empty,
-                            MemberName = meetingType == MeetingTypes.Morning ? user.Username ?? user.Email : string.Empty,
-                            MeetingType = meetingType,
+                            MemberName = slotIndex == 0 ? user.Username ?? user.Email : string.Empty,
+                            MeetingType = slot.DisplayName,
                             Status = record?.Status ?? AttendanceStatuses.Pending,
                             MarkedByDisplay = record == null ? "-" : record.ChangedByAdminName ?? record.MarkedBy ?? "-",
                             AdminNote = record?.AdminNote ?? string.Empty
@@ -214,13 +219,18 @@ namespace DMS.Views
 
             try
             {
+                var existingSettings = await Task.Run(_userService.GetMeetingSettings);
                 var settings = new MeetingSettings
                 {
                     MorningTime = MorningTimeTextBox.Text,
                     EveningTime = EveningTimeTextBox.Text,
+                    WeeklyTime = WeeklyTimeTextBox.Text,
                     MorningMeetingLink = MorningLinkTextBox.Text,
                     EveningMeetingLink = EveningLinkTextBox.Text,
-                    TimeZoneId = _userService.GetMeetingSettings().TimeZoneId
+                    WeeklyMeetingLink = WeeklyLinkTextBox.Text,
+                    DailyTaskFormLink = existingSettings.DailyTaskFormLink,
+                    LeaveFormLink = existingSettings.LeaveFormLink,
+                    TimeZoneId = existingSettings.TimeZoneId
                 };
                 await Task.Run(() => _userService.SaveMeetingSettings(
                     settings,
