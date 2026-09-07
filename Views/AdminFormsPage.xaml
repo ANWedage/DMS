@@ -1,0 +1,21 @@
+<Page x:Class="DMS.Views.AdminFormsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Google Forms">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Background="#E8EDEF" Margin="30">
+            <TextBlock Text="Google Forms" Style="{StaticResource HeadingStyle}"/>
+            <TextBlock Text="Configure the forms opened from the member workspace." Style="{StaticResource MutedStyle}" Margin="0,8,0,24"/>
+            <Border Background="White" CornerRadius="10" Padding="22">
+                <StackPanel>
+                    <TextBlock Text="Daily task form URL" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="DailyTaskFormLinkBox"/>
+                    <TextBlock Text="Leave form URL" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
+                    <TextBox x:Name="LeaveFormLinkBox"/>
+                    <TextBlock x:Name="FormsMessageText" Style="{StaticResource ErrorStyle}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                    <Button Content="Save form links" HorizontalAlignment="Left" Margin="0,10,0,0" Click="SaveFormLinksButton_Click"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

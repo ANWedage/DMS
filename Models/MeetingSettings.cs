@@ -21,6 +21,12 @@ namespace DMS.Models
         [BsonElement("EveningMeetingLink")]
         public string EveningMeetingLink { get; set; } = string.Empty;
 
+        [BsonElement("DailyTaskFormLink")]
+        public string DailyTaskFormLink { get; set; } = string.Empty;
+
+        [BsonElement("LeaveFormLink")]
+        public string LeaveFormLink { get; set; } = string.Empty;
+
         [BsonElement("TimeZoneId")]
         public string TimeZoneId { get; set; } = "Sri Lanka Standard Time";
 

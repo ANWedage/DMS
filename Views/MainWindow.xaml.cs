@@ -64,6 +64,37 @@ namespace DMS.Views
             MainContentFrame.Navigate(new MyTasksPage(_userService, _currentUserId));
         }
 
+        private async void DailyTaskFormButton_Click(object sender, RoutedEventArgs e)
+        {
+            await OpenConfiguredFormAsync(settings => settings.DailyTaskFormLink, "daily task");
+        }
+
+        private async void LeaveFormButton_Click(object sender, RoutedEventArgs e)
+        {
+            await OpenConfiguredFormAsync(settings => settings.LeaveFormLink, "leave");
+        }
+
+        private async Task OpenConfiguredFormAsync(Func<MeetingSettings, string> linkSelector, string formName)
+        {
+            try
+            {
+                var settings = await Task.Run(_userService.GetMeetingSettings);
+                var link = linkSelector(settings);
+                if (!Uri.TryCreate(link, UriKind.Absolute, out var uri)
+                    || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+                {
+                    MessageBox.Show($"The {formName} form link has not been configured by an administrator.", "Form unavailable", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to open the {formName} form: {ex.Message}", "Form unavailable", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private void ChatButton_Click(object sender, RoutedEventArgs e)
         {
             _ = UpdateChatCountAsync();

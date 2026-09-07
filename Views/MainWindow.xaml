@@ -38,6 +38,16 @@
                     </Button>
                     <Button Height="42" Margin="0,0,0,8"
                         Background="#1F5962" Foreground="White" HorizontalContentAlignment="Left"
+                        Padding="12,0" Click="DailyTaskFormButton_Click">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="28"/><TextBlock Text="Open daily task form" VerticalAlignment="Center"/></StackPanel>
+                    </Button>
+                    <Button Height="42" Margin="0,0,0,8"
+                        Background="#1F5962" Foreground="White" HorizontalContentAlignment="Left"
+                        Padding="12,0" Click="LeaveFormButton_Click">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="28"/><TextBlock Text="Open leave form" VerticalAlignment="Center"/></StackPanel>
+                    </Button>
+                    <Button Height="42" Margin="0,0,0,8"
+                        Background="#1F5962" Foreground="White" HorizontalContentAlignment="Left"
                         Padding="12,0" Click="ChatButton_Click">
                         <DockPanel>
                             <Border x:Name="UserChatBadge" DockPanel.Dock="Right" Background="#E97858" CornerRadius="10" Padding="7,2" Margin="10,0,0,0" Visibility="Collapsed">

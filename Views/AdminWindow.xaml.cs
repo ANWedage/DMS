@@ -60,6 +60,11 @@ namespace DMS.Views
             MainContentFrame.Navigate(new AttendanceTrackingPage(_userService));
         }
 
+        private void FormsButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentFrame.Navigate(new AdminFormsPage(_userService));
+        }
+
         private void ChatButton_Click(object sender, RoutedEventArgs e)
         {
             _ = UpdateChatCountAsync();

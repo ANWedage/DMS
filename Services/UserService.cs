@@ -494,12 +494,16 @@ namespace DMS.Services
 
             if (!IsValidMeetingLink(settings.MorningMeetingLink) || !IsValidMeetingLink(settings.EveningMeetingLink))
                 throw new InvalidOperationException("Meeting links must be valid http or https URLs.");
+            if (!IsValidMeetingLink(settings.DailyTaskFormLink) || !IsValidMeetingLink(settings.LeaveFormLink))
+                throw new InvalidOperationException("Daily task and leave form links must be valid http or https URLs.");
 
             var update = Builders<MeetingSettings>.Update
                 .Set(s => s.MorningTime, settings.MorningTime)
                 .Set(s => s.EveningTime, settings.EveningTime)
                 .Set(s => s.MorningMeetingLink, settings.MorningMeetingLink?.Trim() ?? string.Empty)
                 .Set(s => s.EveningMeetingLink, settings.EveningMeetingLink?.Trim() ?? string.Empty)
+                .Set(s => s.DailyTaskFormLink, settings.DailyTaskFormLink?.Trim() ?? string.Empty)
+                .Set(s => s.LeaveFormLink, settings.LeaveFormLink?.Trim() ?? string.Empty)
                 .Set(s => s.TimeZoneId, settings.TimeZoneId)
                 .Set(s => s.UpdatedAt, DateTime.UtcNow)
                 .Set(s => s.UpdatedByAdminId, adminId)
