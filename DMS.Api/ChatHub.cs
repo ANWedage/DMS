@@ -10,33 +10,10 @@ namespace DMS.Api;
 public sealed class ChatHub : Hub
 {
     private readonly IUserService _users;
-    private readonly ChatPresenceService _presence;
 
-    public ChatHub(IUserService users, ChatPresenceService presence)
+    public ChatHub(IUserService users)
     {
         _users = users;
-        _presence = presence;
-    }
-
-    public override async Task OnConnectedAsync()
-    {
-        var identity = GetIdentity();
-        if (identity != null)
-        {
-            _presence.Connect(identity.Value.Id, identity.Value.Role);
-            await Clients.All.SendAsync("UserPresenceChanged", identity.Value.Id, identity.Value.Role, true);
-        }
-
-        await base.OnConnectedAsync();
-    }
-
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        var identity = GetIdentity();
-        if (identity != null && _presence.Disconnect(identity.Value.Id, identity.Value.Role))
-            await Clients.All.SendAsync("UserPresenceChanged", identity.Value.Id, identity.Value.Role, false);
-
-        await base.OnDisconnectedAsync(exception);
     }
 
     public async Task<ChatMessage> SendMessage(string recipientId, string recipientRole, string messageText)

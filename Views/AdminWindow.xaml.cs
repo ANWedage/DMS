@@ -21,6 +21,7 @@ namespace DMS.Views
         public AdminWindow(IUserService userService)
         {
             InitializeComponent();
+            Activated += AdminWindow_Activated;
             _userService = userService;
             if (userService is ApiUserService api)
             {
@@ -55,7 +56,13 @@ namespace DMS.Views
 
         private void ChatButton_Click(object sender, RoutedEventArgs e)
         {
+            _ = UpdateChatCountAsync();
             MainContentFrame.Navigate(new ChatPage(_userService, AppSession.CurrentUserId ?? string.Empty, "Admin", _chatConnection, () => _ = UpdateChatCountAsync()));
+        }
+
+        private void AdminWindow_Activated(object? sender, EventArgs e)
+        {
+            _ = UpdateChatCountAsync();
         }
 
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)

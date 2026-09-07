@@ -3,7 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace DMS.Models;
 
-public sealed record ChatUser(string Id, string DisplayName, string Role, bool IsActive = true, bool IsOnline = false);
+public sealed record ChatUser(string Id, string DisplayName, string Role, bool IsActive = true);
 
 public sealed class ChatMessage
 {

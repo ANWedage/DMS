@@ -100,18 +100,6 @@
                                         </Style>
                                     </Border.Style>
                                     <DockPanel>
-                                        <Ellipse Width="9" Height="9" Margin="0,0,8,0" VerticalAlignment="Center">
-                                            <Ellipse.Style>
-                                                <Style TargetType="Ellipse">
-                                                    <Setter Property="Fill" Value="#AAB8BC"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsOnline}" Value="True">
-                                                            <Setter Property="Fill" Value="#1FAE67"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Ellipse.Style>
-                                        </Ellipse>
                                         <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                         <Border DockPanel.Dock="Right" CornerRadius="4" Padding="5,2" Margin="8,0,0,0">
                                             <Border.Style>
@@ -158,24 +146,26 @@
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Border Padding="11,8" Margin="0,0,0,8" CornerRadius="10" MaxWidth="460" HorizontalAlignment="Left">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#EAF2F3"/>
-                                            <Setter Property="HorizontalAlignment" Value="Left"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsMine}" Value="True">
-                                                    <Setter Property="Background" Value="#D4EEE8"/>
-                                                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="#17212B"/>
-                                        <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:HH:mm}}" FontSize="10" Foreground="#66727D" HorizontalAlignment="Right" Margin="12,4,0,0"/>
-                                    </StackPanel>
-                                </Border>
+                                <Grid Margin="0,0,0,8" HorizontalAlignment="Stretch">
+                                    <Border Padding="11,8" CornerRadius="10" MaxWidth="460" HorizontalAlignment="Left">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#EAF2F3"/>
+                                                <Setter Property="HorizontalAlignment" Value="Left"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsMine}" Value="True">
+                                                        <Setter Property="Background" Value="#D4EEE8"/>
+                                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="#17212B"/>
+                                            <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:HH:mm}}" FontSize="10" Foreground="#66727D" HorizontalAlignment="Right" Margin="12,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

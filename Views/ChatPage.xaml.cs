@@ -24,7 +24,6 @@ public partial class ChatPage : Page
     private readonly bool _ownsConnection;
     private readonly Action? _chatCountChanged;
     private IDisposable? _messageSubscription;
-    private IDisposable? _presenceSubscription;
     private ChatUser? _selectedUser;
     private bool _showSent;
 
@@ -54,42 +53,19 @@ public partial class ChatPage : Page
         if (_connection != null)
         {
             _messageSubscription = _connection.On<ChatMessage>("ReceiveMessage", message => Dispatcher.InvokeAsync(() => HandleIncomingMessage(message)));
-            _presenceSubscription = _connection.On<string, string, bool>("UserPresenceChanged",
-                (userId, role, isOnline) => Dispatcher.InvokeAsync(() => UpdatePresence(userId, role, isOnline)));
-            _connection.Reconnected += ChatConnection_Reconnected;
             if (_connection.State == HubConnectionState.Disconnected)
             {
                 try { await _connection.StartAsync(); }
                 catch { ChatStatusText.Text = "Realtime connection unavailable. Messages will still be saved."; }
             }
-
-            if (_connection.State == HubConnectionState.Connecting)
-                await WaitForChatConnectionAsync();
-
-            if (_connection.State == HubConnectionState.Connected)
-                await LoadUsersAsync();
         }
     }
 
     private async void ChatPage_Unloaded(object sender, RoutedEventArgs e)
     {
         _messageSubscription?.Dispose();
-        _presenceSubscription?.Dispose();
-        if (_connection != null)
-            _connection.Reconnected -= ChatConnection_Reconnected;
         if (_ownsConnection && _connection != null)
             await _connection.DisposeAsync();
-    }
-
-    private async Task ChatConnection_Reconnected(string? connectionId)
-    {
-        await Dispatcher.InvokeAsync(LoadUsersAsync);
-    }
-
-    private async Task WaitForChatConnectionAsync()
-    {
-        for (var attempt = 0; attempt < 100 && _connection?.State == HubConnectionState.Connecting; attempt++)
-            await Task.Delay(50);
     }
 
     private async Task LoadAsync()
@@ -199,19 +175,10 @@ public partial class ChatPage : Page
         _ = LoadAsync();
     }
 
-    private void UpdatePresence(string userId, string role, bool isOnline)
-    {
-        var user = _users.FirstOrDefault(item => item.Id == userId && item.Role == role);
-        if (user == null) return;
-        var index = _users.IndexOf(user);
-        if (index < 0) return;
-        _users[index] = user with { IsOnline = isOnline };
-    }
-
     private void AddMessage(ChatMessage message)
     {
         if (_messages.Any(row => row.Id == message.Id)) return;
-        _messages.Add(new ChatMessageRow(message.Id, message.MessageText, message.CreatedAt, message.SenderId == _currentUserId));
+        _messages.Add(new ChatMessageRow(message.Id, message.MessageText, message.CreatedAt.ToLocalTime(), message.SenderId == _currentUserId));
         MessageList.ScrollIntoView(_messages.Last());
     }
 

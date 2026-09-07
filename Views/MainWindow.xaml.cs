@@ -20,6 +20,7 @@ namespace DMS.Views
         public MainWindow(User currentUser, IUserService userService)
         {
             InitializeComponent();
+            Activated += MainWindow_Activated;
 
             _userService = userService;
             if (userService is ApiUserService api)
@@ -59,7 +60,13 @@ namespace DMS.Views
 
         private void ChatButton_Click(object sender, RoutedEventArgs e)
         {
+            _ = UpdateChatCountAsync();
             MainContentFrame.Navigate(new ChatPage(_userService, _currentUserId, "User", _chatConnection, () => _ = UpdateChatCountAsync()));
+        }
+
+        private void MainWindow_Activated(object? sender, EventArgs e)
+        {
+            _ = UpdateChatCountAsync();
         }
 
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
