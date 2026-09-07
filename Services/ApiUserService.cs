@@ -5,6 +5,7 @@ using System.Text.Json;
 using DMS.Data;
 using DMS.Helpers;
 using DMS.Models;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace DMS.Services;
 
@@ -218,6 +219,59 @@ public sealed class ApiUserService : IUserService, IDisposable
     public bool CanAccessUser(string targetUserId) =>
         !AppSession.IsAdmin && string.Equals(AppSession.CurrentUserId, targetUserId, StringComparison.Ordinal);
 
+    public List<ChatUser> GetChatUsers(string currentUserId, string currentRole)
+    {
+        EnsureChatIdentity(currentUserId, currentRole);
+        return Read<List<ChatUser>>(Send(HttpMethod.Get, "api/chat/users"));
+    }
+
+    public List<ChatConversationSummary> GetChatInbox(string currentUserId, string currentRole)
+    {
+        EnsureChatIdentity(currentUserId, currentRole);
+        return Read<List<ChatConversationSummary>>(Send(HttpMethod.Get, "api/chat/inbox"));
+    }
+
+    public List<ChatConversationSummary> GetChatSent(string currentUserId, string currentRole)
+    {
+        EnsureChatIdentity(currentUserId, currentRole);
+        return Read<List<ChatConversationSummary>>(Send(HttpMethod.Get, "api/chat/sent"));
+    }
+
+    public List<ChatMessage> GetChatMessages(string currentUserId, string currentRole, string otherUserId, string otherRole)
+    {
+        EnsureChatIdentity(currentUserId, currentRole);
+        return Read<List<ChatMessage>>(Send(HttpMethod.Get,
+            $"api/chat/conversations/{Uri.EscapeDataString(otherRole)}/{Uri.EscapeDataString(otherUserId)}/messages"));
+    }
+
+    public ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText)
+    {
+        EnsureChatIdentity(senderId, senderRole);
+        return Read<ChatMessage>(Send(HttpMethod.Post, "api/chat/messages", new
+        {
+            recipientId,
+            recipientRole,
+            messageText
+        }));
+    }
+
+    public bool MarkChatMessagesRead(string recipientId, string recipientRole, string senderId, string senderRole)
+    {
+        EnsureChatIdentity(recipientId, recipientRole);
+        using var response = Send(HttpMethod.Post,
+            $"api/chat/conversations/{Uri.EscapeDataString(senderRole)}/{Uri.EscapeDataString(senderId)}/read");
+        return response.IsSuccessStatusCode;
+    }
+
+    public HubConnection CreateChatConnection()
+    {
+        var hubUri = new Uri(_httpClient.BaseAddress!, "chatHub");
+        return new HubConnectionBuilder()
+            .WithUrl(hubUri, options => options.AccessTokenProvider = () => Task.FromResult(AppSession.AccessToken))
+            .WithAutomaticReconnect()
+            .Build();
+    }
+
     public bool EmailExists(string email) => throw new NotSupportedException("Email checks are performed by the API during registration.");
 
     public bool UsernameExists(string username)
@@ -325,6 +379,13 @@ public sealed class ApiUserService : IUserService, IDisposable
     {
         if (!string.Equals(AppSession.CurrentUserId, userId, StringComparison.Ordinal))
             throw new InvalidOperationException("You do not have access to this user account.");
+    }
+
+    private static void EnsureChatIdentity(string id, string role)
+    {
+        if (!string.Equals(AppSession.CurrentUserId, id, StringComparison.Ordinal)
+            || !string.Equals(AppSession.CurrentRole, role, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("You do not have access to this chat account.");
     }
 
     private static void EnsureCurrentRecipient(string recipientId, string recipientRole)

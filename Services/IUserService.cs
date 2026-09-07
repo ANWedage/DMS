@@ -64,6 +64,13 @@ namespace DMS.Services
         /// <summary>Returns true only when the active session belongs to the target user.</summary>
         bool CanAccessUser(string targetUserId);
 
+        List<ChatUser> GetChatUsers(string currentUserId, string currentRole);
+        List<ChatConversationSummary> GetChatInbox(string currentUserId, string currentRole);
+        List<ChatConversationSummary> GetChatSent(string currentUserId, string currentRole);
+        List<ChatMessage> GetChatMessages(string currentUserId, string currentRole, string otherUserId, string otherRole);
+        ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText);
+        bool MarkChatMessagesRead(string recipientId, string recipientRole, string senderId, string senderRole);
+
         bool EmailExists(string email);
         bool UsernameExists(string username);
 

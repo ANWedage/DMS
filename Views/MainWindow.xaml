@@ -36,6 +36,11 @@
                         Padding="12,0" Click="MyTasksButton_Click">
                         <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="28"/><TextBlock Text="My Tasks" VerticalAlignment="Center"/></StackPanel>
                     </Button>
+                    <Button Height="42" Margin="0,0,0,8"
+                        Background="#1F5962" Foreground="White" HorizontalContentAlignment="Left"
+                        Padding="12,0" Click="ChatButton_Click">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE8BD;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="28"/><TextBlock Text="Chat" VerticalAlignment="Center"/></StackPanel>
+                    </Button>
                     <Button Height="42" Background="#1F5962" Foreground="White" HorizontalContentAlignment="Left"
                         Padding="12,0" Click="NotificationsButton_Click">
                         <DockPanel>

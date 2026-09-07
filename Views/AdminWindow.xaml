@@ -32,6 +32,9 @@
                         <Button Height="42" Margin="0,0,0,10" Background="#245465" Foreground="White"
                             BorderThickness="0" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="16,0,0,0"
                             Click="AttendanceTrackingButton_Click"><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE787;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="30"/><TextBlock Text="Track Attendance" VerticalAlignment="Center"/></StackPanel></Button>
+                        <Button Height="42" Margin="0,0,0,10" Background="#245465" Foreground="White"
+                            BorderThickness="0" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="16,0,0,0"
+                            Click="ChatButton_Click"><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE8BD;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="30"/><TextBlock Text="Chat" VerticalAlignment="Center"/></StackPanel></Button>
                         <Button Height="42" Background="#245465" Foreground="White"
                             BorderThickness="0" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="16,0,0,0"
                             Click="NotificationsButton_Click">

@@ -47,6 +47,11 @@ namespace DMS.Views
             MainContentFrame.Navigate(new MyTasksPage(_userService, _currentUserId));
         }
 
+        private void ChatButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentFrame.Navigate(new ChatPage(_userService, _currentUserId, "User"));
+        }
+
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new NotificationsPage(_userService, () => _ = UpdateNotificationCountAsync()));

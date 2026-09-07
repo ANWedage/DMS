@@ -19,6 +19,7 @@
     <Compile Remove="Tools\CreateAdmin\**" />
     <PackageReference Include="MongoDB.Driver" Version="2.28.0" />
     <PackageReference Include="QuestPDF" Version="2025.7.4" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.19" />
     <Resource Include="Assets\dms-logo.png" />
     <None Include="Assets\dms-logo.ico" />
     <Resource Include="Assets\Lato-BoldItalic.ttf" />

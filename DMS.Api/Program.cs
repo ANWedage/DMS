@@ -7,6 +7,7 @@ using DMS.Models;
 using DMS.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,10 +43,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapHub<ChatHub>("/chatHub");
 
 app.MapGet("/api/auth/username-exists", (string username, IUserService users) =>
     Results.Ok(users.UsernameExists(username)));
@@ -176,6 +179,61 @@ authenticated.MapGet("/notifications", (ClaimsPrincipal principal, IUserService 
     var role = principal.IsInRole("Admin") ? "Admin" : "User";
     return string.IsNullOrWhiteSpace(recipientId) ? Results.Forbid() : Results.Ok(users.GetNotifications(recipientId, role));
 });
+
+authenticated.MapGet("/chat/users", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    return string.IsNullOrWhiteSpace(userId) ? Results.Forbid() : Results.Ok(users.GetChatUsers(userId, role));
+});
+
+authenticated.MapGet("/chat/inbox", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    return string.IsNullOrWhiteSpace(userId) ? Results.Forbid() : Results.Ok(users.GetChatInbox(userId, role));
+});
+
+authenticated.MapGet("/chat/sent", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    return string.IsNullOrWhiteSpace(userId) ? Results.Forbid() : Results.Ok(users.GetChatSent(userId, role));
+});
+
+authenticated.MapGet("/chat/conversations/{otherRole}/{otherUserId}/messages",
+    (string otherRole, string otherUserId, ClaimsPrincipal principal, IUserService users) =>
+    {
+        var userId = GetSubject(principal);
+        var role = principal.IsInRole("Admin") ? "Admin" : "User";
+        return string.IsNullOrWhiteSpace(userId)
+            ? Results.Forbid()
+            : Results.Ok(users.GetChatMessages(userId, role, otherUserId, otherRole));
+    });
+
+authenticated.MapPost("/chat/messages", async (ChatMessageRequest request, ClaimsPrincipal principal, IUserService users, IHubContext<ChatHub> hub) =>
+{
+    var userId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
+    try
+    {
+        var message = users.SaveChatMessage(userId, role, request.RecipientId, request.RecipientRole, request.MessageText);
+        await hub.Clients.Users(userId, request.RecipientId).SendAsync("ReceiveMessage", message);
+        return Results.Ok(message);
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
+authenticated.MapPost("/chat/conversations/{senderRole}/{senderId}/read",
+    (string senderRole, string senderId, ClaimsPrincipal principal, IUserService users) =>
+    {
+        var userId = GetSubject(principal);
+        var role = principal.IsInRole("Admin") ? "Admin" : "User";
+        return string.IsNullOrWhiteSpace(userId)
+            ? Results.Forbid()
+            : Results.Ok(users.MarkChatMessagesRead(userId, role, senderId, senderRole));
+    });
 
 authenticated.MapGet("/notifications/unread-count", (ClaimsPrincipal principal, IUserService users) =>
 {

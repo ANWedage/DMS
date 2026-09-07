@@ -15,6 +15,133 @@ namespace DMS.Services
             _context = context;
         }
 
+            public List<ChatUser> GetChatUsers(string currentUserId, string currentRole)
+            {
+                ValidateChatIdentity(currentUserId, currentRole);
+                var users = _context.Users.Find(u => u.IsActive).ToList()
+                    .Where(u => !string.Equals(u.Id, currentUserId, StringComparison.Ordinal))
+                    .Select(u => new ChatUser(u.Id, u.Username ?? u.Email, "User"));
+                var admins = _context.Admins.Find(_ => true).ToList()
+                    .Where(a => !string.Equals(a.Id, currentUserId, StringComparison.Ordinal))
+                    .Select(a => new ChatUser(a.Id, string.IsNullOrWhiteSpace(a.Name) ? a.Username : a.Name, "Admin"));
+                return users.Concat(admins).OrderBy(u => u.DisplayName).ToList();
+            }
+
+            public List<ChatConversationSummary> GetChatInbox(string currentUserId, string currentRole) =>
+                GetChatConversations(currentUserId, currentRole, received: true);
+
+            public List<ChatConversationSummary> GetChatSent(string currentUserId, string currentRole) =>
+                GetChatConversations(currentUserId, currentRole, received: false);
+
+            public List<ChatMessage> GetChatMessages(string currentUserId, string currentRole, string otherUserId, string otherRole)
+            {
+                ValidateChatIdentity(currentUserId, currentRole);
+                ValidateChatParticipant(otherUserId, otherRole);
+                var conversationKey = BuildConversationKey(currentUserId, currentRole, otherUserId, otherRole);
+                return _context.ChatMessages.Find(m => m.ConversationKey == conversationKey)
+                    .SortBy(m => m.CreatedAt).ToList();
+            }
+
+            public ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText)
+            {
+                ValidateChatIdentity(senderId, senderRole);
+                ValidateChatParticipant(recipientId, recipientRole);
+                if (string.Equals(senderId, recipientId, StringComparison.Ordinal) && senderRole == recipientRole)
+                    throw new InvalidOperationException("You cannot send a chat message to yourself.");
+
+                var text = messageText?.Trim() ?? string.Empty;
+                if (text.Length == 0 || text.Length > 4000)
+                    throw new InvalidOperationException("Chat messages must contain between 1 and 4000 characters.");
+
+                var message = new ChatMessage
+                {
+                    ConversationKey = BuildConversationKey(senderId, senderRole, recipientId, recipientRole),
+                    SenderId = senderId,
+                    SenderRole = senderRole,
+                    RecipientId = recipientId,
+                    RecipientRole = recipientRole,
+                    MessageText = text
+                };
+                _context.ChatMessages.InsertOne(message);
+                return message;
+            }
+
+            public bool MarkChatMessagesRead(string recipientId, string recipientRole, string senderId, string senderRole)
+            {
+                ValidateChatIdentity(recipientId, recipientRole);
+                ValidateChatParticipant(senderId, senderRole);
+                var filter = Builders<ChatMessage>.Filter.And(
+                    Builders<ChatMessage>.Filter.Eq(m => m.RecipientId, recipientId),
+                    Builders<ChatMessage>.Filter.Eq(m => m.RecipientRole, recipientRole),
+                    Builders<ChatMessage>.Filter.Eq(m => m.SenderId, senderId),
+                    Builders<ChatMessage>.Filter.Eq(m => m.SenderRole, senderRole),
+                    Builders<ChatMessage>.Filter.Eq(m => m.ReadAt, null));
+                var result = _context.ChatMessages.UpdateMany(filter,
+                    Builders<ChatMessage>.Update.Set(m => m.ReadAt, DateTime.UtcNow));
+                return result.ModifiedCount > 0;
+            }
+
+            private List<ChatConversationSummary> GetChatConversations(string currentUserId, string currentRole, bool received)
+            {
+                ValidateChatIdentity(currentUserId, currentRole);
+                var messages = _context.ChatMessages.Find(received
+                    ? Builders<ChatMessage>.Filter.Eq(m => m.RecipientId, currentUserId) & Builders<ChatMessage>.Filter.Eq(m => m.RecipientRole, currentRole)
+                    : Builders<ChatMessage>.Filter.Eq(m => m.SenderId, currentUserId) & Builders<ChatMessage>.Filter.Eq(m => m.SenderRole, currentRole))
+                    .SortByDescending(m => m.CreatedAt).ToList();
+
+                return messages.GroupBy(m => (Id: received ? m.SenderId : m.RecipientId, Role: received ? m.SenderRole : m.RecipientRole))
+                    .Select(group =>
+                    {
+                        var latest = group.First();
+                        var displayName = FindChatDisplayName(group.Key.Id, group.Key.Role);
+                        return new ChatConversationSummary(group.Key.Id, displayName, group.Key.Role,
+                            latest.MessageText, latest.CreatedAt,
+                            received ? group.Count(m => m.ReadAt == null) : 0);
+                    })
+                    .OrderByDescending(summary => summary.LatestMessageAt)
+                    .ToList();
+            }
+
+            private string FindChatDisplayName(string id, string role)
+            {
+                if (role == "Admin")
+                {
+                    var admin = _context.Admins.Find(a => a.Id == id).FirstOrDefault();
+                    return admin == null || string.IsNullOrWhiteSpace(admin.Name) ? admin?.Username ?? "Unknown" : admin.Name;
+                }
+
+                var user = _context.Users.Find(u => u.Id == id).FirstOrDefault();
+                return user == null ? "Unknown" : user.Username ?? user.Email;
+            }
+
+            private void ValidateChatIdentity(string id, string role)
+            {
+                ValidateChatParticipant(id, role);
+            }
+
+            private void ValidateChatParticipant(string id, string role)
+            {
+                if (string.IsNullOrWhiteSpace(id) || (role != "User" && role != "Admin"))
+                    throw new InvalidOperationException("The chat participant is invalid.");
+
+                if (role == "Admin")
+                {
+                    if (!_context.Admins.Find(a => a.Id == id).Any())
+                        throw new InvalidOperationException("The chat participant could not be found.");
+                }
+                else if (!_context.Users.Find(u => u.Id == id && u.IsActive).Any())
+                {
+                    throw new InvalidOperationException("The chat participant is not available.");
+                }
+            }
+
+            private static string BuildConversationKey(string firstId, string firstRole, string secondId, string secondRole)
+            {
+                var first = $"{firstRole}:{firstId}";
+                var second = $"{secondRole}:{secondId}";
+                return string.CompareOrdinal(first, second) < 0 ? $"{first}|{second}" : $"{second}|{first}";
+            }
+
         public User CreateAccount(string email, string contactNumber, string password, string username)
         {
             var trimmedEmail = SecurityValidator.NormalizeEmail(email);

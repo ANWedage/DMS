@@ -22,6 +22,7 @@ namespace DMS.Data
         public IMongoCollection<ComponentAssignment> ComponentAssignments => _database.GetCollection<ComponentAssignment>("ComponentAssignments");
         public IMongoCollection<DailyTaskUpdate> DailyTaskUpdates => _database.GetCollection<DailyTaskUpdate>("DailyTaskUpdates");
         public IMongoCollection<Notification> Notifications => _database.GetCollection<Notification>("Notifications");
+        public IMongoCollection<ChatMessage> ChatMessages => _database.GetCollection<ChatMessage>("ChatMessages");
 
         /// <summary>Creates unique indexes on Email and Username (first run only - safe to call every startup).</summary>
         public void EnsureIndexes()
@@ -59,6 +60,14 @@ namespace DMS.Data
 
             Notifications.Indexes.CreateOne(new CreateIndexModel<Notification>(
                 Builders<Notification>.IndexKeys.Ascending(n => n.RecipientId).Ascending(n => n.RecipientRole).Ascending(n => n.IsRead).Descending(n => n.CreatedAt)));
+
+            ChatMessages.Indexes.CreateMany(new[]
+            {
+                new CreateIndexModel<ChatMessage>(
+                    Builders<ChatMessage>.IndexKeys.Ascending(m => m.ConversationKey).Ascending(m => m.CreatedAt)),
+                new CreateIndexModel<ChatMessage>(
+                    Builders<ChatMessage>.IndexKeys.Ascending(m => m.RecipientId).Ascending(m => m.RecipientRole).Ascending(m => m.ReadAt))
+            });
         }
     }
 }
