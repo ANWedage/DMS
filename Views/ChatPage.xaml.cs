@@ -22,12 +22,13 @@ public partial class ChatPage : Page
     private readonly ICollectionView _usersView;
     private HubConnection? _connection;
     private readonly bool _ownsConnection;
+    private readonly Action? _chatCountChanged;
     private IDisposable? _messageSubscription;
     private IDisposable? _presenceSubscription;
     private ChatUser? _selectedUser;
     private bool _showSent;
 
-    public ChatPage(IUserService userService, string currentUserId, string currentRole, HubConnection? connection = null)
+    public ChatPage(IUserService userService, string currentUserId, string currentRole, HubConnection? connection = null, Action? chatCountChanged = null)
     {
         InitializeComponent();
         _userService = userService;
@@ -35,6 +36,7 @@ public partial class ChatPage : Page
         _currentRole = currentRole;
         _connection = connection;
         _ownsConnection = connection == null;
+        _chatCountChanged = chatCountChanged;
         ConversationList.ItemsSource = _conversations;
         _usersView = new ListCollectionView(_users);
         PeopleList.ItemsSource = _usersView;
@@ -54,11 +56,18 @@ public partial class ChatPage : Page
             _messageSubscription = _connection.On<ChatMessage>("ReceiveMessage", message => Dispatcher.InvokeAsync(() => HandleIncomingMessage(message)));
             _presenceSubscription = _connection.On<string, string, bool>("UserPresenceChanged",
                 (userId, role, isOnline) => Dispatcher.InvokeAsync(() => UpdatePresence(userId, role, isOnline)));
+            _connection.Reconnected += ChatConnection_Reconnected;
             if (_connection.State == HubConnectionState.Disconnected)
             {
                 try { await _connection.StartAsync(); }
                 catch { ChatStatusText.Text = "Realtime connection unavailable. Messages will still be saved."; }
             }
+
+            if (_connection.State == HubConnectionState.Connecting)
+                await WaitForChatConnectionAsync();
+
+            if (_connection.State == HubConnectionState.Connected)
+                await LoadUsersAsync();
         }
     }
 
@@ -66,27 +75,44 @@ public partial class ChatPage : Page
     {
         _messageSubscription?.Dispose();
         _presenceSubscription?.Dispose();
+        if (_connection != null)
+            _connection.Reconnected -= ChatConnection_Reconnected;
         if (_ownsConnection && _connection != null)
             await _connection.DisposeAsync();
+    }
+
+    private async Task ChatConnection_Reconnected(string? connectionId)
+    {
+        await Dispatcher.InvokeAsync(LoadUsersAsync);
+    }
+
+    private async Task WaitForChatConnectionAsync()
+    {
+        for (var attempt = 0; attempt < 100 && _connection?.State == HubConnectionState.Connecting; attempt++)
+            await Task.Delay(50);
     }
 
     private async Task LoadAsync()
     {
         try
         {
-            var usersTask = Task.Run(() => _userService.GetChatUsers(_currentUserId, _currentRole));
             var conversationsTask = Task.Run(() => _showSent
                 ? _userService.GetChatSent(_currentUserId, _currentRole)
                 : _userService.GetChatInbox(_currentUserId, _currentRole));
-            await Task.WhenAll(usersTask, conversationsTask);
+            await Task.WhenAll(conversationsTask, LoadUsersAsync());
 
-            _users.Clear();
-            foreach (var user in usersTask.Result) _users.Add(user);
             _conversations.Clear();
             foreach (var conversation in conversationsTask.Result) _conversations.Add(conversation);
             ChatStatusText.Text = string.Empty;
         }
         catch (Exception ex) { ChatStatusText.Text = $"Unable to load chat: {ex.Message}"; }
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        var users = await Task.Run(() => _userService.GetChatUsers(_currentUserId, _currentRole));
+        _users.Clear();
+        foreach (var user in users) _users.Add(user);
     }
 
     private async void ConversationList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -117,6 +143,7 @@ public partial class ChatPage : Page
             _messages.Clear();
             foreach (var message in history) AddMessage(message);
             await Task.Run(() => _userService.MarkChatMessagesRead(_currentUserId, _currentRole, _selectedUser.Id, _selectedUser.Role));
+            _chatCountChanged?.Invoke();
             await LoadAsync();
         }
         catch (Exception ex) { ChatStatusText.Text = $"Unable to load conversation: {ex.Message}"; }
@@ -167,6 +194,7 @@ public partial class ChatPage : Page
             AddMessage(message);
             if (message.RecipientId == _currentUserId)
                 _ = Task.Run(() => _userService.MarkChatMessagesRead(_currentUserId, _currentRole, message.SenderId, message.SenderRole));
+                _chatCountChanged?.Invoke();
         }
         _ = LoadAsync();
     }

@@ -15,6 +15,7 @@ namespace DMS.Views
         private readonly IUserService _userService;
         private readonly string _currentUserId;
         private readonly HubConnection? _chatConnection;
+        private IDisposable? _chatMessageSubscription;
 
         public MainWindow(User currentUser, IUserService userService)
         {
@@ -24,6 +25,7 @@ namespace DMS.Views
             if (userService is ApiUserService api)
             {
                 _chatConnection = api.CreateChatConnection();
+                _chatMessageSubscription = _chatConnection.On<ChatMessage>("ReceiveMessage", message => { _ = UpdateChatCountAsync(); });
                 _ = StartChatConnectionAsync();
             }
 
@@ -37,6 +39,7 @@ namespace DMS.Views
             _viewModel.LogoutRequested = OnLogoutRequested;
             ShowAttendance();
             _ = UpdateNotificationCountAsync();
+            _ = UpdateChatCountAsync();
         }
 
         private void ShowAttendance()
@@ -56,7 +59,7 @@ namespace DMS.Views
 
         private void ChatButton_Click(object sender, RoutedEventArgs e)
         {
-            MainContentFrame.Navigate(new ChatPage(_userService, _currentUserId, "User", _chatConnection));
+            MainContentFrame.Navigate(new ChatPage(_userService, _currentUserId, "User", _chatConnection, () => _ = UpdateChatCountAsync()));
         }
 
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
@@ -98,6 +101,20 @@ namespace DMS.Views
             }
         }
 
+        private async Task UpdateChatCountAsync()
+        {
+            try
+            {
+                var count = await Task.Run(() => _userService.GetUnreadChatCount(_currentUserId, "User"));
+                UserChatCountText.Text = count > 99 ? "99+" : count.ToString();
+                UserChatBadge.Visibility = count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+            catch
+            {
+                UserChatBadge.Visibility = Visibility.Collapsed;
+            }
+        }
+
         private void SignOutButton_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show(
@@ -128,6 +145,7 @@ namespace DMS.Views
 
         private async Task DisposeChatConnectionAsync()
         {
+            _chatMessageSubscription?.Dispose();
             if (_chatConnection != null)
                 await _chatConnection.DisposeAsync();
         }

@@ -181,6 +181,14 @@ authenticated.MapGet("/notifications", (ClaimsPrincipal principal, IUserService 
     return string.IsNullOrWhiteSpace(recipientId) ? Results.Forbid() : Results.Ok(users.GetNotifications(recipientId, role));
 });
 
+authenticated.MapGet("/admin/notifications/sent", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var senderId = GetSubject(principal);
+    return !principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(senderId)
+        ? Results.Forbid()
+        : Results.Ok(users.GetSentNotifications(senderId, "Admin"));
+});
+
 authenticated.MapGet("/chat/users", (ClaimsPrincipal principal, IUserService users, ChatPresenceService presence) =>
 {
     var userId = GetSubject(principal);
@@ -203,6 +211,13 @@ authenticated.MapGet("/chat/sent", (ClaimsPrincipal principal, IUserService user
     var userId = GetSubject(principal);
     var role = principal.IsInRole("Admin") ? "Admin" : "User";
     return string.IsNullOrWhiteSpace(userId) ? Results.Forbid() : Results.Ok(users.GetChatSent(userId, role));
+});
+
+authenticated.MapGet("/chat/unread-count", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    return string.IsNullOrWhiteSpace(userId) ? Results.Forbid() : Results.Ok(users.GetUnreadChatCount(userId, role));
 });
 
 authenticated.MapGet("/chat/conversations/{otherRole}/{otherUserId}/messages",

@@ -33,6 +33,13 @@ namespace DMS.Services
             public List<ChatConversationSummary> GetChatSent(string currentUserId, string currentRole) =>
                 GetChatConversations(currentUserId, currentRole, received: false);
 
+            public long GetUnreadChatCount(string currentUserId, string currentRole)
+            {
+                ValidateChatIdentity(currentUserId, currentRole);
+                return _context.ChatMessages.CountDocuments(m =>
+                    m.RecipientId == currentUserId && m.RecipientRole == currentRole && m.ReadAt == null);
+            }
+
             public List<ChatMessage> GetChatMessages(string currentUserId, string currentRole, string otherUserId, string otherRole)
             {
                 ValidateChatIdentity(currentUserId, currentRole);
@@ -333,6 +340,22 @@ namespace DMS.Services
                 .SortByDescending(n => n.CreatedAt).ToList();
         }
 
+        public List<Notification> GetSentNotifications(string senderId, string senderRole)
+        {
+            if (string.IsNullOrWhiteSpace(senderId) || senderRole != "Admin")
+                throw new InvalidOperationException("Only administrators can view sent notification history.");
+
+            return _context.Notifications.Find(n => n.SenderId == senderId)
+                .SortByDescending(n => n.CreatedAt)
+                .ToList()
+                .Select(notification =>
+                {
+                    notification.IsSent = true;
+                    return notification;
+                })
+                .ToList();
+        }
+
         public long GetUnreadNotificationCount(string recipientId, string recipientRole)
         {
             ValidateRecipient(recipientId, recipientRole);
@@ -376,11 +399,18 @@ namespace DMS.Services
             if (ids.Count == 0)
                 throw new InvalidOperationException("Select at least one notification recipient.");
 
+            var recipientNames = recipientRole == "User"
+                ? _context.Users.Find(u => ids.Contains(u.Id)).ToList()
+                    .ToDictionary(u => u.Id, u => u.Username ?? u.Email)
+                : _context.Admins.Find(a => ids.Contains(a.Id)).ToList()
+                    .ToDictionary(a => a.Id, a => string.IsNullOrWhiteSpace(a.Name) ? a.Username : a.Name);
+
             var now = DateTime.UtcNow;
             _context.Notifications.InsertMany(ids.Select(id => new Notification
             {
                 RecipientId = id,
                 RecipientRole = recipientRole,
+                RecipientName = recipientNames.TryGetValue(id, out var recipientName) ? recipientName : id,
                 SenderId = senderId,
                 SenderName = senderName,
                 Title = title.Trim(),

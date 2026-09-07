@@ -48,6 +48,7 @@ namespace DMS.Services
         long GetActiveUserCount();
 
         List<Notification> GetNotifications(string recipientId, string recipientRole);
+        List<Notification> GetSentNotifications(string senderId, string senderRole);
         long GetUnreadNotificationCount(string recipientId, string recipientRole);
         bool MarkNotificationRead(string notificationId, string recipientId, string recipientRole);
         bool MarkAllNotificationsRead(string recipientId, string recipientRole);
@@ -67,6 +68,7 @@ namespace DMS.Services
         List<ChatUser> GetChatUsers(string currentUserId, string currentRole);
         List<ChatConversationSummary> GetChatInbox(string currentUserId, string currentRole);
         List<ChatConversationSummary> GetChatSent(string currentUserId, string currentRole);
+        long GetUnreadChatCount(string currentUserId, string currentRole);
         List<ChatMessage> GetChatMessages(string currentUserId, string currentRole, string otherUserId, string otherRole);
         ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText);
         bool MarkChatMessagesRead(string recipientId, string recipientRole, string senderId, string senderRole);

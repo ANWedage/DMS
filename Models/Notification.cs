@@ -15,6 +15,10 @@ namespace DMS.Models
         [BsonElement("RecipientRole")]
         public string RecipientRole { get; set; } = string.Empty;
 
+        [BsonElement("RecipientName")]
+        [BsonIgnoreIfNull]
+        public string? RecipientName { get; set; }
+
         [BsonElement("SenderId")]
         public string SenderId { get; set; } = string.Empty;
 
@@ -35,6 +39,9 @@ namespace DMS.Models
 
         [BsonElement("ReadAt")]
         public DateTime? ReadAt { get; set; }
+
+        [BsonIgnore]
+        public bool IsSent { get; set; }
     }
 
     public sealed record NotificationRecipient(string Id, string DisplayName, string Role);

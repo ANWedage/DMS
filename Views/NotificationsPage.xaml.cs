@@ -14,6 +14,7 @@ namespace DMS.Views
         private readonly string _recipientRole;
         private readonly Action? _unreadChanged;
         private List<NotificationRecipient> _recipientOptions = new();
+        private bool _showSentHistory;
 
         public NotificationsPage(IUserService userService, Action? unreadChanged = null)
         {
@@ -27,6 +28,7 @@ namespace DMS.Views
             {
                 ComposeColumn.Width = new GridLength(330);
                 ComposePanel.Visibility = Visibility.Visible;
+                AdminHistoryButtons.Visibility = Visibility.Visible;
                 LoadRecipients();
             }
 
@@ -37,7 +39,9 @@ namespace DMS.Views
         {
             try
             {
-                var notifications = await Task.Run(() => _userService.GetNotifications(_recipientId, _recipientRole));
+                var notifications = await Task.Run(() => _showSentHistory
+                    ? _userService.GetSentNotifications(_recipientId, _recipientRole)
+                    : _userService.GetNotifications(_recipientId, _recipientRole));
                 var unread = notifications.LongCount(notification => !notification.IsRead);
                 NotificationList.ItemsSource = notifications;
                 UnreadCountText.Text = unread == 0 ? "You are all caught up." : $"{unread} unread notification{(unread == 1 ? string.Empty : "s")}";
@@ -133,6 +137,18 @@ namespace DMS.Views
             }
         }
 
+        private void AdminInboxButton_Click(object sender, RoutedEventArgs e)
+        {
+            _showSentHistory = false;
+            _ = LoadNotificationsAsync();
+        }
+
+        private void AdminSentButton_Click(object sender, RoutedEventArgs e)
+        {
+            _showSentHistory = true;
+            _ = LoadNotificationsAsync();
+        }
+
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             var sendToAll = SendToAllBox.IsChecked == true;
@@ -164,6 +180,8 @@ namespace DMS.Views
                 MessageBox.Show($"Notification sent to {count} recipient(s).", "Notification sent", MessageBoxButton.OK, MessageBoxImage.Information);
                 TitleBox.Clear();
                 MessageTextBox.Clear();
+                if (_showSentHistory)
+                    _ = LoadNotificationsAsync();
             }
             catch (Exception ex)
             {

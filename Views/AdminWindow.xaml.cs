@@ -2,6 +2,7 @@ using System.Windows;
 using System.Diagnostics;
 using System.Windows.Navigation;
 using DMS.Helpers;
+using DMS.Models;
 using DMS.Services;
 using Microsoft.AspNetCore.SignalR.Client;
 
@@ -11,6 +12,7 @@ namespace DMS.Views
     {
         private readonly IUserService _userService;
         private readonly HubConnection? _chatConnection;
+        private IDisposable? _chatMessageSubscription;
 
         public AdminWindow() : this(new UserService(new Data.MongoDbContext()))
         {
@@ -23,10 +25,12 @@ namespace DMS.Views
             if (userService is ApiUserService api)
             {
                 _chatConnection = api.CreateChatConnection();
+                _chatMessageSubscription = _chatConnection.On<ChatMessage>("ReceiveMessage", message => { _ = UpdateChatCountAsync(); });
                 _ = StartChatConnectionAsync();
             }
             ShowDevelopers();
             _ = UpdateNotificationCountAsync();
+            _ = UpdateChatCountAsync();
         }
 
         private void ShowDevelopers()
@@ -51,7 +55,7 @@ namespace DMS.Views
 
         private void ChatButton_Click(object sender, RoutedEventArgs e)
         {
-            MainContentFrame.Navigate(new ChatPage(_userService, AppSession.CurrentUserId ?? string.Empty, "Admin", _chatConnection));
+            MainContentFrame.Navigate(new ChatPage(_userService, AppSession.CurrentUserId ?? string.Empty, "Admin", _chatConnection, () => _ = UpdateChatCountAsync()));
         }
 
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
@@ -93,6 +97,20 @@ namespace DMS.Views
             }
         }
 
+        private async Task UpdateChatCountAsync()
+        {
+            try
+            {
+                var count = await Task.Run(() => _userService.GetUnreadChatCount(AppSession.CurrentUserId ?? string.Empty, "Admin"));
+                AdminChatCountText.Text = count > 99 ? "99+" : count.ToString();
+                AdminChatBadge.Visibility = count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+            catch
+            {
+                AdminChatBadge.Visibility = Visibility.Collapsed;
+            }
+        }
+
         private void SignOutButton_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show(
@@ -120,6 +138,7 @@ namespace DMS.Views
 
         private async Task DisposeChatConnectionAsync()
         {
+            _chatMessageSubscription?.Dispose();
             if (_chatConnection != null)
                 await _chatConnection.DisposeAsync();
         }

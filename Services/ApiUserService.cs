@@ -140,6 +140,13 @@ public sealed class ApiUserService : IUserService, IDisposable
         return Read<List<Notification>>(Send(HttpMethod.Get, "api/notifications"));
     }
 
+    public List<Notification> GetSentNotifications(string senderId, string senderRole)
+    {
+        if (!AppSession.IsAdmin || !string.Equals(AppSession.CurrentUserId, senderId, StringComparison.Ordinal))
+            throw new InvalidOperationException("Only the signed-in administrator can view sent notification history.");
+        return Read<List<Notification>>(Send(HttpMethod.Get, "api/admin/notifications/sent"));
+    }
+
     public long GetUnreadNotificationCount(string recipientId, string recipientRole)
     {
         EnsureCurrentRecipient(recipientId, recipientRole);
@@ -235,6 +242,12 @@ public sealed class ApiUserService : IUserService, IDisposable
     {
         EnsureChatIdentity(currentUserId, currentRole);
         return Read<List<ChatConversationSummary>>(Send(HttpMethod.Get, "api/chat/sent"));
+    }
+
+    public long GetUnreadChatCount(string currentUserId, string currentRole)
+    {
+        EnsureChatIdentity(currentUserId, currentRole);
+        return Read<long>(Send(HttpMethod.Get, "api/chat/unread-count"));
     }
 
     public List<ChatMessage> GetChatMessages(string currentUserId, string currentRole, string otherUserId, string otherRole)

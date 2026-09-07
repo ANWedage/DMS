@@ -10,7 +10,13 @@
         <Grid Grid.Row="0" Margin="0,0,0,18">
             <StackPanel>
                 <TextBlock Text="Notifications" Style="{StaticResource HeadingStyle}"/>
-                <TextBlock x:Name="UnreadCountText" Text="Loading unread notifications..." Margin="0,8,0,0" Style="{StaticResource MutedStyle}"/>
+                <StackPanel>
+                    <TextBlock x:Name="UnreadCountText" Text="Loading unread notifications..." Margin="0,8,0,0" Style="{StaticResource MutedStyle}"/>
+                    <StackPanel x:Name="AdminHistoryButtons" Orientation="Horizontal" Margin="0,12,0,0" Visibility="Collapsed">
+                        <Button x:Name="AdminInboxButton" Content="Inbox" Click="AdminInboxButton_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="AdminSentButton" Content="Sent history" Click="AdminSentButton_Click"/>
+                    </StackPanel>
+                </StackPanel>
             </StackPanel>
             <Button Content="Mark all as read" HorizontalAlignment="Right" VerticalAlignment="Bottom"
                     Style="{StaticResource SecondaryButtonStyle}" Click="MarkAllReadButton_Click"/>
@@ -52,6 +58,9 @@
                                                     <DataTrigger Binding="{Binding IsRead}" Value="True">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
                                                     </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsSent}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Button.Style>
@@ -59,8 +68,38 @@
                                 </DockPanel>
                                 <TextBlock Grid.Row="1" Text="{Binding Message}" TextWrapping="Wrap" Margin="0,7,0,0"/>
                                 <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,7,0,0">
-                                    <TextBlock Text="From " Foreground="#66727D"/>
-                                    <TextBlock Text="{Binding SenderName}" Foreground="#66727D"/>
+                                    <TextBlock Text="From " Foreground="#66727D">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers><DataTrigger Binding="{Binding IsSent}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding SenderName}" Foreground="#66727D">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers><DataTrigger Binding="{Binding IsSent}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="To " Foreground="#66727D">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers><DataTrigger Binding="{Binding IsSent}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding RecipientName}" Foreground="#66727D">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers><DataTrigger Binding="{Binding IsSent}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                     <TextBlock Text="  |  " Foreground="#66727D"/>
                                     <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:dd MMM yyyy HH:mm}}" Foreground="#66727D"/>
                                 </StackPanel>
