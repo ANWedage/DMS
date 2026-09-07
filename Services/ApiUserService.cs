@@ -22,7 +22,11 @@ public sealed class ApiUserService : IUserService, IDisposable
         var configuredUrl = baseUrl
             ?? MongoConfig.GetEnvironmentValue("DMS_API_BASE_URL")
             ?? "http://127.0.0.1:5188";
-        _httpClient = new HttpClient { BaseAddress = new Uri(configuredUrl.TrimEnd('/') + "/") };
+        _httpClient = new HttpClient
+        {
+            BaseAddress = new Uri(configuredUrl.TrimEnd('/') + "/"),
+            Timeout = TimeSpan.FromSeconds(15)
+        };
     }
 
     public User CreateAccount(string email, string contactNumber, string password, string username)

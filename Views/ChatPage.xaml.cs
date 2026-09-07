@@ -26,6 +26,7 @@ public partial class ChatPage : Page
     private IDisposable? _messageSubscription;
     private ChatUser? _selectedUser;
     private bool _showSent;
+    private bool _isLoading;
 
     public ChatPage(IUserService userService, string currentUserId, string currentRole, HubConnection? connection = null, Action? chatCountChanged = null)
     {
@@ -70,8 +71,13 @@ public partial class ChatPage : Page
 
     private async Task LoadAsync()
     {
+        if (_isLoading)
+            return;
+
+        _isLoading = true;
         try
         {
+            ChatStatusText.Text = "Loading chat...";
             var conversationsTask = Task.Run(() => _showSent
                 ? _userService.GetChatSent(_currentUserId, _currentRole)
                 : _userService.GetChatInbox(_currentUserId, _currentRole));
@@ -88,6 +94,10 @@ public partial class ChatPage : Page
             ChatStatusText.Text = string.Empty;
         }
         catch (Exception ex) { ChatStatusText.Text = $"Unable to load chat: {ex.Message}"; }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     private async Task LoadUsersAsync()
