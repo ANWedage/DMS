@@ -78,7 +78,13 @@ public partial class ChatPage : Page
             await Task.WhenAll(conversationsTask, LoadUsersAsync());
 
             _conversations.Clear();
-            foreach (var conversation in conversationsTask.Result) _conversations.Add(conversation);
+                foreach (var conversation in conversationsTask.Result)
+                {
+                    _conversations.Add(conversation with
+                    {
+                        LatestMessageAt = conversation.LatestMessageAt.ToLocalTime()
+                    });
+                }
             ChatStatusText.Text = string.Empty;
         }
         catch (Exception ex) { ChatStatusText.Text = $"Unable to load chat: {ex.Message}"; }

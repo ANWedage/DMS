@@ -42,6 +42,8 @@ namespace DMS.Views
                 var notifications = await Task.Run(() => _showSentHistory
                     ? _userService.GetSentNotifications(_recipientId, _recipientRole)
                     : _userService.GetNotifications(_recipientId, _recipientRole));
+                foreach (var notification in notifications)
+                    notification.CreatedAt = notification.CreatedAt.ToLocalTime();
                 var unread = notifications.LongCount(notification => !notification.IsRead);
                 NotificationList.ItemsSource = notifications;
                 UnreadCountText.Text = unread == 0 ? "You are all caught up." : $"{unread} unread notification{(unread == 1 ? string.Empty : "s")}";

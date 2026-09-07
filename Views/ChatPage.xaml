@@ -147,7 +147,7 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="0,0,0,8" HorizontalAlignment="Stretch">
-                                    <Border Padding="11,8" CornerRadius="10" MaxWidth="460" HorizontalAlignment="Left">
+                                    <Border Padding="11,8" CornerRadius="10" MaxWidth="460">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Background" Value="#EAF2F3"/>
