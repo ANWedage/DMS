@@ -146,13 +146,19 @@ namespace DMS.Views
         {
             try
             {
-                var settings = await Task.Run(_userService.GetMeetingSettings);
+                // Load settings and attendance data in parallel for better performance
+                var settingsTask = Task.Run(_userService.GetMeetingSettings);
+                var attendanceTask = LoadAttendanceAsync();
+                
+                await Task.WhenAll(settingsTask, attendanceTask);
+                
+                // Populate settings textboxes after both tasks complete
+                var settings = settingsTask.Result;
                 MorningTimeTextBox.Text = settings.MorningTime;
                 EveningTimeTextBox.Text = settings.EveningTime;
                 MorningLinkTextBox.Text = settings.MorningMeetingLink;
                 EveningLinkTextBox.Text = settings.EveningMeetingLink;
                 UpdateLastSettingsText(settings);
-                await LoadAttendanceAsync();
             }
             catch (Exception ex)
             {

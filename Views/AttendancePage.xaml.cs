@@ -37,9 +37,17 @@ namespace DMS.Views
         {
             try
             {
-                _settings = await Task.Run(_userService.GetMeetingSettings);
                 var date = AttendanceDatePicker.SelectedDate ?? DateTime.Today;
-                var records = await Task.Run(() => _userService.GetUserAttendance(_userId, date));
+                
+                // Execute both operations in parallel for better performance
+                var settingsTask = Task.Run(_userService.GetMeetingSettings);
+                var attendanceTask = Task.Run(() => _userService.GetUserAttendance(_userId, date));
+                
+                await Task.WhenAll(settingsTask, attendanceTask);
+                
+                _settings = settingsTask.Result;
+                var records = attendanceTask.Result;
+                
                 var rows = new[]
                 {
                     CreateRow(records, MeetingTypes.Morning, _settings.MorningTime, _settings.MorningMeetingLink),

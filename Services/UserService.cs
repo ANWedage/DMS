@@ -310,7 +310,7 @@ namespace DMS.Services
             if (string.IsNullOrWhiteSpace(userId))
                 return new List<AttendanceRecord>();
 
-            EnsureDailyAttendance(date);
+            EnsureUserDailyAttendance(userId, date);
             return _context.Attendance.Find(a => a.UserId == userId && a.MeetingDate == FormatDate(date))
                 .ToList()
                 .OrderBy(a => a.MeetingType == MeetingTypes.Morning ? 0 : 1)
@@ -381,6 +381,57 @@ namespace DMS.Services
                 Builders<AttendanceRecord>.Filter.Eq(a => a.Id, attendanceId), update).ModifiedCount > 0;
         }
 
+        private void EnsureUserDailyAttendance(string userId, DateTime date)
+        {
+            var dateText = FormatDate(date);
+            var settings = GetMeetingSettings();
+            var now = GetApplicationNow(settings);
+
+            // Only ensure records for the current user, not all users
+            foreach (var meetingType in new[] { MeetingTypes.Morning, MeetingTypes.Evening })
+            {
+                var filter = Builders<AttendanceRecord>.Filter.And(
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, userId),
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType));
+
+                var record = new AttendanceRecord
+                {
+                    UserId = userId,
+                    MeetingDate = dateText,
+                    MeetingType = meetingType
+                };
+                _context.Attendance.UpdateOne(filter, Builders<AttendanceRecord>.Update
+                    .SetOnInsert(a => a.UserId, record.UserId)
+                    .SetOnInsert(a => a.MeetingDate, record.MeetingDate)
+                    .SetOnInsert(a => a.MeetingType, record.MeetingType)
+                    .SetOnInsert(a => a.Status, record.Status)
+                    .SetOnInsert(a => a.CreatedAt, record.CreatedAt)
+                    .SetOnInsert(a => a.UpdatedAt, record.UpdatedAt),
+                    new UpdateOptions { IsUpsert = true });
+            }
+
+            if (date.Date != now.Date)
+                return;
+
+            // Auto-mark absent if attendance window is closed
+            foreach (var meetingType in new[] { MeetingTypes.Morning, MeetingTypes.Evening })
+            {
+                if (!IsWindowClosed(meetingType, settings, now))
+                    continue;
+
+                var filter = Builders<AttendanceRecord>.Filter.And(
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, userId),
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType),
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
+                _context.Attendance.UpdateOne(filter, Builders<AttendanceRecord>.Update
+                    .Set(a => a.Status, AttendanceStatuses.Absent)
+                    .Set(a => a.MarkedBy, "System")
+                    .Set(a => a.UpdatedAt, DateTime.UtcNow));
+            }
+        }
+
         private void EnsureDailyAttendance(DateTime date)
         {
             var dateText = FormatDate(date);
@@ -388,6 +439,7 @@ namespace DMS.Services
             var now = GetApplicationNow(settings);
             var activeUsers = _context.Users.Find(u => u.IsActive).ToList();
 
+            // Used by admin operations to ensure all users have attendance records
             foreach (var user in activeUsers)
             {
                 foreach (var meetingType in new[] { MeetingTypes.Morning, MeetingTypes.Evening })
