@@ -257,6 +257,14 @@ public sealed class ApiUserService : IUserService, IDisposable
             $"api/chat/conversations/{Uri.EscapeDataString(otherRole)}/{Uri.EscapeDataString(otherUserId)}/messages"));
     }
 
+    public bool DeleteChatConversation(string currentUserId, string currentRole, string otherUserId, string otherRole)
+    {
+        EnsureChatIdentity(currentUserId, currentRole);
+        using var response = Send(HttpMethod.Delete,
+            $"api/chat/conversations/{Uri.EscapeDataString(otherRole)}/{Uri.EscapeDataString(otherUserId)}");
+        return response.IsSuccessStatusCode;
+    }
+
     public ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText)
     {
         EnsureChatIdentity(senderId, senderRole);

@@ -70,6 +70,7 @@ namespace DMS.Services
         List<ChatConversationSummary> GetChatSent(string currentUserId, string currentRole);
         long GetUnreadChatCount(string currentUserId, string currentRole);
         List<ChatMessage> GetChatMessages(string currentUserId, string currentRole, string otherUserId, string otherRole);
+        bool DeleteChatConversation(string currentUserId, string currentRole, string otherUserId, string otherRole);
         ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText);
         bool MarkChatMessagesRead(string recipientId, string recipientRole, string senderId, string senderRole);
 

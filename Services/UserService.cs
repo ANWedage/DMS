@@ -49,6 +49,14 @@ namespace DMS.Services
                     .SortBy(m => m.CreatedAt).ToList();
             }
 
+            public bool DeleteChatConversation(string currentUserId, string currentRole, string otherUserId, string otherRole)
+            {
+                ValidateChatIdentity(currentUserId, currentRole);
+                ValidateChatParticipant(otherUserId, otherRole);
+                var conversationKey = BuildConversationKey(currentUserId, currentRole, otherUserId, otherRole);
+                return _context.ChatMessages.DeleteMany(m => m.ConversationKey == conversationKey).DeletedCount > 0;
+            }
+
             public ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText)
             {
                 ValidateChatIdentity(senderId, senderRole);

@@ -227,6 +227,21 @@ authenticated.MapGet("/chat/conversations/{otherRole}/{otherUserId}/messages",
             : Results.Ok(users.GetChatMessages(userId, role, otherUserId, otherRole));
     });
 
+authenticated.MapDelete("/chat/conversations/{otherRole}/{otherUserId}",
+    (string otherRole, string otherUserId, ClaimsPrincipal principal, IUserService users) =>
+    {
+        var userId = GetSubject(principal);
+        var role = principal.IsInRole("Admin") ? "Admin" : "User";
+        if (string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
+        try
+        {
+            return users.DeleteChatConversation(userId, role, otherUserId, otherRole)
+                ? Results.NoContent()
+                : Results.NotFound();
+        }
+        catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+    });
+
 authenticated.MapPost("/chat/messages", async (ChatMessageRequest request, ClaimsPrincipal principal, IUserService users, IHubContext<ChatHub> hub) =>
 {
     var userId = GetSubject(principal);

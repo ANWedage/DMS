@@ -105,6 +105,43 @@ public partial class ChatPage : Page
         await LoadConversationAsync();
     }
 
+    private async void DeleteChatMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as MenuItem)?.Tag is not ChatConversationSummary summary)
+            return;
+
+        var result = MessageBox.Show(
+            $"Delete the chat with {summary.OtherDisplayName}? All messages in this conversation will be permanently deleted.",
+            "Delete chat",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (result != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            var deleted = await Task.Run(() => _userService.DeleteChatConversation(
+                _currentUserId, _currentRole, summary.OtherUserId, summary.OtherRole));
+            if (!deleted)
+            {
+                ChatStatusText.Text = "The chat could not be found.";
+                return;
+            }
+
+            _selectedUser = null;
+            _messages.Clear();
+            SelectedUserText.Text = "Select a conversation";
+            SelectedRoleText.Text = string.Empty;
+            ConversationList.SelectedItem = null;
+            _chatCountChanged?.Invoke();
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            ChatStatusText.Text = $"Unable to delete chat: {ex.Message}";
+        }
+    }
+
     private async void PeopleList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (PeopleList.SelectedItem is not ChatUser user) return;
