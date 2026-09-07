@@ -6,6 +6,7 @@ using DMS.Models;
 using DMS.Services;
 using DMS.ViewModels;
 using Microsoft.AspNetCore.SignalR.Client;
+using System.Windows.Threading;
 
 namespace DMS.Views
 {
@@ -16,11 +17,15 @@ namespace DMS.Views
         private readonly string _currentUserId;
         private readonly HubConnection? _chatConnection;
         private IDisposable? _chatMessageSubscription;
+        private readonly DispatcherTimer _taskReminderTimer = new() { Interval = TimeSpan.FromMinutes(1) };
+        private string? _taskReminderTimeZoneId = "Sri Lanka Standard Time";
 
         public MainWindow(User currentUser, IUserService userService)
         {
             InitializeComponent();
             Activated += MainWindow_Activated;
+            _taskReminderTimer.Tick += async (_, _) => await UpdateTaskReminderBannerAsync();
+            _taskReminderTimer.Start();
 
             _userService = userService;
             if (userService is ApiUserService api)
@@ -41,6 +46,7 @@ namespace DMS.Views
             ShowAttendance();
             _ = UpdateNotificationCountAsync();
             _ = UpdateChatCountAsync();
+            _ = UpdateTaskReminderBannerAsync();
         }
 
         private void ShowAttendance()
@@ -67,7 +73,42 @@ namespace DMS.Views
         private void MainWindow_Activated(object? sender, EventArgs e)
         {
             _ = UpdateChatCountAsync();
+            _ = UpdateTaskReminderBannerAsync();
         }
+
+        private async Task UpdateTaskReminderBannerAsync()
+        {
+            var now = await GetTaskReminderNowAsync();
+            var currentTime = now.TimeOfDay;
+            var visibleWindow = IsTaskReminderTestMode()
+                || (currentTime >= TimeSpan.FromHours(16).Add(TimeSpan.FromMinutes(50))
+                    && currentTime < TimeSpan.FromHours(17).Add(TimeSpan.FromMinutes(10)));
+            if (!visibleWindow)
+            {
+                UserTaskReminderBanner.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            UserTaskReminderBanner.Visibility = Visibility.Visible;
+        }
+
+        private async Task<DateTime> GetTaskReminderNowAsync()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_taskReminderTimeZoneId))
+                    _taskReminderTimeZoneId = (await Task.Run(_userService.GetMeetingSettings)).TimeZoneId;
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
+                    TimeZoneInfo.FindSystemTimeZoneById(_taskReminderTimeZoneId));
+            }
+            catch
+            {
+                return DateTime.UtcNow.AddHours(5.5);
+            }
+        }
+
+        private static bool IsTaskReminderTestMode() =>
+            string.Equals(Environment.GetEnvironmentVariable("DMS_TASK_REMINDER_TEST"), "true", StringComparison.OrdinalIgnoreCase);
 
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
         {
@@ -136,6 +177,7 @@ namespace DMS.Views
 
         private void OnLogoutRequested()
         {
+            _taskReminderTimer.Stop();
             _ = DisposeChatConnectionAsync();
             AppSession.Clear();
             var loginWindow = new LoginWindow(_userService);

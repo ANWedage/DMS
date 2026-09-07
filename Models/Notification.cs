@@ -40,6 +40,13 @@ namespace DMS.Models
         [BsonElement("ReadAt")]
         public DateTime? ReadAt { get; set; }
 
+        [BsonElement("IsHighPriority")]
+        public bool IsHighPriority { get; set; }
+
+        [BsonElement("ReminderKey")]
+        [BsonIgnoreIfNull]
+        public string? ReminderKey { get; set; }
+
         [BsonIgnore]
         public bool IsSent { get; set; }
     }

@@ -344,8 +344,18 @@ namespace DMS.Services
         public List<Notification> GetNotifications(string recipientId, string recipientRole)
         {
             ValidateRecipient(recipientId, recipientRole);
+            EnsureCurrentDailyReminderIfDue();
             return _context.Notifications.Find(n => n.RecipientId == recipientId && n.RecipientRole == recipientRole)
                 .SortByDescending(n => n.CreatedAt).ToList();
+        }
+
+        private void EnsureCurrentDailyReminderIfDue()
+        {
+            var settings = GetMeetingSettings();
+            var now = GetApplicationNow(settings);
+            if (now.TimeOfDay >= TimeSpan.FromHours(16).Add(TimeSpan.FromMinutes(50))
+                && now.TimeOfDay < TimeSpan.FromHours(17).Add(TimeSpan.FromMinutes(10)))
+                EnsureDailyTaskReminder(now.Date);
         }
 
         public List<Notification> GetSentNotifications(string senderId, string senderRole)
@@ -386,6 +396,37 @@ namespace DMS.Services
                 n => n.RecipientId == recipientId && n.RecipientRole == recipientRole && !n.IsRead,
                 Builders<Notification>.Update.Set(n => n.IsRead, true).Set(n => n.ReadAt, DateTime.UtcNow));
             return result.ModifiedCount > 0;
+        }
+
+        public void EnsureDailyTaskReminder(DateTime localDate)
+        {
+            var reminderKey = $"daily-task-reminder:{localDate:yyyy-MM-dd}";
+            var recipients = _context.Users.Find(u => u.IsActive).ToList()
+                .Select(user => (Id: user.Id, Role: "User", Name: user.Username ?? user.Email))
+                .Concat(_context.Admins.Find(_ => true).ToList()
+                    .Select(admin => (Id: admin.Id, Role: "Admin", Name: string.IsNullOrWhiteSpace(admin.Name) ? admin.Username : admin.Name)))
+                .ToList();
+
+            foreach (var recipient in recipients)
+            {
+                var filter = Builders<Notification>.Filter.And(
+                    Builders<Notification>.Filter.Eq(n => n.RecipientId, recipient.Id),
+                    Builders<Notification>.Filter.Eq(n => n.ReminderKey, reminderKey));
+                _context.Notifications.UpdateOne(filter,
+                    Builders<Notification>.Update
+                        .SetOnInsert(n => n.RecipientId, recipient.Id)
+                        .SetOnInsert(n => n.RecipientRole, recipient.Role)
+                        .SetOnInsert(n => n.RecipientName, recipient.Name)
+                        .SetOnInsert(n => n.SenderId, "System")
+                        .SetOnInsert(n => n.SenderName, "DMS Task Reminder")
+                        .SetOnInsert(n => n.Title, "Daily task update reminder")
+                        .SetOnInsert(n => n.Message, "Please complete and submit your daily task update before the workday ends.")
+                        .SetOnInsert(n => n.CreatedAt, DateTime.UtcNow)
+                        .SetOnInsert(n => n.IsRead, false)
+                        .SetOnInsert(n => n.IsHighPriority, true)
+                        .SetOnInsert(n => n.ReminderKey, reminderKey),
+                    new UpdateOptions { IsUpsert = true });
+            }
         }
 
         public int SendNotification(string senderId, string senderName, string recipientRole, bool sendToAll,

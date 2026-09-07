@@ -171,6 +171,9 @@ public sealed class ApiUserService : IUserService, IDisposable
         return response.IsSuccessStatusCode;
     }
 
+    public void EnsureDailyTaskReminder(DateTime localDate) =>
+        throw new NotSupportedException("Daily task reminders are scheduled by the API.");
+
     public int SendNotification(string senderId, string senderName, string recipientRole, bool sendToAll,
         IReadOnlyCollection<string> recipientIds, string title, string message)
     {

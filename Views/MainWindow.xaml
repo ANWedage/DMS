@@ -76,6 +76,7 @@
         <Grid Grid.Column="1" Margin="42,34,42,36">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -98,7 +99,11 @@
                 </StackPanel>
             </Grid>
 
-                 <Frame x:Name="MainContentFrame" Grid.Row="1" Margin="0,30,0,0"
+            <Border x:Name="UserTaskReminderBanner" Grid.Row="1" Background="#FFF0C2" BorderBrush="#D89000" BorderThickness="2" CornerRadius="6" Padding="14,10" Margin="0,16,0,0" Visibility="Collapsed">
+                <TextBlock Text="Daily task reminder: complete and submit your task update before the workday ends." Foreground="#704B00" FontWeight="SemiBold"/>
+            </Border>
+
+                 <Frame x:Name="MainContentFrame" Grid.Row="2" Margin="0,30,0,0"
                      NavigationUIVisibility="Hidden"/>
         </Grid>
     </Grid>

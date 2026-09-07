@@ -36,6 +36,11 @@
                                 <DataTrigger Binding="{Binding IsRead}" Value="False">
                                     <Setter Property="Background" Value="#E8F5F3"/>
                                 </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsHighPriority}" Value="True">
+                                        <Setter Property="Background" Value="#FFF0C2"/>
+                                        <Setter Property="BorderBrush" Value="#D89000"/>
+                                        <Setter Property="BorderThickness" Value="2"/>
+                                    </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </ListView.ItemContainerStyle>

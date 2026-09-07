@@ -60,6 +60,14 @@ namespace DMS.Data
 
             Notifications.Indexes.CreateOne(new CreateIndexModel<Notification>(
                 Builders<Notification>.IndexKeys.Ascending(n => n.RecipientId).Ascending(n => n.RecipientRole).Ascending(n => n.IsRead).Descending(n => n.CreatedAt)));
+            Notifications.Indexes.CreateOne(new CreateIndexModel<Notification>(
+                Builders<Notification>.IndexKeys.Ascending(n => n.RecipientId).Ascending(n => n.ReminderKey),
+                new CreateIndexOptions<Notification>
+                {
+                    Name = "Notifications_ReminderKey_Unique",
+                    Unique = true,
+                    PartialFilterExpression = Builders<Notification>.Filter.Exists(n => n.ReminderKey, true)
+                }));
 
             ChatMessages.Indexes.CreateMany(new[]
             {
