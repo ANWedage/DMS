@@ -3,12 +3,14 @@ using System.Diagnostics;
 using System.Windows.Navigation;
 using DMS.Helpers;
 using DMS.Services;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace DMS.Views
 {
     public partial class AdminWindow : Window
     {
         private readonly IUserService _userService;
+        private readonly HubConnection? _chatConnection;
 
         public AdminWindow() : this(new UserService(new Data.MongoDbContext()))
         {
@@ -18,6 +20,11 @@ namespace DMS.Views
         {
             InitializeComponent();
             _userService = userService;
+            if (userService is ApiUserService api)
+            {
+                _chatConnection = api.CreateChatConnection();
+                _ = StartChatConnectionAsync();
+            }
             ShowDevelopers();
             _ = UpdateNotificationCountAsync();
         }
@@ -44,7 +51,7 @@ namespace DMS.Views
 
         private void ChatButton_Click(object sender, RoutedEventArgs e)
         {
-            MainContentFrame.Navigate(new ChatPage(_userService, AppSession.CurrentUserId ?? string.Empty, "Admin"));
+            MainContentFrame.Navigate(new ChatPage(_userService, AppSession.CurrentUserId ?? string.Empty, "Admin", _chatConnection));
         }
 
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
@@ -65,6 +72,7 @@ namespace DMS.Views
 
         private void OnPasswordChanged()
         {
+            _ = DisposeChatConnectionAsync();
             AppSession.Clear();
             var loginWindow = new LoginWindow(_userService);
             loginWindow.Show();
@@ -95,11 +103,25 @@ namespace DMS.Views
 
             if (result == MessageBoxResult.Yes)
             {
+                _ = DisposeChatConnectionAsync();
                 AppSession.Clear();
                 var loginWindow = new LoginWindow(_userService);
                 loginWindow.Show();
                 Close();
             }
+        }
+
+        private async Task StartChatConnectionAsync()
+        {
+            if (_chatConnection == null) return;
+            try { await _chatConnection.StartAsync(); }
+            catch { }
+        }
+
+        private async Task DisposeChatConnectionAsync()
+        {
+            if (_chatConnection != null)
+                await _chatConnection.DisposeAsync();
         }
     }
 }

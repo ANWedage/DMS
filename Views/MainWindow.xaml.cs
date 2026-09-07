@@ -5,6 +5,7 @@ using DMS.Helpers;
 using DMS.Models;
 using DMS.Services;
 using DMS.ViewModels;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace DMS.Views
 {
@@ -13,12 +14,18 @@ namespace DMS.Views
         private readonly MainViewModel _viewModel;
         private readonly IUserService _userService;
         private readonly string _currentUserId;
+        private readonly HubConnection? _chatConnection;
 
         public MainWindow(User currentUser, IUserService userService)
         {
             InitializeComponent();
 
             _userService = userService;
+            if (userService is ApiUserService api)
+            {
+                _chatConnection = api.CreateChatConnection();
+                _ = StartChatConnectionAsync();
+            }
 
             if (!userService.CanAccessUser(currentUser.Id))
                 throw new InvalidOperationException("You do not have access to this workspace.");
@@ -49,7 +56,7 @@ namespace DMS.Views
 
         private void ChatButton_Click(object sender, RoutedEventArgs e)
         {
-            MainContentFrame.Navigate(new ChatPage(_userService, _currentUserId, "User"));
+            MainContentFrame.Navigate(new ChatPage(_userService, _currentUserId, "User", _chatConnection));
         }
 
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
@@ -70,6 +77,7 @@ namespace DMS.Views
 
         private void OnProfileChanged()
         {
+            _ = DisposeChatConnectionAsync();
             AppSession.Clear();
             var loginWindow = new LoginWindow(_userService);
             loginWindow.Show();
@@ -104,10 +112,24 @@ namespace DMS.Views
 
         private void OnLogoutRequested()
         {
+            _ = DisposeChatConnectionAsync();
             AppSession.Clear();
             var loginWindow = new LoginWindow(_userService);
             loginWindow.Show();
             Close();
+        }
+
+        private async Task StartChatConnectionAsync()
+        {
+            if (_chatConnection == null) return;
+            try { await _chatConnection.StartAsync(); }
+            catch { }
+        }
+
+        private async Task DisposeChatConnectionAsync()
+        {
+            if (_chatConnection != null)
+                await _chatConnection.DisposeAsync();
         }
     }
 }

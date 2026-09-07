@@ -38,6 +38,14 @@
                     <TextBlock x:Name="ConversationTitle" Text="Inbox" FontSize="18" FontWeight="SemiBold" Foreground="#17212B"/>
                     <TextBox Grid.Row="1" x:Name="SearchTextBox" Height="34" Margin="0,12,0,10" Padding="8" TextChanged="SearchTextBox_TextChanged" ToolTip="Search users"/>
                     <ListBox Grid.Row="2" x:Name="ConversationList" BorderThickness="0" SelectionChanged="ConversationList_SelectionChanged">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="8" Margin="0,0,0,6" Background="#F8FBFB" CornerRadius="6">
@@ -64,13 +72,61 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
                     <ListBox Grid.Row="2" x:Name="PeopleList" Visibility="Collapsed" BorderThickness="0" SelectionChanged="PeopleList_SelectionChanged">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Border Padding="8" Margin="0,0,0,6" Background="#F8FBFB" CornerRadius="6">
+                                <Border Padding="8" Margin="0,0,0,6" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="6">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#F8FBFB"/>
+                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Role}" Value="Admin">
+                                                    <Setter Property="Background" Value="#E6F0FA"/>
+                                                    <Setter Property="BorderBrush" Value="#B5D2EA"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
+                                                    <Setter Property="Background" Value="#DDF1F7"/>
+                                                    <Setter Property="BorderBrush" Value="#42A5D5"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
                                     <DockPanel>
-                                        <Ellipse Width="9" Height="9" Fill="#1FAE67" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding Role}" DockPanel.Dock="Right" Foreground="#66727D" FontSize="11"/>
+                                        <Ellipse Width="9" Height="9" Margin="0,0,8,0" VerticalAlignment="Center">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="#AAB8BC"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsOnline}" Value="True">
+                                                            <Setter Property="Fill" Value="#1FAE67"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <Border DockPanel.Dock="Right" CornerRadius="4" Padding="5,2" Margin="8,0,0,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Setter Property="Background" Value="#CFE5F6"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Role}" Value="Admin">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding Role}" Foreground="#34515B" FontSize="11" FontWeight="SemiBold"/>
+                                        </Border>
                                     </DockPanel>
                                 </Border>
                             </DataTemplate>
@@ -87,7 +143,7 @@
                     <Border Grid.Row="0" BorderBrush="#DDE3E5" BorderThickness="0,0,0,1" Padding="18,14">
                         <StackPanel>
                             <TextBlock x:Name="SelectedUserText" Text="Select a conversation" FontSize="18" FontWeight="SemiBold" Foreground="#17212B"/>
-                            <TextBlock x:Name="SelectedRoleText" Foreground="#66727D" Margin="0,3,0,0"/>
+                            <TextBlock x:Name="SelectedRoleText" Foreground="#34515B" FontWeight="SemiBold" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
                     <ListBox Grid.Row="1" x:Name="MessageList" BorderThickness="0" Background="Transparent" Padding="18,14" ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -117,7 +173,10 @@
                     <Border Grid.Row="2" BorderBrush="#DDE3E5" BorderThickness="0,1,0,0" Padding="14">
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="Send" Width="78" Height="36" Margin="10,0,0,0" Click="SendButton_Click"/>
-                            <TextBox x:Name="MessageTextBox" MinHeight="36" Padding="10,7" VerticalContentAlignment="Center" AcceptsReturn="True" TextWrapping="Wrap" KeyDown="MessageTextBox_KeyDown" ToolTip="Write a message"/>
+                            <Grid>
+                                <TextBox x:Name="MessageTextBox" MinHeight="36" Padding="10,7" VerticalContentAlignment="Center" AcceptsReturn="True" TextWrapping="Wrap" KeyDown="MessageTextBox_KeyDown" TextChanged="MessageTextBox_TextChanged" ToolTip="Write a message"/>
+                                <TextBlock x:Name="MessagePlaceholderText" Text="Send message" Foreground="#829197" Margin="10,0,10,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            </Grid>
                         </DockPanel>
                     </Border>
                 </Grid>

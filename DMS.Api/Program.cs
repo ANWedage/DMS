@@ -27,6 +27,7 @@ mongoContext.EnsureIndexes();
 builder.Services.AddSingleton(mongoContext);
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton(new JwtTokenService(jwtIssuer, jwtAudience, signingKey));
+builder.Services.AddSingleton<ChatPresenceService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -180,11 +181,14 @@ authenticated.MapGet("/notifications", (ClaimsPrincipal principal, IUserService 
     return string.IsNullOrWhiteSpace(recipientId) ? Results.Forbid() : Results.Ok(users.GetNotifications(recipientId, role));
 });
 
-authenticated.MapGet("/chat/users", (ClaimsPrincipal principal, IUserService users) =>
+authenticated.MapGet("/chat/users", (ClaimsPrincipal principal, IUserService users, ChatPresenceService presence) =>
 {
     var userId = GetSubject(principal);
     var role = principal.IsInRole("Admin") ? "Admin" : "User";
-    return string.IsNullOrWhiteSpace(userId) ? Results.Forbid() : Results.Ok(users.GetChatUsers(userId, role));
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
+    var chatUsers = users.GetChatUsers(userId, role)
+        .Select(user => user with { IsOnline = presence.IsOnline(user.Id, user.Role) });
+    return Results.Ok(chatUsers);
 });
 
 authenticated.MapGet("/chat/inbox", (ClaimsPrincipal principal, IUserService users) =>

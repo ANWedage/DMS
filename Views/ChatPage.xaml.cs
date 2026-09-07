@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using DMS.Helpers;
 using DMS.Models;
@@ -17,18 +19,25 @@ public partial class ChatPage : Page
     private readonly ObservableCollection<ChatConversationSummary> _conversations = new();
     private readonly ObservableCollection<ChatUser> _users = new();
     private readonly ObservableCollection<ChatMessageRow> _messages = new();
+    private readonly ICollectionView _usersView;
     private HubConnection? _connection;
+    private readonly bool _ownsConnection;
+    private IDisposable? _messageSubscription;
+    private IDisposable? _presenceSubscription;
     private ChatUser? _selectedUser;
     private bool _showSent;
 
-    public ChatPage(IUserService userService, string currentUserId, string currentRole)
+    public ChatPage(IUserService userService, string currentUserId, string currentRole, HubConnection? connection = null)
     {
         InitializeComponent();
         _userService = userService;
         _currentUserId = currentUserId;
         _currentRole = currentRole;
+        _connection = connection;
+        _ownsConnection = connection == null;
         ConversationList.ItemsSource = _conversations;
-        PeopleList.ItemsSource = _users;
+        _usersView = new ListCollectionView(_users);
+        PeopleList.ItemsSource = _usersView;
         MessageList.ItemsSource = _messages;
         Loaded += ChatPage_Loaded;
         Unloaded += ChatPage_Unloaded;
@@ -37,18 +46,27 @@ public partial class ChatPage : Page
     private async void ChatPage_Loaded(object sender, RoutedEventArgs e)
     {
         await LoadAsync();
-        if (_userService is ApiUserService api)
-        {
+        if (_connection == null && _userService is ApiUserService api)
             _connection = api.CreateChatConnection();
-            _connection.On<ChatMessage>("ReceiveMessage", message => Dispatcher.InvokeAsync(() => HandleIncomingMessage(message)));
-            try { await _connection.StartAsync(); }
-            catch { ChatStatusText.Text = "Realtime connection unavailable. Messages will still be saved."; }
+
+        if (_connection != null)
+        {
+            _messageSubscription = _connection.On<ChatMessage>("ReceiveMessage", message => Dispatcher.InvokeAsync(() => HandleIncomingMessage(message)));
+            _presenceSubscription = _connection.On<string, string, bool>("UserPresenceChanged",
+                (userId, role, isOnline) => Dispatcher.InvokeAsync(() => UpdatePresence(userId, role, isOnline)));
+            if (_connection.State == HubConnectionState.Disconnected)
+            {
+                try { await _connection.StartAsync(); }
+                catch { ChatStatusText.Text = "Realtime connection unavailable. Messages will still be saved."; }
+            }
         }
     }
 
     private async void ChatPage_Unloaded(object sender, RoutedEventArgs e)
     {
-        if (_connection != null)
+        _messageSubscription?.Dispose();
+        _presenceSubscription?.Dispose();
+        if (_ownsConnection && _connection != null)
             await _connection.DisposeAsync();
     }
 
@@ -115,6 +133,13 @@ public partial class ChatPage : Page
         }
     }
 
+    private void MessageTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        MessagePlaceholderText.Visibility = string.IsNullOrEmpty(MessageTextBox.Text)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
     private async Task SendMessageAsync()
     {
         if (_selectedUser == null || string.IsNullOrWhiteSpace(MessageTextBox.Text)) return;
@@ -144,6 +169,15 @@ public partial class ChatPage : Page
                 _ = Task.Run(() => _userService.MarkChatMessagesRead(_currentUserId, _currentRole, message.SenderId, message.SenderRole));
         }
         _ = LoadAsync();
+    }
+
+    private void UpdatePresence(string userId, string role, bool isOnline)
+    {
+        var user = _users.FirstOrDefault(item => item.Id == userId && item.Role == role);
+        if (user == null) return;
+        var index = _users.IndexOf(user);
+        if (index < 0) return;
+        _users[index] = user with { IsOnline = isOnline };
     }
 
     private void AddMessage(ChatMessage message)
@@ -183,7 +217,12 @@ public partial class ChatPage : Page
     {
         var query = SearchTextBox.Text.Trim();
         if (PeopleList.Visibility == Visibility.Visible)
-            PeopleList.ItemsSource = _users.Where(u => string.IsNullOrWhiteSpace(query) || u.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+        {
+            _usersView.Filter = item => item is ChatUser user
+                && (string.IsNullOrWhiteSpace(query)
+                    || user.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase));
+            _usersView.Refresh();
+        }
     }
 
     private sealed record ChatMessageRow(string Id, string Text, DateTime CreatedAt, bool IsMine);
