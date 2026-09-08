@@ -67,9 +67,6 @@
                     </Button>
                 </StackPanel>
                 
-                <StackPanel Grid.Row="6" HorizontalAlignment="Center" Margin="0,12,0,0">
-                    <TextBlock Text="Developed By Adeepa Wedage" Foreground="#D7EFEC" TextAlignment="Center"/>
-                </StackPanel>
                 <Button Grid.Row="5" Height="42" Margin="0,0,0,12" VerticalAlignment="Bottom" Background="#1F5962" Foreground="White"
                     HorizontalContentAlignment="Left" Padding="12,0" Click="SettingsButton_Click" ToolTip="Open profile settings">
                     <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="28"/><TextBlock Text="Settings" VerticalAlignment="Center"/></StackPanel>
@@ -82,6 +79,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
@@ -109,6 +107,9 @@
 
                  <Frame x:Name="MainContentFrame" Grid.Row="2" Margin="0,30,0,0"
                      NavigationUIVisibility="Hidden"/>
+
+                 <TextBlock Grid.Row="3" Text="Developed By Adeepa Wedage" Foreground="#1A3D45"
+                            HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,12,0,0"/>
         </Grid>
     </Grid>
 </Window>
