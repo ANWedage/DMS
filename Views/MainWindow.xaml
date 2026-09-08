@@ -67,14 +67,8 @@
                     </Button>
                 </StackPanel>
                 
-                <StackPanel Grid.Row="6">
-                    <TextBlock Text="Created By Adeepa Wedage" Foreground="#D7EFEC"/>
-                    <TextBlock Margin="0,5,0,0">
-                        <Hyperlink NavigateUri="https://www.wexorasolutions.com" RequestNavigate="WebsiteHyperlink_RequestNavigate"
-                                   Foreground="#D7EFEC" TextDecorations="Underline">
-                            www.wexorasolutions.com
-                        </Hyperlink>
-                    </TextBlock>
+                <StackPanel Grid.Row="6" HorizontalAlignment="Center" Margin="0,12,0,0">
+                    <TextBlock Text="Developed By Adeepa Wedage" Foreground="#D7EFEC" TextAlignment="Center"/>
                 </StackPanel>
                 <Button Grid.Row="5" Height="42" Margin="0,0,0,12" VerticalAlignment="Bottom" Background="#1F5962" Foreground="White"
                     HorizontalContentAlignment="Left" Padding="12,0" Click="SettingsButton_Click" ToolTip="Open profile settings">

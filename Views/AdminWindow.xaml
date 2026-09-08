@@ -57,21 +57,14 @@
                         </Button>
                     </StackPanel>
                 </StackPanel>
-                <StackPanel Grid.Row="1" Margin="0,16,0,0">
+                <StackPanel Grid.Row="1" Margin="0,16,0,0" HorizontalAlignment="Center">
                     <Button Height="42" Background="#245465" Foreground="White"
                             BorderThickness="0" FontWeight="SemiBold" HorizontalContentAlignment="Left" Padding="16,0,0,0"
                             Click="SettingsButton_Click" ToolTip="Open admin settings">
                         <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="30"/><TextBlock Text="Settings" VerticalAlignment="Center"/></StackPanel>
                     </Button>
-                    <StackPanel Margin="0,12,0,0">
-                        <TextBlock Text="Created By Adeepa Wedage" Foreground="#D7EFEC"/>
-                        <TextBlock Margin="0,5,0,0">
-                            <Hyperlink NavigateUri="https://www.wexorasolutions.com" RequestNavigate="WebsiteHyperlink_RequestNavigate"
-                                       Foreground="#D7EFEC" TextDecorations="Underline">
-                                www.wexorasolutions.com
-                            </Hyperlink>
-                        </TextBlock>
-                    </StackPanel>
+                    <TextBlock Text="Developed By Adeepa Wedage" Foreground="#D7EFEC"
+                               TextAlignment="Center" Margin="0,12,0,0"/>
                 </StackPanel>
             </Grid>
         </Border>
