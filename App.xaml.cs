@@ -105,7 +105,16 @@ namespace DMS
             }
 
             startupWindow.Show();
-            _ = CheckForUpdatesAsync();
+            if (ShouldCheckForUpdates())
+                _ = CheckForUpdatesAsync();
+        }
+
+        private static bool ShouldCheckForUpdates()
+        {
+            var baseDirectory = AppContext.BaseDirectory;
+
+            return !baseDirectory.Contains("\\bin\\Debug\\", StringComparison.OrdinalIgnoreCase)
+                && !baseDirectory.Contains("\\bin\\Release\\", StringComparison.OrdinalIgnoreCase);
         }
 
         private static async Task CheckForUpdatesAsync()
@@ -123,6 +132,9 @@ namespace DMS
                 var root = release.RootElement;
                 var tagName = root.GetProperty("tag_name").GetString()?.TrimStart('v');
                 var downloadUrl = FindInstallerAssetUrl(root);
+                var releaseNotes = root.TryGetProperty("body", out var bodyElement)
+                    ? bodyElement.GetString() ?? string.Empty
+                    : string.Empty;
 
                 if (!Version.TryParse(tagName, out var latestVersion)
                     || !Version.TryParse(CurrentVersion, out var currentVersion)
@@ -132,14 +144,8 @@ namespace DMS
 
                 Current.Dispatcher.Invoke(() =>
                 {
-                    var result = MessageBox.Show(
-                        $"A new DMS update (version {latestVersion}) is available. Select OK to download and install it now.",
-                        "DMS update available",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-
-                    if (result == MessageBoxResult.OK)
-                        _ = DownloadAndInstallUpdateAsync(downloadUrl, latestVersion.ToString());
+                    var updateWindow = new UpdateAvailableWindow(latestVersion.ToString(), releaseNotes, downloadUrl);
+                    updateWindow.ShowDialog();
                 });
             }
             catch
