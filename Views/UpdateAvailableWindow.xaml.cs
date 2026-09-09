@@ -1,9 +1,8 @@
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
-using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,11 +26,10 @@ namespace DMS.Views
             _downloadUrl = downloadUrl;
 
             VersionTextBlock.Text = $"Version {version}";
-            ReleaseNotesTextBlock.Text = string.IsNullOrWhiteSpace(releaseNotes) ? "No release notes were provided for this update." : releaseNotes;
+            ReleaseNotesTextBlock.Text = FormatReleaseNotes(releaseNotes);
             DownloadProgressBar.Value = 0;
             ProgressStatusText.Text = "Ready to update now.";
             UpdateButton.Content = "Update Now";
-            CloseButton.Content = "Close";
         }
 
         private async void UpdateButton_Click(object sender, RoutedEventArgs e)
@@ -41,7 +39,6 @@ namespace DMS.Views
 
             _isDownloading = true;
             UpdateButton.IsEnabled = false;
-            CloseButton.IsEnabled = false;
             ProgressStatusText.Text = "Preparing update...";
             DownloadProgressBar.Value = 0;
 
@@ -53,7 +50,6 @@ namespace DMS.Views
             {
                 _isDownloading = false;
                 UpdateButton.IsEnabled = true;
-                CloseButton.IsEnabled = true;
                 ProgressStatusText.Text = $"Download failed: {ex.Message}";
                 MessageBox.Show(
                     $"The update could not be downloaded automatically.\n\nDetails: {ex.Message}",
@@ -63,9 +59,21 @@ namespace DMS.Views
             }
         }
 
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        private static string FormatReleaseNotes(string? notes)
         {
-            Close();
+            if (string.IsNullOrWhiteSpace(notes))
+                return "No release notes were provided for this update.";
+
+            var formatted = notes.Replace("\r\n", "\n");
+            formatted = Regex.Replace(formatted, @"\[(.+?)\]\((.+?)\)", "$1 ($2)");
+            formatted = Regex.Replace(formatted, @"^#+\s*", string.Empty, RegexOptions.Multiline);
+            formatted = Regex.Replace(formatted, @"\*\*(.+?)\*\*", "$1");
+            formatted = Regex.Replace(formatted, @"\*(.+?)\*", "$1");
+            formatted = Regex.Replace(formatted, @"`([^`]*)`", "$1");
+            formatted = Regex.Replace(formatted, @"^\s*[-*]\s+", "• ", RegexOptions.Multiline);
+            formatted = Regex.Replace(formatted, @"\n{3,}", "\n\n");
+
+            return formatted.Trim();
         }
 
         private async Task DownloadAndInstallAsync()
@@ -109,6 +117,7 @@ namespace DMS.Views
             }
 
             await fileStream.FlushAsync();
+            await fileStream.DisposeAsync();
 
             DownloadProgressBar.Value = 100;
             ProgressStatusText.Text = "Download complete. Launching installer...";

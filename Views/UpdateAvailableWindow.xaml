@@ -30,18 +30,13 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0"
-                        Width="96"
-                        Height="96"
-                        CornerRadius="48"
-                        Background="#7D3FC9"
-                        HorizontalAlignment="Center"
-                        Margin="0,0,0,18">
-                    <Image Source="/Assets/dms-logo.png"
-                           Width="72"
-                           Height="72"
-                           Stretch="Uniform"/>
-                </Border>
+                <Image Grid.Row="0"
+                       Source="/Assets/dms-logo.png"
+                       Width="96"
+                       Height="96"
+                       Stretch="Uniform"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,18"/>
 
                 <TextBlock Grid.Row="1"
                            Text="About DMS"
@@ -96,10 +91,6 @@
                     <TextBlock Text="Download status" FontSize="13" FontWeight="SemiBold" Foreground="#D7DFE4" Margin="0,0,0,8"/>
                     <ProgressBar x:Name="DownloadProgressBar" Height="12" Minimum="0" Maximum="100" Value="0" Margin="0,0,0,10"/>
                     <TextBlock x:Name="ProgressStatusText" Text="Ready to update now." Foreground="#D7DFE4" FontSize="13"/>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
-                        <Button x:Name="CloseButton" Content="Close" Width="120" Height="42" Click="CloseButton_Click"/>
-                    </StackPanel>
                 </StackPanel>
             </Grid>
         </Border>
