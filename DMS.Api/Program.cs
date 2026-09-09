@@ -290,7 +290,7 @@ authenticated.MapPost("/notifications/read-all", (ClaimsPrincipal principal, IUs
         : Results.NoContent();
 });
 
-authenticated.MapPost("/admin/notifications", (NotificationRequest request, ClaimsPrincipal principal, IUserService users) =>
+authenticated.MapPost("/admin/notifications", async (NotificationRequest request, ClaimsPrincipal principal, IUserService users, IHubContext<ChatHub> hub) =>
 {
     if (!principal.IsInRole("Admin")) return Results.Forbid();
     try
@@ -299,6 +299,16 @@ authenticated.MapPost("/admin/notifications", (NotificationRequest request, Clai
         var senderName = principal.FindFirst("display_name")?.Value ?? principal.Identity?.Name ?? "Admin";
         var count = users.SendNotification(senderId, senderName, request.RecipientRole, request.SendToAll,
             request.RecipientIds, request.Title, request.Message);
+
+        var recipientIds = request.SendToAll
+            ? request.RecipientRole == "User"
+                ? users.GetAllUsers().Select(u => u.Id).ToArray()
+                : users.GetAllAdmins().Select(a => a.Id).ToArray()
+            : request.RecipientIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToArray();
+
+        if (recipientIds.Length > 0)
+            await hub.Clients.Users(recipientIds).SendAsync("ReceiveNotification", new { type = "notification" });
+
         return Results.Ok(count);
     }
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }

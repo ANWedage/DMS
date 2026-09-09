@@ -17,6 +17,7 @@ namespace DMS.Views
         private readonly string _currentUserId;
         private readonly HubConnection? _chatConnection;
         private IDisposable? _chatMessageSubscription;
+        private IDisposable? _notificationSubscription;
         private readonly DispatcherTimer _taskReminderTimer = new() { Interval = TimeSpan.FromMinutes(1) };
         private string? _taskReminderTimeZoneId = "Sri Lanka Standard Time";
 
@@ -32,6 +33,7 @@ namespace DMS.Views
             {
                 _chatConnection = api.CreateChatConnection();
                 _chatMessageSubscription = _chatConnection.On<ChatMessage>("ReceiveMessage", message => { _ = UpdateChatCountAsync(); });
+                _notificationSubscription = _chatConnection.On("ReceiveNotification", () => { _ = UpdateNotificationCountAsync(); });
                 _ = StartChatConnectionAsync();
             }
 
@@ -103,6 +105,7 @@ namespace DMS.Views
 
         private void MainWindow_Activated(object? sender, EventArgs e)
         {
+            _ = UpdateNotificationCountAsync();
             _ = UpdateChatCountAsync();
             _ = UpdateTaskReminderBannerAsync();
         }
@@ -226,6 +229,7 @@ namespace DMS.Views
         private async Task DisposeChatConnectionAsync()
         {
             _chatMessageSubscription?.Dispose();
+            _notificationSubscription?.Dispose();
             if (_chatConnection != null)
                 await _chatConnection.DisposeAsync();
         }

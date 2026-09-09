@@ -88,8 +88,41 @@
                         BorderThickness="0" Padding="0" Cursor="Hand"/>
             </StackPanel>
 
-            <Border x:Name="AdminTaskReminderBanner" Grid.Row="1" Background="#FFF0C2" BorderBrush="#D89000" BorderThickness="2" CornerRadius="6" Padding="14,10" Margin="0,16,0,0" Visibility="Collapsed">
-                <TextBlock Text="Daily task reminder: complete and submit your task update before the workday ends." Foreground="#704B00" FontWeight="SemiBold"/>
+            <Border x:Name="AdminTaskReminderBanner" Grid.Row="1" Margin="0,16,0,0" Visibility="Collapsed" BorderBrush="#D64545" BorderThickness="3" CornerRadius="14" Padding="0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#FFF8DF" Offset="0"/>
+                        <GradientStop Color="#FFE0A8" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.28" Color="#8A5A00"/>
+                </Border.Effect>
+                <Border.Triggers>
+                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.35" Duration="0:0:0.22"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Border.Triggers>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="68"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="#D64545" CornerRadius="10,0,0,10">
+                        <TextBlock Text="!" Foreground="White" FontSize="30" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Margin="18,14,18,14">
+                        <TextBlock Text="Daily task reminder" Foreground="#6D2B1B" FontWeight="Bold" FontSize="18"/>
+                        <TextBlock Text="Complete and submit your task update before the workday ends." Foreground="#6D2B1B" Margin="0,4,0,0" FontSize="14" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <Frame x:Name="MainContentFrame" Grid.Row="2" Margin="0,30,0,0" NavigationUIVisibility="Hidden" />
