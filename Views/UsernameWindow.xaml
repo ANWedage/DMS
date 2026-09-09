@@ -16,6 +16,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="12"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -28,8 +29,13 @@
         <TextBox Grid.Row="5" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
                  ToolTip="At least 3 characters"/>
 
-        <TextBlock Grid.Row="6" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorStyle}"/>
+        <TextBlock Grid.Row="6"
+                   Text="Use capital letters for better readability."
+                   Style="{StaticResource MutedStyle}"
+                   Margin="0,6,0,0"/>
 
-        <Button Grid.Row="8" Content="Continue" Command="{Binding ConfirmCommand}" Height="44" IsDefault="True"/>
+        <TextBlock Grid.Row="7" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorStyle}"/>
+
+        <Button Grid.Row="9" Content="Continue" Command="{Binding ConfirmCommand}" Height="44" IsDefault="True"/>
     </Grid>
 </Window>
