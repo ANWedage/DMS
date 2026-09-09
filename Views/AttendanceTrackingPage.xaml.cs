@@ -236,6 +236,9 @@ namespace DMS.Views
                     settings,
                     AppSession.CurrentUserId ?? string.Empty,
                     AppSession.CurrentDisplayName ?? AppSession.CurrentUsername ?? "Administrator"));
+
+                await LoadPageAsync();
+
                 LastSettingsUpdateText.Text = $"Last updated by {AppSession.CurrentDisplayName ?? AppSession.CurrentUsername ?? "Administrator"} on {DateTime.Now:g}";
                 SettingsMessageText.Foreground = System.Windows.Media.Brushes.DarkGreen;
                 SettingsMessageText.Text = "Meeting settings saved.";
