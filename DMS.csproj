@@ -8,7 +8,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DMS</RootNamespace>
     <AssemblyName>DMS</AssemblyName>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Version>1.3.11</Version>
+    <AssemblyVersion>1.3.11</AssemblyVersion>
+    <FileVersion>1.3.11</FileVersion>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <ApplicationIcon>Assets\dms-logo.ico</ApplicationIcon>
   </PropertyGroup>

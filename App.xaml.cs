@@ -16,7 +16,11 @@ namespace DMS
     public partial class App : Application
     {
         private static Mutex? _singleInstanceMutex;
+<<<<<<< HEAD
         public const string CurrentVersion = "1.0.0";
+=======
+        private static readonly string CurrentVersion = AppVersionInfo.CurrentVersion;
+>>>>>>> 98f19e2 (Show actual app version in sidebar and update release metadata)
         private const string LatestReleaseApiUrl = "https://api.github.com/repos/ANWedage/DMS/releases/latest";
 
         protected override void OnStartup(StartupEventArgs e)
