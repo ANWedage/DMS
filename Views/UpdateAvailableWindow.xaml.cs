@@ -13,7 +13,6 @@ namespace DMS.Views
     {
         private readonly string _downloadUrl;
         private readonly string _version;
-        private readonly string _releaseNotes;
 
         private bool _isDownloading;
         private bool _closeAfterInstall;
@@ -22,11 +21,9 @@ namespace DMS.Views
         {
             InitializeComponent();
             _version = version;
-            _releaseNotes = releaseNotes;
             _downloadUrl = downloadUrl;
 
             VersionTextBlock.Text = $"Version {version}";
-            ReleaseNotesTextBlock.Text = FormatReleaseNotes(releaseNotes);
             DownloadProgressBar.Value = 0;
             ProgressStatusText.Text = "Ready to update now.";
             UpdateButton.Content = "Update Now";
