@@ -65,15 +65,33 @@ namespace DMS.Views
                 return "No release notes were provided for this update.";
 
             var formatted = notes.Replace("\r\n", "\n");
-            formatted = Regex.Replace(formatted, @"\[(.+?)\]\((.+?)\)", "$1 ($2)");
+
+            // Remove the generic GitHub changelog footer/link that is not useful in the app UI.
+            formatted = Regex.Replace(
+                formatted,
+                @"(?im)^\s*(?:\*{0,2}Full Changelog\*{0,2}\s*:\s*|Full Changelog\s*:\s*)?(https?://[^\s]+)?\s*$",
+                string.Empty);
+
+            // Convert markdown links to readable text, but keep the visible label.
+            formatted = Regex.Replace(formatted, @"\[([^\]]+)\]\((https?://[^)]+)\)", "$1");
+
+            // Strip raw URLs that are left behind by GitHub release bodies.
+            formatted = Regex.Replace(formatted, @"https?://[^\s]+", string.Empty);
+
             formatted = Regex.Replace(formatted, @"^#+\s*", string.Empty, RegexOptions.Multiline);
             formatted = Regex.Replace(formatted, @"\*\*(.+?)\*\*", "$1");
             formatted = Regex.Replace(formatted, @"\*(.+?)\*", "$1");
             formatted = Regex.Replace(formatted, @"`([^`]*)`", "$1");
             formatted = Regex.Replace(formatted, @"^\s*[-*]\s+", "• ", RegexOptions.Multiline);
             formatted = Regex.Replace(formatted, @"\n{3,}", "\n\n");
+            formatted = Regex.Replace(formatted, @"\n\s*\n\s*\n+", "\n\n");
+            formatted = Regex.Replace(formatted, @"(?m)^\s*•\s*$", string.Empty);
+            formatted = Regex.Replace(formatted, @"(?m)^\s*$", string.Empty);
 
-            return formatted.Trim();
+            var cleaned = formatted.Trim();
+            return string.IsNullOrWhiteSpace(cleaned)
+                ? "No release notes were provided for this update."
+                : cleaned;
         }
 
         private async Task DownloadAndInstallAsync()
