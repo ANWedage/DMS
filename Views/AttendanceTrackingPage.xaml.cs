@@ -37,7 +37,7 @@ namespace DMS.Views
 
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            await LoadAttendanceAsync();
+            await LoadPageAsync();
         }
 
         private void GenerateReportButton_Click(object sender, RoutedEventArgs e)
