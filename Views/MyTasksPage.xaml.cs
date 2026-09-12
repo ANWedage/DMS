@@ -32,6 +32,16 @@ public partial class MyTasksPage : Page
             _tasks = await Task.Run(() => _userService.GetMyTasks(_userId));
             TaskListBox.ItemsSource = _tasks;
             if (_tasks.Count > 0) TaskListBox.SelectedIndex = 0;
+            else
+            {
+                _selectedTask = null;
+                ComponentTitleText.Text = "No active tasks";
+                ProjectText.Text = string.Empty;
+                DescriptionText.Text = string.Empty;
+                DueDateText.Text = string.Empty;
+                DailyDescriptionTextBox.Text = string.Empty;
+                await LoadDailyHistoryAsync();
+            }
         }
         catch (Exception ex) { MessageText.Text = $"Unable to load your tasks: {ex.Message}"; }
     }
@@ -41,7 +51,12 @@ public partial class MyTasksPage : Page
         _selectedTask = TaskListBox.SelectedItem as AssignedTask;
         if (_selectedTask == null)
         {
-            ComponentTitleText.Text = "Select a task"; HistoryListView.ItemsSource = null; return;
+            ComponentTitleText.Text = "No active tasks";
+            ProjectText.Text = string.Empty;
+            DescriptionText.Text = string.Empty;
+            DueDateText.Text = string.Empty;
+            DailyDescriptionTextBox.Text = string.Empty;
+            return;
         }
 
         ComponentTitleText.Text = _selectedTask.Component.Name;

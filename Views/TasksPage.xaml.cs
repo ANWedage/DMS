@@ -19,6 +19,7 @@ namespace DMS.Views
     private TaskComponent? _selectedComponent;
     private List<ProjectDailyTaskReportRow> _projectReportRows = new();
     private List<SelfStudyReportRow> _selfStudyReportRows = new();
+    private bool _suppressMemberChangeConfirmation;
 
     public TasksPage(IUserService userService)
     {
@@ -197,9 +198,38 @@ namespace DMS.Views
         var assigned = _selectedComponent == null
             ? new List<ComponentAssignment>()
             : await Task.Run(() => _userService.GetComponentAssignments(_selectedComponent.Id));
+        _suppressMemberChangeConfirmation = true;
         foreach (var option in (MembersListBox.ItemsSource as IEnumerable<MemberOption>) ?? Enumerable.Empty<MemberOption>())
-            option.IsSelected = assigned.Any(a => a.UserId == option.User.Id);
+        {
+            option.IsAssigned = assigned.Any(a => a.UserId == option.User.Id);
+            option.IsSelected = option.IsAssigned;
+        }
+        _suppressMemberChangeConfirmation = false;
         MembersListBox.Items.Refresh();
+    }
+
+    private void MemberCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox { DataContext: MemberOption option })
+            option.IsSelected = true;
+    }
+
+    private void MemberCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        if (_suppressMemberChangeConfirmation || sender is not CheckBox { DataContext: MemberOption option } || !option.IsAssigned)
+            return;
+
+        if (MessageBox.Show(
+                $"Are you sure you want to unassign {option.DisplayName} from this component?",
+                "Confirm member unassignment",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            _suppressMemberChangeConfirmation = true;
+            option.IsSelected = true;
+            _suppressMemberChangeConfirmation = false;
+            MembersListBox.Items.Refresh();
+        }
     }
 
     private async void UpdateComponentButton_Click(object sender, RoutedEventArgs e)
@@ -237,9 +267,16 @@ namespace DMS.Views
         if (_selectedComponent == null) { MessageBox.Show("Select a component first.", "Assignments", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
         var options = (MembersListBox.ItemsSource as IEnumerable<MemberOption>)?.ToList() ?? new List<MemberOption>();
         var selected = options.Where(o => o.IsSelected).Select(o => o.User.Id).ToList();
-        if (selected.Count == 0) { MessageBox.Show("Select at least one active member.", "Assignments", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
-        if (MessageBox.Show($"Assign this component to {selected.Count} member(s)?", "Confirm assignments", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
-        try { await Task.Run(() => _userService.SetComponentAssignments(_selectedComponent.Id, selected, AppSession.CurrentUserId ?? string.Empty)); MessageBox.Show("Assignments saved.", "Assignments", MessageBoxButton.OK, MessageBoxImage.Information); }
+        if (MessageBox.Show($"Save assignments for this component? {selected.Count} member(s) will remain assigned.", "Confirm assignments", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        try
+        {
+            await Task.Run(() => _userService.SetComponentAssignments(_selectedComponent.Id, selected, AppSession.CurrentUserId ?? string.Empty));
+            foreach (var option in options)
+            {
+                option.IsAssigned = option.IsSelected;
+            }
+            MessageBox.Show("Assignments saved.", "Assignments", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
         catch (Exception ex) { MessageBox.Show($"Unable to save assignments: {ex.Message}", "Assignments", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
@@ -469,6 +506,7 @@ namespace DMS.Views
     {
         public User User { get; }
         public bool IsSelected { get; set; }
+        public bool IsAssigned { get; set; }
         public string DisplayName => User.Username ?? User.Email;
         public MemberOption(User user) => User = user;
     }
