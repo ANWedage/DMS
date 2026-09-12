@@ -81,24 +81,35 @@ public partial class MyTasksPage : Page
 
     private async Task RefreshTaskListAndHistoryAsync()
     {
-        if (_selectedTask == null) return;
+        var selectedComponentId = _selectedTask?.Component.Id;
 
         _tasks = await Task.Run(() => _userService.GetMyTasks(_userId));
         TaskListBox.ItemsSource = _tasks;
 
-        var refreshedSelectedTask = _tasks.FirstOrDefault(task => task.Component.Id == _selectedTask.Component.Id);
+        AssignedTask? refreshedSelectedTask = null;
+        if (!string.IsNullOrWhiteSpace(selectedComponentId))
+        {
+            refreshedSelectedTask = _tasks.FirstOrDefault(task => task.Component.Id == selectedComponentId);
+        }
+
         if (refreshedSelectedTask != null)
         {
             _selectedTask = refreshedSelectedTask;
             TaskListBox.SelectedItem = refreshedSelectedTask;
+            var updates = await Task.Run(() => _userService.GetTaskUpdates(refreshedSelectedTask.Component.Id, _userId, false));
+            HistoryListView.ItemsSource = updates;
+
+            var today = updates.FirstOrDefault(update => update.UpdateDate.Date == DateTime.Today);
+            DailyDescriptionTextBox.Text = today?.Description ?? string.Empty;
+            TaskStatusComboBox.SelectedIndex = Array.FindIndex(new[] { TaskStatuses.NotStarted, TaskStatuses.InProgress, TaskStatuses.Blocked, TaskStatuses.Completed }, status => status == (today?.Status ?? TaskStatuses.InProgress));
+            BlockedReasonTextBox.Text = today?.BlockedReason ?? string.Empty;
         }
-
-        var updates = await Task.Run(() => _userService.GetTaskUpdates(_selectedTask.Component.Id, _userId, false));
-        HistoryListView.ItemsSource = updates;
-
-        var today = updates.FirstOrDefault(update => update.UpdateDate.Date == DateTime.Today);
-        DailyDescriptionTextBox.Text = today?.Description ?? string.Empty;
-        TaskStatusComboBox.SelectedIndex = Array.FindIndex(new[] { TaskStatuses.NotStarted, TaskStatuses.InProgress, TaskStatuses.Blocked, TaskStatuses.Completed }, status => status == (today?.Status ?? TaskStatuses.InProgress));
-        BlockedReasonTextBox.Text = today?.BlockedReason ?? string.Empty;
+        else
+        {
+            HistoryListView.ItemsSource = null;
+            DailyDescriptionTextBox.Text = string.Empty;
+            BlockedReasonTextBox.Text = string.Empty;
+            TaskStatusComboBox.SelectedIndex = 1;
+        }
     }
 }
