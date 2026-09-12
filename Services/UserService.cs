@@ -918,12 +918,44 @@ namespace DMS.Services
                         .SortByDescending(u => u.UpdateDate).FirstOrDefault()
                 });
             }
+
+            result.Add(new AssignedTask
+            {
+                Project = new TaskProject
+                {
+                    Id = DefaultTaskEntries.SelfStudyProjectId,
+                    Name = "Self Study",
+                    Description = "Daily learning, practice, and self-development work.",
+                    StartDate = DateTime.Today,
+                    DueDate = DateTime.Today.AddDays(1),
+                    Status = ProjectStatuses.Active,
+                    CreatedByAdminId = string.Empty,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                Component = new TaskComponent
+                {
+                    Id = DefaultTaskEntries.SelfStudyComponentId,
+                    ProjectId = DefaultTaskEntries.SelfStudyProjectId,
+                    Name = "Self Study",
+                    Description = "Use this option when you do not have a specific task assigned but still want to log today's learning work.",
+                    Priority = TaskPriorities.Medium,
+                    DueDate = DateTime.Today.AddDays(1),
+                    Status = TaskStatuses.InProgress,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                LatestUpdate = _context.DailyTaskUpdates.Find(u => u.ComponentId == DefaultTaskEntries.SelfStudyComponentId && u.UserId == userId)
+                    .SortByDescending(u => u.UpdateDate).FirstOrDefault()
+            });
+
             return result.OrderBy(item => item.Component.DueDate).ToList();
         }
 
         public List<DailyTaskUpdate> GetTaskUpdates(string componentId, string userId, bool isAdmin)
         {
-            if (!isAdmin && !_context.ComponentAssignments.Find(a => a.ComponentId == componentId && a.UserId == userId && a.IsActive).Any())
+            var isSelfStudy = string.Equals(componentId, DefaultTaskEntries.SelfStudyComponentId, StringComparison.Ordinal);
+            if (!isAdmin && !isSelfStudy && !_context.ComponentAssignments.Find(a => a.ComponentId == componentId && a.UserId == userId && a.IsActive).Any())
                 throw new InvalidOperationException("This task is not assigned to your account.");
 
             var filter = isAdmin
@@ -943,7 +975,9 @@ namespace DMS.Services
                 throw new InvalidOperationException("The selected task status is invalid.");
             if (update.Status == TaskStatuses.Blocked && string.IsNullOrWhiteSpace(update.BlockedReason))
                 throw new InvalidOperationException("A blocked reason is required.");
-            if (!_context.ComponentAssignments.Find(a => a.ComponentId == update.ComponentId && a.UserId == update.UserId && a.IsActive).Any())
+
+            var isSelfStudy = string.Equals(update.ComponentId, DefaultTaskEntries.SelfStudyComponentId, StringComparison.Ordinal);
+            if (!isSelfStudy && !_context.ComponentAssignments.Find(a => a.ComponentId == update.ComponentId && a.UserId == update.UserId && a.IsActive).Any())
                 throw new InvalidOperationException("This task is not assigned to your account.");
 
             update.UpdateDate = DateTime.SpecifyKind(update.UpdateDate.Date, DateTimeKind.Unspecified);
@@ -989,6 +1023,27 @@ namespace DMS.Services
                         HasSubmittedUpdate = update != null
                     });
                 }
+            }
+
+            var selfStudyUpdates = _context.DailyTaskUpdates.Find(u => u.ComponentId == DefaultTaskEntries.SelfStudyComponentId
+                && u.UpdateDate == calendarDate).ToList();
+
+            foreach (var selfStudyUpdate in selfStudyUpdates)
+            {
+                rows.Add(new ProjectDailyTaskReportRow
+                {
+                    ProjectId = project.Id,
+                    ProjectName = project.Name,
+                    ComponentId = DefaultTaskEntries.SelfStudyComponentId,
+                    ComponentName = "Self Study",
+                    ComponentDescription = "Daily self-study update when no specific task is assigned.",
+                    UserId = selfStudyUpdate.UserId,
+                    UserName = users.TryGetValue(selfStudyUpdate.UserId, out var name) ? name : "Unknown member",
+                    Status = selfStudyUpdate.Status,
+                    DailyWork = selfStudyUpdate.Description,
+                    UpdateDate = calendarDate,
+                    HasSubmittedUpdate = true
+                });
             }
 
             return rows.OrderBy(row => row.ComponentName).ThenBy(row => row.UserName).ToList();
