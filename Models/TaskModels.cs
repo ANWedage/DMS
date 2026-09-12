@@ -26,6 +26,12 @@ public static class TaskPriorities
     public const string High = "High";
 }
 
+public static class DailyUpdateTypes
+{
+    public const string AssignedTask = "Assigned task";
+    public const string SelfStudy = "Self study";
+}
+
 public class TaskProject
 {
     [BsonId]
@@ -76,11 +82,13 @@ public class DailyTaskUpdate
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
+    public string UpdateType { get; set; } = DailyUpdateTypes.AssignedTask;
     public string ComponentId { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
     [BsonDateTimeOptions(Kind = DateTimeKind.Unspecified)]
     public DateTime UpdateDate { get; set; } = DateTime.Today;
     public string Description { get; set; } = string.Empty;
+    public string? SelfStudyTopic { get; set; }
     public string Status { get; set; } = TaskStatuses.InProgress;
     public string? BlockedReason { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

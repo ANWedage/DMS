@@ -366,10 +366,26 @@ public sealed class ApiUserService : IUserService, IDisposable
         return Read<List<DailyTaskUpdate>>(Send(HttpMethod.Get, $"api/tasks/{Uri.EscapeDataString(componentId)}/updates"));
     }
 
+    public List<DailyTaskUpdate> GetMyDailyHistory(string userId)
+    {
+        EnsureCurrentUser(userId);
+        return Read<List<DailyTaskUpdate>>(Send(HttpMethod.Get, "api/tasks/my/daily-history"));
+    }
+
+    public List<DailyTaskUpdate> GetSelfStudyUpdates(string userId, bool isAdmin)
+    {
+        if (!isAdmin) EnsureCurrentUser(userId);
+        return Read<List<DailyTaskUpdate>>(Send(HttpMethod.Get, "api/self-study/updates"));
+    }
+
     public DailyTaskUpdate SaveDailyTaskUpdate(DailyTaskUpdate update)
     {
         EnsureCurrentUser(update.UserId);
         update.UpdateDate = DateTime.SpecifyKind(update.UpdateDate.Date, DateTimeKind.Unspecified);
+
+        if (string.Equals(update.UpdateType, DailyUpdateTypes.SelfStudy, StringComparison.OrdinalIgnoreCase))
+            return Read<DailyTaskUpdate>(Send(HttpMethod.Post, "api/self-study/updates", update));
+
         return Read<DailyTaskUpdate>(Send(HttpMethod.Post, $"api/tasks/{Uri.EscapeDataString(update.ComponentId)}/updates", update));
     }
 

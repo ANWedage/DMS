@@ -459,6 +459,14 @@ authenticated.MapGet("/tasks/my", (ClaimsPrincipal principal, IUserService users
         : Results.Ok(users.GetMyTasks(userId));
 });
 
+authenticated.MapGet("/tasks/my/daily-history", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    return principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId)
+        ? Results.Forbid()
+        : Results.Ok(users.GetMyDailyHistory(userId));
+});
+
 authenticated.MapGet("/tasks/{componentId}/updates", (string componentId, ClaimsPrincipal principal, IUserService users) =>
 {
     var userId = GetSubject(principal);
@@ -474,6 +482,16 @@ authenticated.MapGet("/admin/projects/{projectId}/daily-task-report", (string pr
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
 
+authenticated.MapGet("/self-study/updates", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
+
+    return principal.IsInRole("Admin")
+        ? Results.Ok(users.GetSelfStudyUpdates(string.Empty, true))
+        : Results.Ok(users.GetSelfStudyUpdates(userId, false));
+});
+
 authenticated.MapPost("/tasks/{componentId}/updates", (string componentId, DailyTaskUpdate update, ClaimsPrincipal principal, IUserService users) =>
 {
     var userId = GetSubject(principal);
@@ -482,6 +500,21 @@ authenticated.MapPost("/tasks/{componentId}/updates", (string componentId, Daily
     {
         update.ComponentId = componentId;
         update.UserId = userId;
+        update.UpdateType = DailyUpdateTypes.AssignedTask;
+        return Results.Ok(users.SaveDailyTaskUpdate(update));
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
+authenticated.MapPost("/self-study/updates", (DailyTaskUpdate update, ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    if (principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
+    try
+    {
+        update.ComponentId = string.Empty;
+        update.UserId = userId;
+        update.UpdateType = DailyUpdateTypes.SelfStudy;
         return Results.Ok(users.SaveDailyTaskUpdate(update));
     }
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }

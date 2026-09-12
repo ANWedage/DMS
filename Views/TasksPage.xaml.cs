@@ -18,6 +18,7 @@ namespace DMS.Views
     private TaskProject? _selectedProject;
     private TaskComponent? _selectedComponent;
     private List<ProjectDailyTaskReportRow> _projectReportRows = new();
+    private List<SelfStudyReportRow> _selfStudyReportRows = new();
 
     public TasksPage(IUserService userService)
     {
@@ -29,6 +30,7 @@ namespace DMS.Views
         ProjectStatusComboBox.SelectedIndex = 0;
         ComponentPriorityComboBox.SelectedIndex = 1;
         ProjectReportDatePicker.SelectedDate = DateTime.Today;
+        SelfStudyReportDatePicker.SelectedDate = DateTime.Today;
         EditComponentPriorityComboBox.SelectedIndex = 1;
         EditComponentStatusComboBox.SelectedIndex = 0;
         Loaded += async (_, _) => await LoadProjectsAsync();
@@ -276,6 +278,112 @@ namespace DMS.Views
         catch (Exception ex) { ProjectReportMessageText.Text = $"Unable to load project report: {ex.Message}"; }
     }
 
+    private async void LoadSelfStudyReportButton_Click(object sender, RoutedEventArgs e)
+    {
+        var date = SelfStudyReportDatePicker.SelectedDate ?? DateTime.Today;
+        try
+        {
+            var updates = await Task.Run(() => _userService.GetSelfStudyUpdates(string.Empty, true));
+            var userNames = _users.ToDictionary(user => user.Id, user => user.Username ?? user.Email);
+
+            _selfStudyReportRows = updates
+                .Where(update => update.UpdateDate.Date == date.Date)
+                .Select(update => new SelfStudyReportRow
+                {
+                    UserName = userNames.TryGetValue(update.UserId, out var userName) ? userName : "Unknown member",
+                    UpdateDate = update.UpdateDate,
+                    Topic = string.IsNullOrWhiteSpace(update.SelfStudyTopic) ? "General study" : update.SelfStudyTopic,
+                    Status = update.Status,
+                    Description = update.Description
+                })
+                .ToList();
+
+            SelfStudyReportGrid.ItemsSource = _selfStudyReportRows;
+            SelfStudyReportMessageText.Text = _selfStudyReportRows.Count == 0
+                ? "No self study updates were found for this date."
+                : $"Loaded {_selfStudyReportRows.Count} self study update(s) for {date:yyyy-MM-dd}.";
+        }
+        catch (Exception ex)
+        {
+            SelfStudyReportMessageText.Text = $"Unable to load self study report: {ex.Message}";
+        }
+    }
+
+    private void GenerateSelfStudyReportButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selfStudyReportRows.Count == 0)
+        {
+            SelfStudyReportMessageText.Text = "Load the self study report before generating the PDF.";
+            return;
+        }
+
+        var date = SelfStudyReportDatePicker.SelectedDate ?? DateTime.Today;
+        if (MessageBox.Show($"Generate the self study report for {date:yyyy-MM-dd}?", "Confirm PDF report", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Save self study report",
+            Filter = "PDF files (*.pdf)|*.pdf",
+            FileName = $"Self-Study-Report-{date:yyyy-MM-dd}.pdf",
+            AddExtension = true,
+            OverwritePrompt = true
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        try
+        {
+            QuestPDF.Settings.License = LicenseType.Community;
+            var rows = _selfStudyReportRows.ToList();
+            Document.Create(document => document.Page(page =>
+            {
+                page.Margin(30);
+                page.Header().Column(column =>
+                {
+                    column.Item().Text("DMS Self Study Daily Report").FontSize(20).Bold();
+                    column.Item().Text($"Date: {date:yyyy-MM-dd}").FontSize(11);
+                });
+                page.Content().PaddingTop(18).Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.RelativeColumn(1.3f);
+                        columns.RelativeColumn(1.5f);
+                        columns.RelativeColumn(1.4f);
+                        columns.RelativeColumn(1.1f);
+                        columns.RelativeColumn(3);
+                    });
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(ReportHeaderCell).Text("Member");
+                        header.Cell().Element(ReportHeaderCell).Text("Topic");
+                        header.Cell().Element(ReportHeaderCell).Text("Status");
+                        header.Cell().Element(ReportHeaderCell).Text("Date");
+                        header.Cell().Element(ReportHeaderCell).Text("Study Notes");
+                    });
+                    foreach (var row in rows)
+                    {
+                        table.Cell().Element(ReportBodyCell).Text(row.UserName);
+                        table.Cell().Element(ReportBodyCell).Text(row.Topic);
+                        table.Cell().Element(ReportBodyCell).Text(row.Status);
+                        table.Cell().Element(ReportBodyCell).Text(row.UpdateDate.ToString("yyyy-MM-dd"));
+                        table.Cell().Element(ReportBodyCell).Text(row.Description);
+                    }
+                });
+                page.Footer().AlignCenter().Text(text =>
+                {
+                    text.Span("Generated by ");
+                    text.Span(AppSession.CurrentDisplayName ?? AppSession.CurrentUsername ?? "Administrator").Bold();
+                });
+            })).GeneratePdf(dialog.FileName);
+            SelfStudyReportMessageText.Text = $"PDF report saved to {dialog.FileName}";
+        }
+        catch (Exception ex)
+        {
+            SelfStudyReportMessageText.Text = $"Unable to generate PDF report: {ex.Message}";
+        }
+    }
+
     private void GenerateProjectReportButton_Click(object sender, RoutedEventArgs e)
     {
         if (_selectedProject == null) { ProjectReportMessageText.Text = "Select a project first."; return; }
@@ -369,6 +477,15 @@ namespace DMS.Views
     {
         public string UserName { get; init; } = string.Empty;
         public DateTime UpdateDate { get; init; }
+        public string Status { get; init; } = string.Empty;
+        public string Description { get; init; } = string.Empty;
+    }
+
+    private sealed class SelfStudyReportRow
+    {
+        public string UserName { get; init; } = string.Empty;
+        public DateTime UpdateDate { get; init; }
+        public string Topic { get; init; } = string.Empty;
         public string Status { get; init; } = string.Empty;
         public string Description { get; init; } = string.Empty;
     }

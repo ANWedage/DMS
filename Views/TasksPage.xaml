@@ -174,6 +174,28 @@
                                 <TextBlock x:Name="ProjectReportMessageText" Foreground="#66727D" Margin="0,8,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
+                        <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Self Study Daily Report" FontSize="19" FontWeight="SemiBold"/>
+                                <TextBlock Text="Review self study entries submitted by team members for a selected date." Foreground="#66727D" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,12">
+                                    <TextBlock Text="Report date" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <DatePicker x:Name="SelfStudyReportDatePicker" Width="130"/>
+                                    <Button Content="Load Self Study Report" Click="LoadSelfStudyReportButton_Click" Margin="10,0,0,0"/>
+                                    <Button Content="Generate PDF Report" Click="GenerateSelfStudyReportButton_Click" Margin="10,0,0,0"/>
+                                </StackPanel>
+                                <DataGrid x:Name="SelfStudyReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="260" Background="White" BorderBrush="#DDE3E5" BorderThickness="1">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Member" Binding="{Binding UserName}" Width="170"/>
+                                        <DataGridTextColumn Header="Date" Binding="{Binding UpdateDate, StringFormat=d}" Width="110"/>
+                                        <DataGridTextColumn Header="Topic" Binding="{Binding Topic}" Width="170"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
+                                        <DataGridTextColumn Header="Study Notes" Binding="{Binding Description}" Width="*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock x:Name="SelfStudyReportMessageText" Foreground="#66727D" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Grid>
                 </ScrollViewer>

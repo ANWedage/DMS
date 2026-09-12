@@ -38,6 +38,11 @@
                             <StackPanel>
                                 <TextBlock Text="Daily Work Update" FontSize="18" FontWeight="SemiBold"/>
                                 <TextBlock Text="Describe the work you completed today." Margin="0,6,0,0" Foreground="#66727D"/>
+                                <ComboBox x:Name="UpdateTypeComboBox" Margin="0,8,0,0" SelectionChanged="UpdateTypeComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Assigned task"/>
+                                    <ComboBoxItem Content="Self study"/>
+                                </ComboBox>
+                                <TextBox x:Name="SelfStudyTopicTextBox" Height="38" Margin="0,8,0,0" Visibility="Collapsed" ToolTip="Topic you studied today"/>
                                 <TextBox x:Name="DailyDescriptionTextBox" Height="85" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,8,0,0"/>
                                 <ComboBox x:Name="TaskStatusComboBox" Margin="0,8,0,0">
                                     <ComboBoxItem Content="Not started"/><ComboBoxItem Content="In progress"/><ComboBoxItem Content="Blocked"/><ComboBoxItem Content="Completed"/>
@@ -51,6 +56,8 @@
                         <ListView Grid.Row="3" x:Name="HistoryListView" BorderThickness="0">
                             <ListView.View><GridView>
                                 <GridViewColumn Header="Date" DisplayMemberBinding="{Binding UpdateDate, StringFormat=d}" Width="100"/>
+                                <GridViewColumn Header="Type" DisplayMemberBinding="{Binding UpdateType}" Width="120"/>
+                                <GridViewColumn Header="Topic" DisplayMemberBinding="{Binding Topic}" Width="150"/>
                                 <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="110"/>
                                 <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="400"/>
                             </GridView></ListView.View>

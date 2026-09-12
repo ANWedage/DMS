@@ -89,6 +89,8 @@ namespace DMS.Services
         bool SetComponentAssignments(string componentId, IReadOnlyCollection<string> userIds, string adminId);
         List<AssignedTask> GetMyTasks(string userId);
         List<DailyTaskUpdate> GetTaskUpdates(string componentId, string userId, bool isAdmin);
+        List<DailyTaskUpdate> GetMyDailyHistory(string userId);
+        List<DailyTaskUpdate> GetSelfStudyUpdates(string userId, bool isAdmin);
         DailyTaskUpdate SaveDailyTaskUpdate(DailyTaskUpdate update);
         List<ProjectDailyTaskReportRow> GetProjectDailyTaskReport(string projectId, DateTime date);
     }

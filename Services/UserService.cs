@@ -934,22 +934,68 @@ namespace DMS.Services
             return _context.DailyTaskUpdates.Find(filter).SortByDescending(u => u.UpdateDate).ToList();
         }
 
+        public List<DailyTaskUpdate> GetMyDailyHistory(string userId)
+        {
+            return _context.DailyTaskUpdates
+                .Find(u => u.UserId == userId)
+                .SortByDescending(u => u.UpdateDate)
+                .ToList();
+        }
+
+        public List<DailyTaskUpdate> GetSelfStudyUpdates(string userId, bool isAdmin)
+        {
+            var filter = isAdmin
+                ? Builders<DailyTaskUpdate>.Filter.Eq(u => u.UpdateType, DailyUpdateTypes.SelfStudy)
+                : Builders<DailyTaskUpdate>.Filter.And(
+                    Builders<DailyTaskUpdate>.Filter.Eq(u => u.UpdateType, DailyUpdateTypes.SelfStudy),
+                    Builders<DailyTaskUpdate>.Filter.Eq(u => u.UserId, userId));
+
+            return _context.DailyTaskUpdates.Find(filter).SortByDescending(u => u.UpdateDate).ToList();
+        }
+
         public DailyTaskUpdate SaveDailyTaskUpdate(DailyTaskUpdate update)
         {
-            if (string.IsNullOrWhiteSpace(update.ComponentId) || string.IsNullOrWhiteSpace(update.UserId)
-                || string.IsNullOrWhiteSpace(update.Description))
+            update.UpdateType = string.IsNullOrWhiteSpace(update.UpdateType)
+                ? DailyUpdateTypes.AssignedTask
+                : update.UpdateType;
+
+            if (string.IsNullOrWhiteSpace(update.UserId) || string.IsNullOrWhiteSpace(update.Description))
                 throw new InvalidOperationException("A daily work description is required.");
             if (!new[] { TaskStatuses.NotStarted, TaskStatuses.InProgress, TaskStatuses.Blocked, TaskStatuses.Completed }.Contains(update.Status))
                 throw new InvalidOperationException("The selected task status is invalid.");
             if (update.Status == TaskStatuses.Blocked && string.IsNullOrWhiteSpace(update.BlockedReason))
                 throw new InvalidOperationException("A blocked reason is required.");
-            if (!_context.ComponentAssignments.Find(a => a.ComponentId == update.ComponentId && a.UserId == update.UserId && a.IsActive).Any())
-                throw new InvalidOperationException("This task is not assigned to your account.");
+
+            var isSelfStudy = string.Equals(update.UpdateType, DailyUpdateTypes.SelfStudy, StringComparison.OrdinalIgnoreCase);
+            if (isSelfStudy)
+            {
+                if (string.IsNullOrWhiteSpace(update.SelfStudyTopic))
+                    throw new InvalidOperationException("A self study topic is required.");
+                update.ComponentId = string.Empty;
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(update.ComponentId))
+                    throw new InvalidOperationException("A task component is required for task updates.");
+                if (!_context.ComponentAssignments.Find(a => a.ComponentId == update.ComponentId && a.UserId == update.UserId && a.IsActive).Any())
+                    throw new InvalidOperationException("This task is not assigned to your account.");
+            }
 
             update.UpdateDate = DateTime.SpecifyKind(update.UpdateDate.Date, DateTimeKind.Unspecified);
             update.Description = update.Description.Trim();
+            update.SelfStudyTopic = isSelfStudy ? update.SelfStudyTopic?.Trim() : null;
             update.BlockedReason = string.IsNullOrWhiteSpace(update.BlockedReason) ? null : update.BlockedReason.Trim();
             update.UpdatedAt = DateTime.UtcNow;
+
+            var existingToday = _context.DailyTaskUpdates
+                .Find(u => u.UserId == update.UserId && u.UpdateDate == update.UpdateDate)
+                .FirstOrDefault();
+
+            if (existingToday != null)
+            {
+                throw new InvalidOperationException("You already submitted one daily update today. You can't submit another update on the same day.");
+            }
+
             var filter = Builders<DailyTaskUpdate>.Filter.And(
                 Builders<DailyTaskUpdate>.Filter.Eq(u => u.ComponentId, update.ComponentId),
                 Builders<DailyTaskUpdate>.Filter.Eq(u => u.UserId, update.UserId),
