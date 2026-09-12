@@ -26,12 +26,6 @@ public static class TaskPriorities
     public const string High = "High";
 }
 
-public static class DefaultTaskEntries
-{
-    public const string SelfStudyProjectId = "__SELF_STUDY_PROJECT__";
-    public const string SelfStudyComponentId = "__SELF_STUDY__";
-}
-
 public class TaskProject
 {
     [BsonId]
