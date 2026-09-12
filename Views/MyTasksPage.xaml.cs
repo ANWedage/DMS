@@ -11,6 +11,8 @@ public partial class MyTasksPage : Page
     private readonly string _userId;
     private List<AssignedTask> _tasks = new();
     private AssignedTask? _selectedTask;
+    private string _taskSearchText = string.Empty;
+    private string _taskFilter = "All tasks";
 
     public MyTasksPage(IUserService userService, string userId)
     {
@@ -29,9 +31,14 @@ public partial class MyTasksPage : Page
     {
         try
         {
+            ClearUpdateInputs();
             _tasks = await Task.Run(() => _userService.GetMyTasks(_userId));
-            TaskListBox.ItemsSource = _tasks;
-            if (_tasks.Count > 0) TaskListBox.SelectedIndex = 0;
+            ApplyTaskView();
+            UpdateTaskSummary();
+            if (_tasks.Count > 0)
+            {
+                TaskListBox.SelectedIndex = 0;
+            }
             else
             {
                 _selectedTask = null;
@@ -42,6 +49,7 @@ public partial class MyTasksPage : Page
                 DailyDescriptionTextBox.Text = string.Empty;
                 await LoadDailyHistoryAsync();
             }
+
         }
         catch (Exception ex) { MessageText.Text = $"Unable to load your tasks: {ex.Message}"; }
     }
@@ -72,6 +80,80 @@ public partial class MyTasksPage : Page
         await LoadDailyHistoryAsync();
     }
 
+    private void TaskSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (sender is not TextBox textBox) return;
+        _taskSearchText = textBox.Text.Trim();
+        if (TaskListBox == null) return;
+        ApplyTaskView();
+    }
+
+    private void TaskFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item && item.Content is string filter)
+        {
+            _taskFilter = filter;
+            if (TaskListBox == null) return;
+            ApplyTaskView();
+        }
+    }
+
+    private void ApplyTaskView()
+    {
+        var selectedComponentId = _selectedTask?.Component.Id;
+        var search = _taskSearchText;
+
+        var visibleTasks = _tasks.Where(task =>
+        {
+            var matchesSearch = string.IsNullOrWhiteSpace(search)
+                || task.Component.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                || task.Project.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                || task.Component.Description.Contains(search, StringComparison.OrdinalIgnoreCase);
+
+            var latestStatus = task.LatestUpdate?.Status ?? task.Component.Status;
+            var matchesFilter = _taskFilter switch
+            {
+                "In progress" => latestStatus == TaskStatuses.InProgress,
+                "Due soon" => latestStatus != TaskStatuses.Completed && task.Component.DueDate.Date <= DateTime.Today.AddDays(7),
+                "Blocked" => latestStatus == TaskStatuses.Blocked || task.Component.Status == TaskStatuses.Blocked,
+                "Completed" => latestStatus == TaskStatuses.Completed || task.Component.Status == TaskStatuses.Completed,
+                _ => true
+            };
+
+            return matchesSearch && matchesFilter;
+        }).ToList();
+
+        TaskListBox.ItemsSource = visibleTasks;
+
+        if (!string.IsNullOrWhiteSpace(selectedComponentId))
+        {
+            TaskListBox.SelectedItem = visibleTasks.FirstOrDefault(task => task.Component.Id == selectedComponentId);
+        }
+    }
+
+    private void UpdateTaskSummary()
+    {
+        var today = DateTime.Today;
+        var dueSoon = _tasks.Count(task =>
+            task.Component.Status != TaskStatuses.Completed
+            && task.Component.DueDate.Date >= today
+            && task.Component.DueDate.Date <= today.AddDays(7));
+        var blocked = _tasks.Count(task =>
+            task.Component.Status == TaskStatuses.Blocked
+            || task.LatestUpdate?.Status == TaskStatuses.Blocked);
+        var completedToday = _tasks.Count(task =>
+            task.LatestUpdate?.Status == TaskStatuses.Completed
+            && task.LatestUpdate.UpdateDate.Date == today);
+
+        AssignedCountText.Text = _tasks.Count.ToString();
+        DueSoonCountText.Text = dueSoon.ToString();
+        BlockedCountText.Text = blocked.ToString();
+        CompletedTodayCountText.Text = completedToday.ToString();
+        TaskProgressText.Text = _tasks.Count == 0
+            ? "No assigned tasks right now"
+            : $"{completedToday} of {_tasks.Count} tasks completed today";
+    }
+
     private async void SaveUpdateButton_Click(object sender, RoutedEventArgs e)
     {
         var selectedUpdateType = (UpdateTypeComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? DailyUpdateTypes.AssignedTask;
@@ -100,8 +182,9 @@ public partial class MyTasksPage : Page
                     BlockedReason = blockedReason
                 };
                 await Task.Run(() => _userService.SaveDailyTaskUpdate(update));
-                MessageText.Text = "Today's self study update saved successfully.";
                 await RefreshTaskListAndHistoryAsync();
+                ClearUpdateInputs();
+                MessageText.Text = "Today's self study update saved successfully.";
             }
             catch (Exception ex) { MessageText.Text = $"Unable to save today's update: {ex.Message}"; }
             return;
@@ -124,8 +207,9 @@ public partial class MyTasksPage : Page
                 BlockedReason = blockedReason
             };
             await Task.Run(() => _userService.SaveDailyTaskUpdate(update));
-            MessageText.Text = "Today's update saved successfully.";
             await RefreshTaskListAndHistoryAsync();
+            ClearUpdateInputs();
+            MessageText.Text = "Today's update saved successfully.";
         }
         catch (Exception ex) { MessageText.Text = $"Unable to save today's update: {ex.Message}"; }
     }
@@ -134,7 +218,32 @@ public partial class MyTasksPage : Page
     {
         var isSelfStudy = (UpdateTypeComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() == DailyUpdateTypes.SelfStudy;
         TaskListBox.Visibility = isSelfStudy ? Visibility.Collapsed : Visibility.Visible;
-        SelfStudyTopicTextBox.Visibility = isSelfStudy ? Visibility.Visible : Visibility.Collapsed;
+        SelfStudyTopicInputPanel.Visibility = isSelfStudy ? Visibility.Visible : Visibility.Collapsed;
+        DailyDescriptionPlaceholderText.Text = isSelfStudy
+            ? "Write the key points or notes from your study session..."
+            : "Describe the work you completed on this assigned task...";
+
+        if (isSelfStudy)
+        {
+            _selectedTask = null;
+            TaskListBox.SelectedItem = null;
+            ComponentTitleText.Text = "Self study session";
+            ProjectText.Text = string.Empty;
+            DescriptionText.Text = "Record what you studied today and the key points you want to remember.";
+            DueDateText.Text = string.Empty;
+        }
+        else if (_selectedTask == null && _tasks.Count > 0)
+        {
+            TaskListBox.SelectedIndex = 0;
+        }
+    }
+
+    private void ClearUpdateInputs()
+    {
+        DailyDescriptionTextBox.Text = string.Empty;
+        SelfStudyTopicTextBox.Text = string.Empty;
+        BlockedReasonTextBox.Text = string.Empty;
+        TaskStatusComboBox.SelectedIndex = 1;
     }
 
     private async Task LoadDailyHistoryAsync()
@@ -158,8 +267,10 @@ public partial class MyTasksPage : Page
     {
         var selectedComponentId = _selectedTask?.Component.Id;
 
+        ClearUpdateInputs();
         _tasks = await Task.Run(() => _userService.GetMyTasks(_userId));
-        TaskListBox.ItemsSource = _tasks;
+        ApplyTaskView();
+        UpdateTaskSummary();
 
         AssignedTask? refreshedSelectedTask = null;
         if (!string.IsNullOrWhiteSpace(selectedComponentId))
@@ -187,6 +298,7 @@ public partial class MyTasksPage : Page
             TaskStatusComboBox.SelectedIndex = 1;
             await LoadDailyHistoryAsync();
         }
+
     }
 
     private sealed class DailyHistoryDisplayRow
