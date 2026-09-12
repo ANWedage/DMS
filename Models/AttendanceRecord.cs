@@ -24,6 +24,9 @@ namespace DMS.Models
     {
         public static IReadOnlyList<MeetingSlot> ForDate(MeetingSettings settings, DateTime date)
         {
+                if (!IsWorkingDay(date))
+                    return Array.Empty<MeetingSlot>();
+
             var firstMeeting = date.DayOfWeek == DayOfWeek.Friday
                 ? new MeetingSlot(MeetingTypes.Weekly, "Weekly Meeting", settings.WeeklyTime, settings.WeeklyMeetingLink)
                 : new MeetingSlot(MeetingTypes.Morning, "Morning Standup", settings.MorningTime, settings.MorningMeetingLink);
@@ -34,6 +37,9 @@ namespace DMS.Models
                 new MeetingSlot(MeetingTypes.Evening, "Evening Standup", settings.EveningTime, settings.EveningMeetingLink)
             };
         }
+
+        public static bool IsWorkingDay(DateTime date) =>
+            date.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday);
     }
 
     public class AttendanceRecord

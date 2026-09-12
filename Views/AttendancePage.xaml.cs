@@ -47,6 +47,13 @@ namespace DMS.Views
                 
                 _settings = settingsTask.Result;
                 var records = attendanceTask.Result;
+
+                if (!MeetingSchedule.IsWorkingDay(date))
+                {
+                    AttendanceItems.ItemsSource = null;
+                    MessageText.Text = "Weekend: non-working day. Attendance is not required.";
+                    return;
+                }
                 
                 var rows = MeetingSchedule.ForDate(_settings, date)
                     .Select(slot => CreateRow(records, slot, date))

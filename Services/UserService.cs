@@ -524,6 +524,9 @@ namespace DMS.Services
             if (string.IsNullOrWhiteSpace(userId))
                 return new List<AttendanceRecord>();
 
+            if (!MeetingSchedule.IsWorkingDay(date))
+                return new List<AttendanceRecord>();
+
             EnsureUserDailyAttendance(userId, date);
             var activeTypes = MeetingSchedule.ForDate(GetMeetingSettings(), date).Select(slot => slot.Type).ToHashSet();
             return _context.Attendance.Find(a => a.UserId == userId && a.MeetingDate == FormatDate(date))
@@ -535,6 +538,9 @@ namespace DMS.Services
 
         public List<AttendanceRecord> GetAllAttendance(DateTime date)
         {
+            if (!MeetingSchedule.IsWorkingDay(date))
+                return new List<AttendanceRecord>();
+
             EnsureDailyAttendance(date);
             return _context.Attendance.Find(a => a.MeetingDate == FormatDate(date)).ToList();
         }
@@ -543,6 +549,8 @@ namespace DMS.Services
         {
             if (string.IsNullOrWhiteSpace(userId) || !IsValidMeetingType(meetingType))
                 throw new InvalidOperationException("The attendance request is invalid.");
+            if (!MeetingSchedule.IsWorkingDay(date))
+                throw new InvalidOperationException("Attendance is not available on weekends because they are non-working days.");
 
             EnsureDailyAttendance(date);
             var settings = GetMeetingSettings();
@@ -582,6 +590,11 @@ namespace DMS.Services
                 AttendanceStatuses.AbsentInformed
             };
             if (string.IsNullOrWhiteSpace(attendanceId) || !validStatuses.Contains(status))
+                return false;
+
+            var existing = _context.Attendance.Find(a => a.Id == attendanceId).FirstOrDefault();
+            if (existing == null || !DateTime.TryParseExact(existing.MeetingDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var meetingDate)
+                || !MeetingSchedule.IsWorkingDay(meetingDate))
                 return false;
 
             var update = Builders<AttendanceRecord>.Update

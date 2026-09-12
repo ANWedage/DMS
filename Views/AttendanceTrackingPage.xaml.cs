@@ -181,6 +181,14 @@ namespace DMS.Views
                 var records = attendanceTask.Result;
                 var slots = MeetingSchedule.ForDate(settingsTask.Result, date);
                 _rows.Clear();
+
+                if (!MeetingSchedule.IsWorkingDay(date))
+                {
+                    AttendanceGrid.ItemsSource = _rows;
+                    AttendanceMessageText.Text = "Weekend: non-working day. No attendance records are required.";
+                    return;
+                }
+
                 foreach (var user in usersTask.Result)
                 {
                     for (var slotIndex = 0; slotIndex < slots.Count; slotIndex++)
