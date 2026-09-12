@@ -9,7 +9,6 @@ using DMS.Helpers;
 using DMS.Models;
 using DMS.Services;
 using DMS.Views;
-using MongoDB.Driver;
 
 namespace DMS
 {
@@ -50,7 +49,6 @@ namespace DMS
                 {
                     context = new MongoDbContext();
                     context.EnsureIndexes();
-                    SeedAdminUsers(context);
                 }
                 catch (Exception ex)
                 {
@@ -214,25 +212,5 @@ namespace DMS
             }
         }
 
-        private static void SeedAdminUsers(MongoDbContext context)
-        {
-            var configuredAdmins = AdminConfig.GetConfiguredAdmins();
-
-            foreach (var admin in configuredAdmins)
-            {
-                var existing = context.Admins.Find(a => a.Username == admin.Username).FirstOrDefault();
-                if (existing != null)
-                    continue;
-
-                var (hash, salt) = PasswordHasher.HashPassword(admin.Password);
-                context.Admins.InsertOne(new AdminUser
-                {
-                    Name = admin.Name,
-                    Username = admin.Username,
-                    PasswordHash = hash,
-                    PasswordSalt = salt
-                });
-            }
-        }
     }
 }
