@@ -25,10 +25,8 @@ var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
 var mongoContext = new MongoDbContext();
 mongoContext.EnsureIndexes();
 builder.Services.AddSingleton(mongoContext);
-builder.Services.AddSingleton<IEmailOutbox, EmailOutboxService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddHostedService<DailyTaskReminderWorker>();
-builder.Services.AddHostedService<EmailOutboxWorker>();
 builder.Services.AddSingleton(new JwtTokenService(jwtIssuer, jwtAudience, signingKey));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
