@@ -437,6 +437,14 @@ authenticated.MapPut("/admin/components/{componentId}", (string componentId, Tas
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
 
+authenticated.MapDelete("/admin/components/{componentId}", (string componentId, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin")) return Results.Forbid();
+    return users.DeleteTaskComponent(componentId)
+        ? Results.NoContent()
+        : Results.NotFound();
+});
+
 authenticated.MapGet("/admin/components/{componentId}/assignments", (string componentId, ClaimsPrincipal principal, IUserService users) =>
     principal.IsInRole("Admin") ? Results.Ok(users.GetComponentAssignments(componentId)) : Results.Forbid());
 

@@ -4,8 +4,8 @@
         xmlns:helpers="clr-namespace:DMS.Helpers"
         Title="DMS | Admin Workspace"
         Icon="/Assets/dms-logo.png"
-        Height="680" Width="1120"
-        MinHeight="600" MinWidth="900"
+        Height="780" Width="1280"
+        MinHeight="650" MinWidth="1000"
         WindowStartupLocation="CenterScreen">
     <Grid Background="#E8EDEF">
         <Grid.ColumnDefinitions>
@@ -70,7 +70,7 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Column="1" Background="#E8EDEF" Margin="42,34,42,36">
+        <Grid Grid.Column="1" Background="#E8EDEF" Margin="28,24,28,24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>

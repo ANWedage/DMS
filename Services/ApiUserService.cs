@@ -345,6 +345,12 @@ public sealed class ApiUserService : IUserService, IDisposable
         return Read<TaskComponent>(Send(HttpMethod.Put, $"api/admin/components/{Uri.EscapeDataString(component.Id)}", component));
     }
 
+    public bool DeleteTaskComponent(string componentId)
+    {
+        using var response = Send(HttpMethod.Delete, $"api/admin/components/{Uri.EscapeDataString(componentId)}");
+        return response.IsSuccessStatusCode;
+    }
+
     public List<ComponentAssignment> GetComponentAssignments(string componentId) =>
         Read<List<ComponentAssignment>>(Send(HttpMethod.Get, $"api/admin/components/{Uri.EscapeDataString(componentId)}/assignments"));
 

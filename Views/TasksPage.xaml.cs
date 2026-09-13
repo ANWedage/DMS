@@ -208,6 +208,40 @@ namespace DMS.Views
         MembersListBox.Items.Refresh();
     }
 
+    private async void DeleteComponentButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: TaskComponent component } || _selectedProject == null)
+            return;
+
+        if (MessageBox.Show(
+            $"Delete component '{component.Name}' and remove its member assignments? Daily updates and developer history will be preserved.",
+                "Confirm component deletion",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            if (!await Task.Run(() => _userService.DeleteTaskComponent(component.Id)))
+            {
+                MessageBox.Show("The component could not be found.", "Delete component", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _selectedComponent = null;
+            ComponentListView.ItemsSource = await Task.Run(() => _userService.GetProjectComponents(_selectedProject.Id));
+            SelectedComponentText.Text = "Select a component";
+            EditComponentNameTextBox.Clear();
+            EditComponentDescriptionTextBox.Clear();
+            UpdatesListView.ItemsSource = null;
+            MessageBox.Show("Component and its assignments were deleted. Daily updates and developer history were preserved.", "Delete component", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Unable to delete component: {ex.Message}", "Delete component", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
     private void MemberCheckBox_Checked(object sender, RoutedEventArgs e)
     {
         if (sender is CheckBox { DataContext: MemberOption option })

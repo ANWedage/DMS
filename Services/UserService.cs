@@ -886,6 +886,15 @@ namespace DMS.Services
             return component;
         }
 
+        public bool DeleteTaskComponent(string componentId)
+        {
+            if (string.IsNullOrWhiteSpace(componentId))
+                return false;
+
+            _context.ComponentAssignments.DeleteMany(assignment => assignment.ComponentId == componentId);
+            return _context.Components.DeleteOne(component => component.Id == componentId).DeletedCount > 0;
+        }
+
         public List<ComponentAssignment> GetComponentAssignments(string componentId) =>
             _context.ComponentAssignments.Find(a => a.ComponentId == componentId && a.IsActive).ToList();
 

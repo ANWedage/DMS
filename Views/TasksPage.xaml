@@ -4,16 +4,25 @@
     Title="Task Management">
     <Grid Background="#E8EDEF">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Margin="0,0,0,18">
-            <TextBlock Text="Task Management" FontSize="32" FontWeight="Bold" Foreground="#17212B"/>
-            <TextBlock Text="Create projects, split work into components, and assign each component to one or more members." Margin="0,8,0,0" Foreground="#66727D" TextWrapping="Wrap"/>
-        </StackPanel>
+        <Border Grid.Row="0" Background="#F8FBFB" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="20,16" Margin="0,0,0,16">
+            <Grid>
+                <StackPanel>
+                    <TextBlock Text="TASK MANAGEMENT" Foreground="#126E70" FontSize="12" FontWeight="SemiBold"/>
+                    <TextBlock Text="Projects and daily delivery" FontSize="30" FontWeight="Bold" Foreground="#17212B" Margin="0,3,0,0"/>
+                    <TextBlock Text="Create projects, organize components, assign members, and review daily progress." Margin="0,5,0,0" Foreground="#66727D" TextWrapping="Wrap"/>
+                </StackPanel>
+                <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#E8F0EF" CornerRadius="6" Padding="10,7">
+                    <TextBlock Text="ADMIN WORKSPACE" Foreground="#0D5558" FontSize="11" FontWeight="Bold"/>
+                </Border>
+            </Grid>
+        </Border>
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="285"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Background="White" Padding="16" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="310"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="#F8FBFB" Padding="16" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top">
-                        <TextBlock Text="Create New Project" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="PROJECTS" Foreground="#126E70" FontSize="12" FontWeight="SemiBold"/>
+                        <TextBlock Text="Create or select a project" FontSize="18" FontWeight="SemiBold" Margin="0,3,0,0"/>
                         <TextBlock Text="Enter the project details and choose its starting status." Foreground="#66727D" Margin="0,5,0,0" TextWrapping="Wrap"/>
                         <TextBlock Text="Project name" FontWeight="SemiBold" Margin="0,12,0,0"/>
                         <TextBox x:Name="ProjectNameTextBox" Margin="0,10,0,0" ToolTip="Project name"/>
@@ -52,14 +61,15 @@
                     </ScrollViewer>
                 </DockPanel>
             </Border>
-            <Border Grid.Column="2" Background="White" Padding="18" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10">
+            <Border Grid.Column="2" Background="#FFFFFF" Padding="22" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <StackPanel>
-                        <TextBlock x:Name="SelectedProjectText" Text="Select a project" FontSize="22" FontWeight="Bold"/>
+                        <TextBlock Text="SELECTED PROJECT" Foreground="#126E70" FontSize="12" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="SelectedProjectText" Text="Select a project" FontSize="26" FontWeight="Bold" Margin="0,3,0,0"/>
                         <TextBlock x:Name="SelectedProjectDescriptionText" Foreground="#66727D" Margin="0,5,0,0" TextWrapping="Wrap"/>
-                        <TextBlock Text="Edit Project" FontSize="17" FontWeight="SemiBold" Margin="0,14,0,0"/>
+                        <TextBlock Text="Project details" FontSize="17" FontWeight="SemiBold" Margin="0,16,0,0"/>
                         <TextBlock Text="Update project information or change its status." Foreground="#66727D" Margin="0,4,0,0"/>
                         <Grid Margin="0,12,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="110"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -73,7 +83,7 @@
                         </Grid>
                         <Button Content="Update Project" Click="UpdateProjectButton_Click" HorizontalAlignment="Left" Margin="0,10,0,0"/>
                     </StackPanel>
-                    <Border Grid.Row="1" Background="#F7F9F9" Padding="12" Margin="0,16,0,16" CornerRadius="8">
+                    <Border Grid.Row="1" Background="#F5F8F7" BorderBrush="#DCE8E5" BorderThickness="1" Padding="16" Margin="0,18,0,18" CornerRadius="8">
                         <StackPanel>
                             <TextBlock Text="Add New Component" FontSize="17" FontWeight="SemiBold"/>
                             <TextBlock Text="Create a work item for this project." Foreground="#66727D" Margin="0,4,0,0"/>
@@ -90,17 +100,49 @@
                         </StackPanel>
                     </Border>
                     <StackPanel Grid.Row="2">
-                        <TextBlock Text="Project Components" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                        <ListView x:Name="ComponentListView" Height="220" SelectionChanged="ComponentListView_SelectionChanged" BorderThickness="0">
-                            <ListView.View><GridView>
-                                <GridViewColumn Header="Component" DisplayMemberBinding="{Binding Name}" Width="170"/>
-                                <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="300"/>
-                                <GridViewColumn Header="Priority" DisplayMemberBinding="{Binding Priority}" Width="95"/>
-                                <GridViewColumn Header="Due" DisplayMemberBinding="{Binding DueDate, StringFormat=d}" Width="110"/>
-                                <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="130"/>
-                            </GridView></ListView.View>
+                        <Grid Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="COMPONENTS" Foreground="#126E70" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock Text="Project work items" FontSize="19" FontWeight="SemiBold" Margin="0,3,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Select a row to edit details and assignments" HorizontalAlignment="Right" VerticalAlignment="Bottom" Foreground="#66727D" FontSize="12"/>
+                        </Grid>
+                        <ListView x:Name="ComponentListView" Height="280" SelectionChanged="ComponentListView_SelectionChanged" BorderThickness="0" Background="Transparent">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Margin" Value="0,0,0,8"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#FFFFFF" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="7" Padding="14,11">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="120"/><ColumnDefinition Width="125"/><ColumnDefinition Width="125"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" Foreground="#17212B"/>
+                                                <TextBlock Text="{Binding Description}" Foreground="#66727D" FontSize="12" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="PRIORITY" Foreground="#88949B" FontSize="10" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Priority}" Foreground="#126E70" FontWeight="SemiBold" Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock Text="DUE DATE" Foreground="#88949B" FontSize="10" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding DueDate, StringFormat=d}" Foreground="#17212B" Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                                                <TextBlock Text="STATUS" Foreground="#88949B" FontSize="10" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Status}" Foreground="#126E70" FontWeight="SemiBold" Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="4" Tag="{Binding}" Content="&#xE74D;" FontFamily="Segoe MDL2 Assets" Width="32" Height="32" Padding="0" Background="#FCEBE7" Foreground="#B54736" ToolTip="Delete component" Click="DeleteComponentButton_Click" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
                         </ListView>
-                        <Expander x:Name="ComponentWorkspaceExpander" Header="Selected Component Workspace" IsExpanded="True" Margin="0,16,0,0">
+                        <Expander x:Name="ComponentWorkspaceExpander" Header="Selected Component Workspace" IsExpanded="True" Margin="0,16,0,0" FontWeight="SemiBold">
                             <Border Background="#F7F9F9" Padding="16" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="8">
                                 <Grid>
                                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -141,7 +183,7 @@
                                             <Button Content="View Daily Updates" Click="ViewUpdatesButton_Click" HorizontalAlignment="Left"/>
                                         </StackPanel>
                                     </Grid>
-                                    <ListView Grid.Row="2" x:Name="UpdatesListView" Height="190" Margin="0,18,0,0" BorderThickness="0">
+                                    <ListView Grid.Row="2" x:Name="UpdatesListView" Height="220" Margin="0,18,0,0" BorderThickness="0">
                                         <ListView.View><GridView>
                                             <GridViewColumn Header="User" DisplayMemberBinding="{Binding UserName}" Width="170"/>
                                             <GridViewColumn Header="Date" DisplayMemberBinding="{Binding UpdateDate, StringFormat=d}" Width="100"/>
@@ -154,7 +196,8 @@
                         </Expander>
                         <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,18,0,0">
                             <StackPanel>
-                                <TextBlock Text="Project Daily Report" FontSize="19" FontWeight="SemiBold"/>
+                                <TextBlock Text="PROJECT DAILY REPORT" Foreground="#126E70" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock Text="Project Daily Report" FontSize="19" FontWeight="SemiBold" Margin="0,3,0,0"/>
                                 <TextBlock Text="View every component and assigned member update for one date, then generate one report." Foreground="#66727D" Margin="0,4,0,0" TextWrapping="Wrap"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,12,0,12">
                                     <TextBlock Text="Report date" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -162,7 +205,7 @@
                                     <Button Content="Load Project Report" Click="LoadProjectReportButton_Click" Margin="10,0,0,0"/>
                                     <Button Content="Generate PDF Report" Click="GenerateProjectReportButton_Click" Margin="10,0,0,0"/>
                                 </StackPanel>
-                                <DataGrid x:Name="ProjectReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="260" Background="White" BorderBrush="#DDE3E5" BorderThickness="1">
+                                <DataGrid x:Name="ProjectReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="300" Background="White" BorderBrush="#DDE3E5" BorderThickness="1">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Component" Binding="{Binding ComponentName}" Width="170"/>
                                         <DataGridTextColumn Header="Description" Binding="{Binding ComponentDescription}" Width="240"/>
@@ -176,7 +219,8 @@
                         </Border>
                         <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,18,0,0">
                             <StackPanel>
-                                <TextBlock Text="Self Study Daily Report" FontSize="19" FontWeight="SemiBold"/>
+                                <TextBlock Text="SELF STUDY REPORT" Foreground="#126E70" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock Text="Self Study Daily Report" FontSize="19" FontWeight="SemiBold" Margin="0,3,0,0"/>
                                 <TextBlock Text="Review self study entries submitted by team members for a selected date." Foreground="#66727D" Margin="0,4,0,0" TextWrapping="Wrap"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,12,0,12">
                                     <TextBlock Text="Report date" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -184,7 +228,7 @@
                                     <Button Content="Load Self Study Report" Click="LoadSelfStudyReportButton_Click" Margin="10,0,0,0"/>
                                     <Button Content="Generate PDF Report" Click="GenerateSelfStudyReportButton_Click" Margin="10,0,0,0"/>
                                 </StackPanel>
-                                <DataGrid x:Name="SelfStudyReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="260" Background="White" BorderBrush="#DDE3E5" BorderThickness="1">
+                                <DataGrid x:Name="SelfStudyReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="300" Background="White" BorderBrush="#DDE3E5" BorderThickness="1">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Member" Binding="{Binding UserName}" Width="170"/>
                                         <DataGridTextColumn Header="Date" Binding="{Binding UpdateDate, StringFormat=d}" Width="110"/>
