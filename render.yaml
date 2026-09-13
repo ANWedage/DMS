@@ -11,3 +11,17 @@ services:
         sync: false
       - key: DMS_JWT_SECRET
         sync: false
+      - key: DMS_EMAIL_SMTP_HOST
+        sync: false
+      - key: DMS_EMAIL_SMTP_PORT
+        value: "587"
+      - key: DMS_EMAIL_SMTP_USERNAME
+        sync: false
+      - key: DMS_EMAIL_SMTP_PASSWORD
+        sync: false
+      - key: DMS_EMAIL_SENDER_ADDRESS
+        sync: false
+      - key: DMS_EMAIL_SENDER_NAME
+        value: DMS
+      - key: DMS_EMAIL_APPLICATION_URL
+        sync: false

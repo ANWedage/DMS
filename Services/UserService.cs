@@ -9,10 +9,12 @@ namespace DMS.Services
     public class UserService : IUserService
     {
         private readonly MongoDbContext _context;
+        private readonly IEmailOutbox? _emailOutbox;
 
-        public UserService(MongoDbContext context)
+        public UserService(MongoDbContext context, IEmailOutbox? emailOutbox = null)
         {
             _context = context;
+            _emailOutbox = emailOutbox;
         }
 
             public List<ChatUser> GetChatUsers(string currentUserId, string currentRole)
@@ -78,6 +80,11 @@ namespace DMS.Services
                     MessageText = text
                 };
                 _context.ChatMessages.InsertOne(message);
+                if (recipientRole == "User")
+                {
+                    var recipient = _context.Users.Find(u => u.Id == recipientId).FirstOrDefault();
+                    QueueUserAlert(message.Id, recipient, FindChatDisplayName(senderId, senderRole), "Message");
+                }
                 return message;
             }
 
@@ -412,7 +419,7 @@ namespace DMS.Services
                 var filter = Builders<Notification>.Filter.And(
                     Builders<Notification>.Filter.Eq(n => n.RecipientId, recipient.Id),
                     Builders<Notification>.Filter.Eq(n => n.ReminderKey, reminderKey));
-                _context.Notifications.UpdateOne(filter,
+                var result = _context.Notifications.UpdateOne(filter,
                     Builders<Notification>.Update
                         .SetOnInsert(n => n.RecipientId, recipient.Id)
                         .SetOnInsert(n => n.RecipientRole, recipient.Role)
@@ -426,6 +433,14 @@ namespace DMS.Services
                         .SetOnInsert(n => n.IsHighPriority, true)
                         .SetOnInsert(n => n.ReminderKey, reminderKey),
                     new UpdateOptions { IsUpsert = true });
+
+                if (result.UpsertedId != null && recipient.Role == "User")
+                {
+                    var user = _context.Users.Find(u => u.Id == recipient.Id).FirstOrDefault();
+                    var eventKey = result.UpsertedId.ToString();
+                    if (!string.IsNullOrWhiteSpace(eventKey))
+                        QueueUserAlert(eventKey, user, recipient.Name, "Notification");
+                }
             }
         }
 
@@ -448,25 +463,48 @@ namespace DMS.Services
             if (ids.Count == 0)
                 throw new InvalidOperationException("Select at least one notification recipient.");
 
-            var recipientNames = recipientRole == "User"
+            var recipientUsers = recipientRole == "User"
                 ? _context.Users.Find(u => ids.Contains(u.Id)).ToList()
-                    .ToDictionary(u => u.Id, u => u.Username ?? u.Email)
+                    .ToDictionary(u => u.Id)
                 : _context.Admins.Find(a => ids.Contains(a.Id)).ToList()
-                    .ToDictionary(a => a.Id, a => string.IsNullOrWhiteSpace(a.Name) ? a.Username : a.Name);
+                    .ToDictionary(a => a.Id, a => new User { Id = a.Id, Email = string.Empty, Username = string.IsNullOrWhiteSpace(a.Name) ? a.Username : a.Name });
 
             var now = DateTime.UtcNow;
-            _context.Notifications.InsertMany(ids.Select(id => new Notification
+            var notifications = ids.Select(id => new Notification
             {
                 RecipientId = id,
                 RecipientRole = recipientRole,
-                RecipientName = recipientNames.TryGetValue(id, out var recipientName) ? recipientName : id,
+                RecipientName = recipientUsers.TryGetValue(id, out var recipient) ? recipient.Username ?? recipient.Email : id,
                 SenderId = senderId,
                 SenderName = senderName,
                 Title = title.Trim(),
                 Message = message.Trim(),
                 CreatedAt = now
-            }));
+            }).ToList();
+            _context.Notifications.InsertMany(notifications);
+
+            foreach (var notification in notifications)
+            {
+                if (notification.RecipientRole == "User" && recipientUsers.TryGetValue(notification.RecipientId, out var user))
+                    QueueUserAlert(notification.Id, user, notification.SenderName, "Notification");
+            }
             return ids.Count;
+        }
+
+        private void QueueUserAlert(string eventKey, User? recipient, string senderName, string alertType)
+        {
+            if (_emailOutbox == null || recipient == null || string.IsNullOrWhiteSpace(recipient.Email))
+                return;
+
+            try
+            {
+                _emailOutbox.EnqueueUserAlert(eventKey, recipient.Id, recipient.Email,
+                    recipient.Username ?? recipient.Email, senderName, alertType);
+            }
+            catch
+            {
+                // Email queue failures must not change the existing notification or chat flow.
+            }
         }
 
         private static void ValidateRecipient(string recipientId, string recipientRole)
