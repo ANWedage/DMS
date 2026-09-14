@@ -22,9 +22,11 @@
             @if (User.Identity?.IsAuthenticated == true)
             {
                 <form id="logout-form" method="post" asp-page="/Logout">
-                    <button class="material-button sign-out-button" type="button" aria-label="Sign out" onclick="document.getElementById('logout-dialog').showModal()">
-                        <span>SIGN</span>
-                        <span>OUT</span>
+                    <button class="material-button sign-out-button" type="button" aria-label="Sign out" title="Sign out" onclick="document.getElementById('logout-dialog').showModal()">
+                        <span class="logout-glyph" aria-hidden="true">
+                            <span class="logout-door"></span>
+                            <span class="logout-arrow"></span>
+                        </span>
                     </button>
                 </form>
             }
