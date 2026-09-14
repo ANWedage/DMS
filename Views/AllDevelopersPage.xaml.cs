@@ -13,11 +13,14 @@ namespace DMS.Views
     {
         private readonly IUserService _userService;
         private List<User> _allUsers = new();
+        private bool _isLoading;
+        private bool _reloadRequested;
 
         public AllDevelopersPage(IUserService userService)
         {
             InitializeComponent();
             _userService = userService;
+            DailyTaskDatePicker.SelectedDate = DateTime.Today;
             Loaded += AllDevelopersPage_Loaded;
         }
 
@@ -28,10 +31,32 @@ namespace DMS.Views
 
         private async Task ReloadDevelopersAsync()
         {
+            if (_isLoading)
+            {
+                _reloadRequested = true;
+                return;
+            }
+
+            _isLoading = true;
             try
             {
-                var users = await Task.Run(() => _userService.GetAllUsers());
-                _allUsers = users
+                var selectedDate = DailyTaskDatePicker.SelectedDate?.Date ?? DateTime.Today;
+                var result = await Task.Run(() =>
+                {
+                    var users = _userService.GetAllUsers();
+                    var statuses = _userService.GetDeveloperDailyTaskStatus(selectedDate);
+                    return (users, statuses);
+                });
+
+                var submittedUserIds = result.statuses
+                    .Where(status => status.HasSubmittedUpdate)
+                    .Select(status => status.UserId)
+                    .ToHashSet(StringComparer.Ordinal);
+
+                foreach (var user in result.users)
+                    user.HasSubmittedDailyTask = submittedUserIds.Contains(user.Id);
+
+                _allUsers = result.users
                     .OrderBy(u => string.IsNullOrWhiteSpace(u.Username) ? u.Email : u.Username)
                     .ToList();
 
@@ -43,7 +68,18 @@ namespace DMS.Views
                 DeveloperListView.ItemsSource = new List<User>();
                 MessageBox.Show($"Unable to load developers: {ex.Message}", "Developer list", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            finally
+            {
+                _isLoading = false;
+                if (_reloadRequested)
+                {
+                    _reloadRequested = false;
+                    _ = ReloadDevelopersAsync();
+                }
+            }
         }
+
+        public Task RefreshAsync() => ReloadDevelopersAsync();
 
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -54,6 +90,17 @@ namespace DMS.Views
         {
             SearchTextBox.Clear();
             SearchTextBox.Focus();
+        }
+
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            await RefreshAsync();
+        }
+
+        private async void DailyTaskDatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsLoaded)
+                await ReloadDevelopersAsync();
         }
 
         private async void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

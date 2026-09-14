@@ -331,6 +331,22 @@ namespace DMS.Services
                 .ToList();
         }
 
+        public List<DeveloperDailyTaskStatus> GetDeveloperDailyTaskStatus(DateTime date)
+        {
+            var calendarDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Unspecified);
+            var filter = Builders<DailyTaskUpdate>.Filter.Eq(update => update.UpdateDate, calendarDate);
+            return _context.DailyTaskUpdates
+                .Distinct(update => update.UserId, filter)
+                .ToList()
+                .Where(userId => !string.IsNullOrWhiteSpace(userId))
+                .Select(userId => new DeveloperDailyTaskStatus
+                {
+                    UserId = userId,
+                    HasSubmittedUpdate = true
+                })
+                .ToList();
+        }
+
         public long GetActiveUserCount()
         {
             return _context.Users.CountDocuments(u => u.IsActive);

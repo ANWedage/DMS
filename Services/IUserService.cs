@@ -42,6 +42,7 @@ namespace DMS.Services
 
         /// <summary>Returns all registered users so administrators can review the developer list.</summary>
         List<User> GetAllUsers();
+        List<DeveloperDailyTaskStatus> GetDeveloperDailyTaskStatus(DateTime date);
         List<AdminAccountInfo> GetAllAdmins();
 
         /// <summary>Returns the number of currently active user accounts.</summary>

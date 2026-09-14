@@ -157,6 +157,11 @@ authenticated.MapPost("/attendance/present", (ClaimsPrincipal principal, Attenda
 authenticated.MapGet("/admin/users", (ClaimsPrincipal principal, IUserService users) =>
     principal.IsInRole("Admin") ? Results.Ok(users.GetAllUsers()) : Results.Forbid());
 
+authenticated.MapGet("/admin/users/daily-task-status", (DateTime? date, ClaimsPrincipal principal, IUserService users) =>
+    principal.IsInRole("Admin")
+        ? Results.Ok(users.GetDeveloperDailyTaskStatus(date?.Date ?? DateTime.Today))
+        : Results.Forbid());
+
 authenticated.MapGet("/admin/users/active-count", (ClaimsPrincipal principal, IUserService users) =>
     principal.IsInRole("Admin") ? Results.Ok(users.GetActiveUserCount()) : Results.Forbid());
 

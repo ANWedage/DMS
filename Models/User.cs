@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -41,6 +42,14 @@ namespace DMS.Models
 
         [BsonIgnore]
         public string Status => IsActive ? "Active" : "Inactive";
+
+        [BsonIgnore]
+        [JsonIgnore]
+        public bool HasSubmittedDailyTask { get; set; }
+
+        [BsonIgnore]
+        [JsonIgnore]
+        public string DailyTaskSubmissionStatus => HasSubmittedDailyTask ? "Submitted" : "Not submitted";
 
         private string? _deactivatedByAdminName;
         [BsonElement("DeactivatedByAdminName")]

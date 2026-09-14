@@ -134,6 +134,10 @@ public sealed class ApiUserService : IUserService, IDisposable
 
     public List<User> GetAllUsers() => Read<List<User>>(Send(HttpMethod.Get, "api/admin/users"));
 
+    public List<DeveloperDailyTaskStatus> GetDeveloperDailyTaskStatus(DateTime date) =>
+        Read<List<DeveloperDailyTaskStatus>>(Send(HttpMethod.Get,
+            $"api/admin/users/daily-task-status?date={date:yyyy-MM-dd}"));
+
     public long GetActiveUserCount() => Read<long>(Send(HttpMethod.Get, "api/admin/users/active-count"));
 
     public List<AdminAccountInfo> GetAllAdmins() => Read<List<AdminAccountInfo>>(Send(HttpMethod.Get, "api/admin/notification-recipients/admins"));

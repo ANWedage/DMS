@@ -117,3 +117,9 @@ public sealed class ProjectDailyTaskReportRow
     public DateTime UpdateDate { get; init; }
     public bool HasSubmittedUpdate { get; init; }
 }
+
+public sealed class DeveloperDailyTaskStatus
+{
+    public string UserId { get; init; } = string.Empty;
+    public bool HasSubmittedUpdate { get; init; }
+}

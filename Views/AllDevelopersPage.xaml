@@ -13,7 +13,7 @@
             <Grid Grid.Row="0" Margin="0,0,0,18">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="260"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0">
@@ -21,9 +21,18 @@
                     <TextBlock Text="Registered developer accounts in the system." Margin="0,8,0,0" Foreground="#66727D"/>
                 </StackPanel>
 
-                <Border Grid.Column="1" Width="240" Height="38" Margin="0,10,0,0" HorizontalAlignment="Right"
-                        Background="#F8FBFB" BorderBrush="#B7D6DD" BorderThickness="1.5" CornerRadius="9">
-                    <Grid Margin="8,0,8,0">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <StackPanel Margin="0,8,10,0">
+                        <TextBlock Text="Submission date" FontSize="11" Foreground="#66727D"/>
+                        <DatePicker x:Name="DailyTaskDatePicker"
+                                    Width="132"
+                                    Height="30"
+                                    SelectedDateChanged="DailyTaskDatePicker_SelectedDateChanged"
+                                    ToolTip="View daily task submission status for this date"/>
+                    </StackPanel>
+                    <Border Width="240" Height="38" Margin="0,10,0,0"
+                            Background="#F8FBFB" BorderBrush="#B7D6DD" BorderThickness="1.5" CornerRadius="9">
+                        <Grid Margin="8,0,8,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -38,8 +47,11 @@
                         <Button x:Name="ClearSearchButton" Grid.Column="2" Content="✕" Width="26" Height="24"
                                 Background="Transparent" Foreground="#0F4C5C" FontSize="13" FontWeight="Bold"
                                 Padding="0" Margin="4,0,0,0" BorderThickness="0" Click="ClearSearchButton_Click"/>
-                    </Grid>
-                </Border>
+                        </Grid>
+                    </Border>
+                    <Button Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="10,10,0,0"
+                            Click="RefreshButton_Click" ToolTip="Refresh developer list"/>
+                </StackPanel>
             </Grid>
 
             <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="12">
@@ -67,6 +79,36 @@
                             </GridViewColumn>
                             <GridViewColumn Header="Email" DisplayMemberBinding="{Binding Email}" Width="260"/>
                             <GridViewColumn Header="Contact" DisplayMemberBinding="{Binding ContactNumber}" Width="160"/>
+                            <GridViewColumn Header="Daily task" Width="145">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="8,4" CornerRadius="10" HorizontalAlignment="Left">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="#FAD7D7"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasSubmittedDailyTask}" Value="True">
+                                                            <Setter Property="Background" Value="#D9F5E5"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding DailyTaskSubmissionStatus}" FontWeight="SemiBold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#A12622"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasSubmittedDailyTask}" Value="True">
+                                                                <Setter Property="Foreground" Value="#137A45"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
                             <GridViewColumn x:Name="DeactivatedByColumn" Header="Deactivated by" Width="170">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
