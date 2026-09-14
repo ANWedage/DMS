@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#123B42" />
+    <title>@ViewData["Title"] - DMS</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <main class="shell">
+        <header class="topbar">
+            <a class="brand" asp-page="/Index" aria-label="DMS daily update home">
+                <span class="brand-mark">D</span>
+                <span>DMS</span>
+            </a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <form method="post" asp-page="/Logout">
+                    <button class="text-button" type="submit">Sign out</button>
+                </form>
+            }
+        </header>
+        @RenderBody()
+    </main>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

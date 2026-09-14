@@ -1,0 +1,21 @@
+@page
+@model DMS.Web.Pages.LoginModel
+@{
+    ViewData["Title"] = "Sign in";
+}
+
+<section class="auth-panel">
+    <div class="eyebrow">Daily delivery workspace</div>
+    <h1>Submit your daily update.</h1>
+    <p class="lead">Use your DMS account to record assigned work or self-study from your phone.</p>
+    <form method="post" class="form-stack">
+        <div asp-validation-summary="ModelOnly" class="alert error"></div>
+        <label asp-for="Username">Username</label>
+        <input asp-for="Username" autocomplete="username" autocapitalize="none" autofocus />
+        <span asp-validation-for="Username" class="field-error"></span>
+        <label asp-for="Password">Password</label>
+        <input asp-for="Password" type="password" autocomplete="current-password" />
+        <span asp-validation-for="Password" class="field-error"></span>
+        <button class="primary-button" type="submit">Sign in <span aria-hidden="true">&#8594;</span></button>
+    </form>
+</section>

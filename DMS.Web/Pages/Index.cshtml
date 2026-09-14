@@ -1,0 +1,113 @@
+@page
+@model DMS.Web.Pages.IndexModel
+@{
+    ViewData["Title"] = "Daily update";
+}
+
+<section class="page-heading">
+    <div>
+        <div class="eyebrow">Daily delivery</div>
+        <h1>Hello, @Model.DisplayName.</h1>
+        <p class="lead">Record one update for today. Assigned work and self-study are both supported.</p>
+    </div>
+    <div class="date-chip">@DateTime.Today.ToString("ddd, dd MMM")</div>
+</section>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert success" role="status">@successMessage</div>
+}
+@if (Model.SubmittedToday)
+{
+    <section class="submitted-panel">
+        <div class="status-icon" aria-hidden="true">&#10003;</div>
+        <div>
+            <strong>Today's update is submitted</strong>
+            <p>@Model.TodayUpdate!.Description</p>
+            <span class="status-label">@Model.TodayUpdate.Status</span>
+        </div>
+    </section>
+}
+else
+{
+    <form method="post" class="update-form">
+        <div asp-validation-summary="ModelOnly" class="alert error"></div>
+        <fieldset>
+            <legend>What are you updating?</legend>
+            <div class="choice-grid">
+                <label class="choice-card">
+                    <input asp-for="Form.UpdateType" type="radio" value="Assigned task" checked />
+                    <span><strong>Assigned task</strong><small>Report work on a task assigned to you.</small></span>
+                </label>
+                <label class="choice-card">
+                    <input asp-for="Form.UpdateType" type="radio" value="Self study" />
+                    <span><strong>Self study</strong><small>Record learning or independent study.</small></span>
+                </label>
+            </div>
+        </fieldset>
+
+        <div class="conditional-panel assigned-fields">
+            <label asp-for="Form.ComponentId">Assigned task</label>
+            <select asp-for="Form.ComponentId">
+                <option value="">Choose a task</option>
+                @foreach (var task in Model.AssignedTasks)
+                {
+                    <option value="@task.Component.Id">@task.Project.Name / @task.Component.Name</option>
+                }
+            </select>
+            <span asp-validation-for="Form.ComponentId" class="field-error"></span>
+        </div>
+
+        <div class="conditional-panel self-study-fields">
+            <label asp-for="Form.SelfStudyTopic">Self-study topic</label>
+            <input asp-for="Form.SelfStudyTopic" placeholder="e.g. ASP.NET authentication" />
+            <span asp-validation-for="Form.SelfStudyTopic" class="field-error"></span>
+        </div>
+
+        <label asp-for="Form.Description">Daily work</label>
+        <textarea asp-for="Form.Description" rows="5" placeholder="Describe what you completed today..."></textarea>
+        <span asp-validation-for="Form.Description" class="field-error"></span>
+
+        <label asp-for="Form.Status">Status</label>
+        <select asp-for="Form.Status">
+            <option value="In progress">In progress</option>
+            <option value="Completed">Completed</option>
+            <option value="Blocked">Blocked</option>
+            <option value="Not started">Not started</option>
+        </select>
+
+        <div class="blocked-field">
+            <label asp-for="Form.BlockedReason">What is blocking you?</label>
+            <textarea asp-for="Form.BlockedReason" rows="3" placeholder="Describe the blocker..."></textarea>
+            <span asp-validation-for="Form.BlockedReason" class="field-error"></span>
+        </div>
+
+        <button class="primary-button" type="submit">Submit daily update <span aria-hidden="true">&#8594;</span></button>
+    </form>
+}
+
+<section class="help-note">
+    <strong>One update per day</strong>
+    <span>Submit from your phone before the workday ends. Your update is visible to DMS administrators.</span>
+</section>
+
+@section Scripts {
+<script>
+    const updateTypeInputs = document.querySelectorAll('input[name="Form.UpdateType"]');
+    const assignedFields = document.querySelector('.assigned-fields');
+    const selfStudyFields = document.querySelector('.self-study-fields');
+    const statusSelect = document.querySelector('select[name="Form.Status"]');
+    const blockedField = document.querySelector('.blocked-field');
+
+    function updateFormVisibility() {
+        const isSelfStudy = document.querySelector('input[name="Form.UpdateType"]:checked')?.value === 'Self study';
+        assignedFields.hidden = isSelfStudy;
+        selfStudyFields.hidden = !isSelfStudy;
+        blockedField.hidden = statusSelect.value !== 'Blocked';
+    }
+
+    updateTypeInputs.forEach(input => input.addEventListener('change', updateFormVisibility));
+    statusSelect.addEventListener('change', updateFormVisibility);
+    updateFormVisibility();
+</script>
+}

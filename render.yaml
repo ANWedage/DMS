@@ -11,3 +11,14 @@ services:
         sync: false
       - key: DMS_JWT_SECRET
         sync: false
+
+  - type: web
+    name: dms-mobile-web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./DMS.Web/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DMS_API_BASE_URL
+        sync: false
