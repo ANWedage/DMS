@@ -12,17 +12,31 @@
         <header class="topbar">
             <a class="brand" asp-page="/Index" aria-label="DMS daily update home">
                 <span class="brand-mark">D</span>
-                <span>DMS</span>
             </a>
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <form method="post" asp-page="/Logout">
-                    <button class="text-button" type="submit">Sign out</button>
+                <form id="logout-form" method="post" asp-page="/Logout">
+                    <button class="material-button" type="button" onclick="document.getElementById('logout-dialog').showModal()">
+                        <span class="material-icon" aria-hidden="true">&#8617;</span>
+                        <span>Sign out</span>
+                    </button>
                 </form>
             }
         </header>
         @RenderBody()
     </main>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <dialog id="logout-dialog" class="confirm-dialog" aria-labelledby="logout-title">
+            <div class="dialog-icon" aria-hidden="true">&#8617;</div>
+            <h2 id="logout-title">Sign out of DMS?</h2>
+            <p>Your current daily update is already saved. You can sign in again later.</p>
+            <div class="dialog-actions">
+                <button class="dialog-button secondary" type="button" onclick="document.getElementById('logout-dialog').close()">Cancel</button>
+                <button class="dialog-button primary" type="submit" form="logout-form">Sign out</button>
+            </div>
+        </dialog>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

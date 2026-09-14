@@ -20,9 +20,11 @@ button, input, select, textarea { font: inherit; }
 button, select, input, textarea { border-radius: 10px; }
 .shell { width: min(100% - 32px, 760px); margin: 0 auto; padding: 18px 0 42px; }
 .topbar { display: flex; justify-content: space-between; align-items: center; min-height: 48px; margin-bottom: 34px; }
-.brand { display: inline-flex; align-items: center; gap: 9px; color: var(--teal-dark); font-size: 1.35rem; font-weight: 700; text-decoration: none; }
-.brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; color: white; background: var(--teal-dark); font-size: 1rem; }
-.text-button { border: 0; color: var(--teal); background: transparent; cursor: pointer; font-size: .95rem; padding: 10px 0; }
+.brand { display: inline-flex; align-items: center; color: var(--teal-dark); text-decoration: none; }
+.brand-mark { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.35); border-radius: 12px; color: white; background: var(--teal-dark); box-shadow: 0 5px 14px rgba(18,59,66,.18); font-size: 1.45rem; font-weight: 700; }
+.material-button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; border: 1px solid var(--line); border-radius: 999px; color: var(--teal-dark); background: rgba(255,255,255,.72); cursor: pointer; padding: 8px 14px 8px 11px; font: 700 .82rem 'Trebuchet MS', sans-serif; transition: background .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.material-button:hover, .material-button:focus-visible { border-color: var(--teal); background: var(--mint); box-shadow: 0 3px 10px rgba(18,59,66,.12); outline: none; }
+.material-icon { font-family: sans-serif; font-size: 1.1rem; line-height: 1; }
 .auth-panel, .update-form, .submitted-panel { background: rgba(255,255,255,.92); border: 1px solid rgba(216,225,223,.9); box-shadow: var(--shadow); }
 .auth-panel { max-width: 510px; margin: 9vh auto 0; padding: clamp(26px, 7vw, 54px); border-radius: 18px; }
 .page-heading { display: flex; justify-content: space-between; gap: 24px; align-items: end; margin-bottom: 24px; }
@@ -60,6 +62,16 @@ legend { margin-bottom: 10px; }
 .help-note { display: grid; gap: 4px; margin: 18px 4px 0; color: var(--muted); font: .82rem/1.45 'Trebuchet MS', sans-serif; }
 .help-note strong { color: var(--teal-dark); }
 .blocked-field { display: grid; gap: 8px; }
+.confirm-dialog { width: min(calc(100% - 32px), 390px); border: 0; border-radius: 18px; padding: 24px; color: var(--ink); background: var(--panel); box-shadow: 0 24px 70px rgba(18,59,66,.28); }
+.confirm-dialog::backdrop { background: rgba(18,59,66,.45); backdrop-filter: blur(3px); }
+.dialog-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: var(--teal); background: var(--mint); font-family: sans-serif; font-size: 1.15rem; }
+.confirm-dialog h2 { margin: 18px 0 8px; color: var(--teal-dark); font: 700 1.25rem 'Trebuchet MS', sans-serif; }
+.confirm-dialog p { margin: 0; color: var(--muted); font: .9rem/1.5 'Trebuchet MS', sans-serif; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.dialog-button { min-height: 40px; border-radius: 999px; cursor: pointer; padding: 9px 16px; font: 700 .82rem 'Trebuchet MS', sans-serif; }
+.dialog-button.secondary { border: 1px solid var(--line); color: var(--teal-dark); background: transparent; }
+.dialog-button.primary { border: 0; color: #fff; background: var(--teal-dark); }
+.dialog-button:hover { filter: brightness(1.08); }
 [hidden] { display: none !important; }
 
 @media (max-width: 560px) {
