@@ -36,7 +36,6 @@
     @if (User.Identity?.IsAuthenticated == true)
     {
         <dialog id="logout-dialog" class="confirm-dialog" aria-labelledby="logout-title">
-            <div class="dialog-icon" aria-hidden="true"><span>SIGN</span><span>OUT</span></div>
             <h2 id="logout-title">Sign out of DMS?</h2>
             <p>Your current daily update is already saved. You can sign in again later.</p>
             <div class="dialog-actions">
