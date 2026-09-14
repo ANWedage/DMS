@@ -22,9 +22,9 @@
             @if (User.Identity?.IsAuthenticated == true)
             {
                 <form id="logout-form" method="post" asp-page="/Logout">
-                    <button class="material-button" type="button" onclick="document.getElementById('logout-dialog').showModal()">
-                        <span class="material-icon" aria-hidden="true">&#8617;</span>
-                        <span>Sign out</span>
+                    <button class="material-button sign-out-button" type="button" aria-label="Sign out" onclick="document.getElementById('logout-dialog').showModal()">
+                        <span>SIGN</span>
+                        <span>OUT</span>
                     </button>
                 </form>
             }
@@ -34,7 +34,7 @@
     @if (User.Identity?.IsAuthenticated == true)
     {
         <dialog id="logout-dialog" class="confirm-dialog" aria-labelledby="logout-title">
-            <div class="dialog-icon" aria-hidden="true">&#8617;</div>
+            <div class="dialog-icon" aria-hidden="true"><span>SIGN</span><span>OUT</span></div>
             <h2 id="logout-title">Sign out of DMS?</h2>
             <p>Your current daily update is already saved. You can sign in again later.</p>
             <div class="dialog-actions">
