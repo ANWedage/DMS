@@ -54,6 +54,11 @@ public partial class MyTasksPage : Page
         catch (Exception ex) { MessageText.Text = $"Unable to load your tasks: {ex.Message}"; }
     }
 
+    private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+    {
+        await LoadTasksAsync();
+    }
+
     private async void TaskListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         _selectedTask = TaskListBox.SelectedItem as AssignedTask;

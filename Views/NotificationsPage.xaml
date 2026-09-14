@@ -18,8 +18,11 @@
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
-            <Button Content="Mark all as read" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                    Style="{StaticResource SecondaryButtonStyle}" Click="MarkAllReadButton_Click"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                <Button Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="0,0,10,0"
+                    Click="RefreshButton_Click" ToolTip="Refresh notifications"/>
+                <Button Content="Mark all as read" Style="{StaticResource SecondaryButtonStyle}" Click="MarkAllReadButton_Click"/>
+                </StackPanel>
         </Grid>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>

@@ -52,6 +52,13 @@ namespace DMS.Views
         catch (Exception ex) { MessageBox.Show($"Unable to load tasks: {ex.Message}", "Task management", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
+    public Task RefreshAsync() => LoadProjectsAsync();
+
+    private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+    {
+        await RefreshAsync();
+    }
+
     private async void CreateProjectButton_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(ProjectNameTextBox.Text)) { MessageBox.Show("Enter a project name.", "Project", MessageBoxButton.OK, MessageBoxImage.Warning); return; }

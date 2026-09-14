@@ -33,6 +33,11 @@ namespace DMS.Views
                 await LoadAttendanceAsync();
         }
 
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadAttendanceAsync();
+        }
+
         private async Task LoadAttendanceAsync()
         {
             try

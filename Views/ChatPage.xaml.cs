@@ -100,6 +100,18 @@ public partial class ChatPage : Page
         }
     }
 
+    public async Task RefreshAsync()
+    {
+        await LoadAsync();
+        if (_selectedUser != null)
+            await LoadConversationAsync();
+    }
+
+    private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+    {
+        await RefreshAsync();
+    }
+
     private async Task LoadUsersAsync()
     {
         var users = await Task.Run(() => _userService.GetChatUsers(_currentUserId, _currentRole));

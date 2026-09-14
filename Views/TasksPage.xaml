@@ -11,9 +11,13 @@
                     <TextBlock Text="Projects and daily delivery" FontSize="30" FontWeight="Bold" Foreground="#17212B" Margin="0,3,0,0"/>
                     <TextBlock Text="Create projects, organize components, assign members, and review daily progress." Margin="0,5,0,0" Foreground="#66727D" TextWrapping="Wrap"/>
                 </StackPanel>
-                <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#E8F0EF" CornerRadius="6" Padding="10,7">
-                    <TextBlock Text="ADMIN WORKSPACE" Foreground="#0D5558" FontSize="11" FontWeight="Bold"/>
-                </Border>
+                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Orientation="Horizontal">
+                    <Border Background="#E8F0EF" CornerRadius="6" Padding="10,7">
+                        <TextBlock Text="ADMIN WORKSPACE" Foreground="#0D5558" FontSize="11" FontWeight="Bold"/>
+                    </Border>
+                    <Button Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="10,0,0,0"
+                            Click="RefreshButton_Click" ToolTip="Refresh project list"/>
+                </StackPanel>
             </Grid>
         </Border>
         <Grid Grid.Row="1">

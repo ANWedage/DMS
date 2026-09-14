@@ -5,11 +5,18 @@
     <Grid Background="#E8EDEF">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="30">
-                <TextBlock Text="Attendance" Style="{StaticResource HeadingStyle}"/>
-                <TextBlock Text="Join each Google Meet and mark your attendance during the meeting window."
-                           Margin="0,8,0,20" Foreground="#66727D" TextWrapping="Wrap"/>
-                <DatePicker x:Name="AttendanceDatePicker" Width="160" HorizontalAlignment="Left"
-                            SelectedDateChanged="AttendanceDatePicker_SelectedDateChanged"/>
+                <Grid>
+                    <StackPanel>
+                        <TextBlock Text="Attendance" Style="{StaticResource HeadingStyle}"/>
+                        <TextBlock Text="Join each Google Meet and mark your attendance during the meeting window."
+                                   Margin="0,8,0,20" Foreground="#66727D" TextWrapping="Wrap"/>
+                        <DatePicker x:Name="AttendanceDatePicker" Width="160" HorizontalAlignment="Left"
+                                    SelectedDateChanged="AttendanceDatePicker_SelectedDateChanged"/>
+                    </StackPanel>
+                    <Button Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" Click="RefreshButton_Click"
+                            ToolTip="Refresh attendance"/>
+                </Grid>
                 <TextBlock x:Name="MessageText" Margin="0,12,0,0" Foreground="#B54736" TextWrapping="Wrap"/>
                 <ItemsControl x:Name="AttendanceItems" Margin="0,18,0,0">
                     <ItemsControl.ItemTemplate>

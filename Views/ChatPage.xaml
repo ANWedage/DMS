@@ -40,12 +40,16 @@
                 <TextBlock Text="Chat" Style="{StaticResource HeadingStyle}" Margin="0,4,0,0"/>
                 <TextBlock Text="Private conversations with members and administrators." Style="{StaticResource MutedStyle}" Margin="0,6,0,0"/>
             </StackPanel>
-            <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="#DCECE9" CornerRadius="16" Padding="13,8">
-                <StackPanel Orientation="Horizontal">
-                    <Ellipse Width="8" Height="8" Fill="#2C9A75" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="CHAT WORKSPACE" Foreground="#0D5558" FontSize="11" FontWeight="SemiBold"/>
-                </StackPanel>
-            </Border>
+            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                <Border Background="#DCECE9" CornerRadius="16" Padding="13,8">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="8" Height="8" Fill="#2C9A75" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="CHAT WORKSPACE" Foreground="#0D5558" FontSize="11" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+                <Button Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="10,0,0,0"
+                        Click="RefreshButton_Click" ToolTip="Refresh chat"/>
+            </StackPanel>
         </Grid>
 
         <Border Grid.Row="1" Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" ClipToBounds="True">

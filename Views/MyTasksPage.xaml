@@ -30,9 +30,13 @@
                     <TextBlock Text="My Tasks" Style="{StaticResource HeadingStyle}" Margin="0,4,0,0"/>
                     <TextBlock x:Name="TaskProgressText" Text="Loading your personal task workspace..." Style="{StaticResource MutedStyle}" Margin="0,7,0,0"/>
                 </StackPanel>
-                <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="#DCECE9" CornerRadius="18" Padding="14,8">
-                    <TextBlock Text="FOCUS MODE" Foreground="#0D5558" FontWeight="SemiBold" FontSize="12"/>
-                </Border>
+                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                    <Border Background="#DCECE9" CornerRadius="18" Padding="14,8">
+                        <TextBlock Text="FOCUS MODE" Foreground="#0D5558" FontWeight="SemiBold" FontSize="12"/>
+                    </Border>
+                    <Button Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="10,0,0,0"
+                            Click="RefreshButton_Click" ToolTip="Refresh my tasks"/>
+                </StackPanel>
             </Grid>
 
             <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,20">

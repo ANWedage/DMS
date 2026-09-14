@@ -55,6 +55,19 @@ namespace DMS.Views
             }
         }
 
+        public async Task RefreshAsync()
+        {
+            if (AppSession.IsAdmin)
+                LoadRecipients();
+
+            await LoadNotificationsAsync();
+        }
+
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            await RefreshAsync();
+        }
+
         private void LoadRecipients()
         {
             _recipientOptions = GetSelectedRole() == "Admin"
