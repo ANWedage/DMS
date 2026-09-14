@@ -21,12 +21,14 @@ button, select, input, textarea { border-radius: 10px; }
 .shell { width: min(100% - 32px, 760px); margin: 0 auto; padding: 18px 0 42px; }
 .topbar { display: flex; justify-content: space-between; align-items: center; min-height: 48px; margin-bottom: 34px; }
 .brand { display: inline-flex; align-items: center; color: var(--teal-dark); text-decoration: none; }
-.brand-mark { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.35); border-radius: 12px; color: white; background: var(--teal-dark); box-shadow: 0 5px 14px rgba(18,59,66,.18); font-size: 1.45rem; font-weight: 700; }
+.brand-logo { display: block; width: 48px; height: 48px; border-radius: 50%; object-fit: contain; box-shadow: 0 5px 14px rgba(18,59,66,.18); }
+.login-topbar { min-height: 22px; margin-bottom: 0; }
 .material-button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; border: 1px solid var(--line); border-radius: 999px; color: var(--teal-dark); background: rgba(255,255,255,.72); cursor: pointer; padding: 8px 14px 8px 11px; font: 700 .82rem 'Trebuchet MS', sans-serif; transition: background .18s ease, border-color .18s ease, box-shadow .18s ease; }
 .material-button:hover, .material-button:focus-visible { border-color: var(--teal); background: var(--mint); box-shadow: 0 3px 10px rgba(18,59,66,.12); outline: none; }
 .material-icon { font-family: sans-serif; font-size: 1.1rem; line-height: 1; }
 .auth-panel, .update-form, .submitted-panel { background: rgba(255,255,255,.92); border: 1px solid rgba(216,225,223,.9); box-shadow: var(--shadow); }
 .auth-panel { max-width: 510px; margin: 9vh auto 0; padding: clamp(26px, 7vw, 54px); border-radius: 18px; }
+.login-logo { display: block; width: 104px; height: 104px; margin: 0 auto 24px; border-radius: 50%; object-fit: contain; }
 .page-heading { display: flex; justify-content: space-between; gap: 24px; align-items: end; margin-bottom: 24px; }
 .eyebrow { color: var(--teal); font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 h1 { margin: 7px 0 0; color: var(--teal-dark); font-size: clamp(2rem, 8vw, 3.25rem); line-height: 1.02; }

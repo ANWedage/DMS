@@ -9,6 +9,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DMS.Core\DMS.Core.csproj" />
+    <Content Include="..\Assets\dms-logo.png"
+             Link="wwwroot\assets\dms-logo.png"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
