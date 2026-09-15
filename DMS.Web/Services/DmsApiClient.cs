@@ -41,6 +41,20 @@ public sealed class DmsApiClient
     public Task<List<DailyTaskUpdate>> GetDailyHistoryAsync(string token, CancellationToken cancellationToken = default) =>
         GetAsync<List<DailyTaskUpdate>>("api/tasks/my/daily-history", token, cancellationToken);
 
+    public Task<MeetingSettings> GetMeetingSettingsAsync(string token, CancellationToken cancellationToken = default) =>
+        GetAsync<MeetingSettings>("api/meeting-settings", token, cancellationToken);
+
+    public Task<List<AttendanceRecord>> GetUserAttendanceAsync(string token, DateTime date, CancellationToken cancellationToken = default) =>
+        GetAsync<List<AttendanceRecord>>($"api/attendance?date={date:yyyy-MM-dd}", token, cancellationToken);
+
+    public async Task MarkAttendancePresentAsync(string token, string meetingType, DateTime date, CancellationToken cancellationToken = default)
+    {
+        using var request = CreateRequest(HttpMethod.Post, "api/attendance/present", token);
+        request.Content = JsonContent.Create(new { meetingType, date = date.ToString("yyyy-MM-dd") }, options: _jsonOptions);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
     public async Task SubmitAsync(string token, DailyTaskUpdate update, CancellationToken cancellationToken = default)
     {
         var path = string.Equals(update.UpdateType, DailyUpdateTypes.SelfStudy, StringComparison.OrdinalIgnoreCase)

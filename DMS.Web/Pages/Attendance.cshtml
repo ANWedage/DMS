@@ -1,0 +1,75 @@
+@page
+@model DMS.Web.Pages.AttendanceModel
+@using DMS.Models
+@{
+    ViewData["Title"] = "Attendance";
+}
+
+<section class="page-heading attendance-heading">
+    <div>
+        <div class="eyebrow">Daily attendance</div>
+        <h1>Mark your attendance.</h1>
+    </div>
+    <form method="get" class="date-form">
+        <label asp-for="SelectedDate" class="sr-only">Date</label>
+        <input asp-for="SelectedDate" type="date" />
+    </form>
+</section>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert success" role="status">@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert error" role="alert">@errorMessage</div>
+}
+
+@if (Model.IsWeekend)
+{
+    <section class="submitted-panel">
+        <div class="status-icon" aria-hidden="true">i</div>
+        <div>
+            <strong>Weekend</strong>
+            <p>Attendance is not required on non-working days.</p>
+        </div>
+    </section>
+}
+else
+{
+    <form method="post" class="attendance-list">
+        <input type="hidden" asp-for="SelectedDate" />
+
+        @for (var index = 0; index < Model.Slots.Count; index++)
+        {
+            var slot = Model.Slots[index];
+            <div class="attendance-card">
+                <div class="attendance-card-top">
+                    <div>
+                        <div class="attendance-name">@slot.DisplayName</div>
+                        <div class="attendance-meta">@slot.Time</div>
+                    </div>
+                    <span class="status-label @slot.StatusCssClass">@slot.Status</span>
+                </div>
+
+                <div class="attendance-actions">
+                    @if (!string.IsNullOrWhiteSpace(slot.Link))
+                    {
+                        <a class="small-link" href="@slot.Link" target="_blank" rel="noopener noreferrer">Join</a>
+                    }
+
+                    @if (slot.CanMarkPresent)
+                    {
+                        <button class="primary-button small-button"
+                                type="submit"
+                                name="MeetingType"
+                                value="@slot.MeetingType"
+                                onclick="return confirm('Confirm that you attended @slot.DisplayName?');">
+                            Mark present
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </form>
+}

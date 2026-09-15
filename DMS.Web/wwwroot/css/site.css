@@ -68,6 +68,31 @@ legend { margin-bottom: 10px; }
 .help-note { display: grid; gap: 4px; margin: 18px 4px 0; color: var(--muted); font: .82rem/1.45 'Trebuchet MS', sans-serif; }
 .help-note strong { color: var(--teal-dark); }
 .blocked-field { display: grid; gap: 8px; }
+.home-panel { display: grid; gap: 18px; padding: 18px 0 0; }
+.home-grid { display: grid; gap: 16px; margin-top: 8px; }
+.menu-card { display: flex; align-items: center; gap: 16px; padding: 18px 18px; border-radius: 18px; color: var(--ink); background: rgba(255,255,255,.92); border: 1px solid rgba(216,225,223,.9); box-shadow: var(--shadow); text-decoration: none; }
+.menu-card:hover { transform: translateY(-1px); }
+.menu-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--mint); color: var(--teal-dark); font-size: 1.6rem; font-weight: 700; }
+.menu-copy { display: grid; gap: 4px; }
+.menu-copy strong { color: var(--teal-dark); font: 700 1.2rem 'Trebuchet MS', sans-serif; }
+.menu-copy small { color: var(--muted); line-height: 1.5; font: .82rem/1.45 'Trebuchet MS', sans-serif; }
+.date-form { display: flex; align-items: center; }
+.date-form input { width: auto; min-width: 160px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+.attendance-heading { align-items: end; }
+.attendance-list { display: grid; gap: 12px; }
+.attendance-card { display: grid; gap: 14px; padding: 16px; border: 1px solid rgba(216,225,223,.9); border-radius: 16px; background: rgba(255,255,255,.92); box-shadow: 0 10px 24px rgba(18,59,66,.08); }
+.attendance-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.attendance-name { color: var(--teal-dark); font: 700 1rem 'Trebuchet MS', sans-serif; }
+.attendance-meta { color: var(--muted); font: .8rem 'Trebuchet MS', sans-serif; margin-top: 4px; }
+.attendance-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.small-link { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 0 12px; border-radius: 999px; background: #ebf5f8; color: var(--teal-dark); text-decoration: none; font: 700 .76rem 'Trebuchet MS', sans-serif; }
+.small-button { min-height: 38px; padding: 0 14px; font-size: .8rem; }
+.status-label { display: inline-flex; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 999px; font: 700 .72rem 'Trebuchet MS', sans-serif; white-space: nowrap; }
+.status-label.success { background: var(--mint); color: var(--teal-dark); }
+.status-label.danger { background: #f9dedc; color: #8d302d; }
+.status-label.warning { background: #fff4d8; color: #855b0d; }
+.status-label.neutral { background: #edf3f4; color: var(--teal-dark); }
 .confirm-dialog { width: min(calc(100% - 32px), 390px); border: 0; border-radius: 18px; padding: 24px; color: var(--ink); background: var(--panel); box-shadow: 0 24px 70px rgba(18,59,66,.28); }
 .confirm-dialog::backdrop { background: rgba(18,59,66,.45); backdrop-filter: blur(3px); }
 .confirm-dialog h2 { margin: 0 0 8px; color: var(--teal-dark); font: 700 1.25rem 'Trebuchet MS', sans-serif; }

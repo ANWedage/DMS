@@ -1,0 +1,29 @@
+@page
+@model DMS.Web.Pages.HomeModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<section class="home-panel">
+    <div class="eyebrow">Daily workspace</div>
+    <h1>Welcome, @Model.DisplayName</h1>
+    <p class="lead">Choose the action you need to complete today.</p>
+
+    <div class="home-grid">
+        <a class="menu-card" asp-page="/Index">
+            <span class="menu-icon" aria-hidden="true">✓</span>
+            <span class="menu-copy">
+                <strong>My Tasks</strong>
+                <small>Submit your daily task update and self-study progress.</small>
+            </span>
+        </a>
+
+        <a class="menu-card" asp-page="/Attendance">
+            <span class="menu-icon" aria-hidden="true">◔</span>
+            <span class="menu-copy">
+                <strong>Attendance</strong>
+                <small>Mark your daily attendance and meeting check-in status.</small>
+            </span>
+        </a>
+    </div>
+</section>
