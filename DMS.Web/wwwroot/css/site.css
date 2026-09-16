@@ -56,6 +56,7 @@ legend { margin-bottom: 10px; }
 .conditional-panel { display: grid; gap: 8px; }
 .primary-button { display: inline-flex; justify-content: center; align-items: center; gap: 12px; border: 0; border-radius: 10px; background: var(--teal-dark); color: white; cursor: pointer; padding: 14px 18px; font: 700 .95rem 'Trebuchet MS', sans-serif; text-decoration: none; }
 .primary-button:hover { background: var(--teal); }
+.primary-button:disabled, .small-link:disabled { cursor: not-allowed; opacity: .55; }
 .alert { border-radius: 10px; padding: 12px 14px; font: .9rem/1.4 'Trebuchet MS', sans-serif; }
 .alert:empty { display: none; }
 .alert.error { background: var(--danger-bg); color: var(--danger); }

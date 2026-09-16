@@ -71,8 +71,7 @@ public sealed class AttendanceModel : PageModel
                 var status = record?.Status ?? AttendanceStatuses.Pending;
                 var now = GetApplicationNow(settings);
                 var start = GetMeetingStart(slot.Type, settings, SelectedDate.Date);
-                var canMarkPresent = record is null
-                    && status == AttendanceStatuses.Pending
+                var canMarkPresent = status == AttendanceStatuses.Pending
                     && now.Date == SelectedDate.Date
                     && now >= start
                     && now <= start.AddMinutes(15);
@@ -99,14 +98,24 @@ public sealed class AttendanceModel : PageModel
 
     private static DateTime GetApplicationNow(MeetingSettings settings)
     {
+        var configuredTimeZone = settings.TimeZoneId?.Trim();
+        if (string.IsNullOrWhiteSpace(configuredTimeZone)
+            || string.Equals(configuredTimeZone, "Sri Lanka Standard Time", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(configuredTimeZone, "Asia/Colombo", StringComparison.OrdinalIgnoreCase))
+            return DateTime.UtcNow.AddHours(5.5);
+
         try
         {
-            var timeZone = TimeZoneInfo.FindSystemTimeZoneById(settings.TimeZoneId);
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById(configuredTimeZone);
             return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
         }
-        catch
+        catch (TimeZoneNotFoundException)
         {
-            return DateTime.Now;
+            return DateTime.UtcNow.AddHours(5.5);
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return DateTime.UtcNow.AddHours(5.5);
         }
     }
 
@@ -120,9 +129,17 @@ public sealed class AttendanceModel : PageModel
             _ => "00:00"
         };
 
-        return date.Add(TimeSpan.TryParse(timeValue, out var time)
-            ? time
-            : TimeSpan.Zero);
+        if (!TimeSpan.TryParseExact(timeValue, @"hh\:mm", System.Globalization.CultureInfo.InvariantCulture, out var time))
+        {
+            time = meetingType switch
+            {
+                MeetingTypes.Morning => new TimeSpan(10, 0, 0),
+                MeetingTypes.Weekly => new TimeSpan(10, 0, 0),
+                _ => new TimeSpan(17, 0, 0)
+            };
+        }
+
+        return date.Add(time);
     }
 
     private string GetApiToken() =>

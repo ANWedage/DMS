@@ -78,7 +78,7 @@ namespace DMS.Views
             var record = records.FirstOrDefault(item => item.MeetingType == slot.Type)
                 ?? new AttendanceRecord { MeetingType = slot.Type, Status = AttendanceStatuses.Pending };
             var now = GetApplicationNow();
-            var start = ParseMeetingStart(slot.Time, now.Date);
+            var start = ParseMeetingStart(slot.Type, slot.Time, date.Date);
             return new AttendanceRow
             {
                 RecordId = record.Id,
@@ -153,22 +153,34 @@ namespace DMS.Views
 
         private DateTime GetApplicationNow()
         {
+            var configuredTimeZone = _settings.TimeZoneId?.Trim();
+            if (string.IsNullOrWhiteSpace(configuredTimeZone)
+                || string.Equals(configuredTimeZone, "Sri Lanka Standard Time", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(configuredTimeZone, "Asia/Colombo", StringComparison.OrdinalIgnoreCase))
+                return DateTime.UtcNow.AddHours(5.5);
+
             try
             {
                 return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
-                    TimeZoneInfo.FindSystemTimeZoneById(_settings.TimeZoneId));
+                    TimeZoneInfo.FindSystemTimeZoneById(configuredTimeZone));
             }
-            catch
+            catch (TimeZoneNotFoundException)
             {
-                return DateTime.Now;
+                return DateTime.UtcNow.AddHours(5.5);
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return DateTime.UtcNow.AddHours(5.5);
             }
         }
 
-        private static DateTime ParseMeetingStart(string value, DateTime date)
+        private static DateTime ParseMeetingStart(string meetingType, string value, DateTime date)
         {
             return date.Add(TimeSpan.TryParseExact(value, @"hh\:mm", CultureInfo.InvariantCulture, out var time)
                 ? time
-                : new TimeSpan(0));
+                : meetingType is MeetingTypes.Morning or MeetingTypes.Weekly
+                    ? new TimeSpan(10, 0, 0)
+                    : new TimeSpan(17, 0, 0));
         }
 
         private sealed class AttendanceRow

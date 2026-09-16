@@ -12,7 +12,8 @@
     </div>
     <form method="get" class="date-form">
         <label asp-for="SelectedDate" class="sr-only">Date</label>
-        <input asp-for="SelectedDate" type="date" />
+        <input asp-for="SelectedDate" type="date" onchange="this.form.submit()" />
+        <button class="material-button" type="submit" title="Refresh attendance" aria-label="Refresh attendance">&#x21bb;</button>
     </form>
 </section>
 
@@ -57,17 +58,19 @@ else
                     {
                         <a class="small-link" href="@slot.Link" target="_blank" rel="noopener noreferrer">Join</a>
                     }
-
-                    @if (slot.CanMarkPresent)
+                    else
                     {
-                        <button class="primary-button small-button"
-                                type="submit"
-                                name="MeetingType"
-                                value="@slot.MeetingType"
-                                onclick="return confirm('Confirm that you attended @slot.DisplayName?');">
-                            Mark present
-                        </button>
+                        <button class="small-link" type="button" disabled title="The meeting link has not been configured">Join</button>
                     }
+
+                    <button class="primary-button small-button"
+                            type="submit"
+                            name="MeetingType"
+                            value="@slot.MeetingType"
+                            disabled="@(!slot.CanMarkPresent)"
+                            onclick="return confirm('Confirm that you attended @slot.DisplayName?');">
+                        Mark present
+                    </button>
                 </div>
             </div>
         }
