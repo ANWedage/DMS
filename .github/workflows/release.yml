@@ -93,6 +93,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: DMS ${{ github.ref_name }}
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: |
-            .\publish\DMS-${{ steps.version.outputs.version }}.zip
-            .\publish\DMS-Setup-${{ steps.version.outputs.version }}.exe
+            publish/DMS-${{ steps.version.outputs.version }}.zip
+            publish/DMS-Setup-${{ steps.version.outputs.version }}.exe
