@@ -78,6 +78,15 @@ namespace DMS.Views
             RegisterConfirmPasswordBox.Clear();
         }
 
+        private void ForgotPasswordLink_Click(object sender, RoutedEventArgs e)
+        {
+            var forgotPasswordWindow = new ForgotPasswordWindow(_userService)
+            {
+                Owner = this
+            };
+            forgotPasswordWindow.ShowDialog();
+        }
+
         private void OnLoginSucceeded(User user)
         {
             if (AppSession.IsAdmin)

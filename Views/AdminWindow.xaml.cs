@@ -16,6 +16,7 @@ namespace DMS.Views
         private IDisposable? _chatMessageSubscription;
         private IDisposable? _notificationSubscription;
         private readonly DispatcherTimer _taskReminderTimer = new() { Interval = TimeSpan.FromMinutes(1) };
+        private readonly SessionInactivityMonitor _sessionInactivityMonitor;
         private string? _taskReminderTimeZoneId = "Sri Lanka Standard Time";
 
         public AdminWindow() : this(new UserService(new Data.MongoDbContext()))
@@ -28,6 +29,12 @@ namespace DMS.Views
             Activated += AdminWindow_Activated;
             _taskReminderTimer.Tick += async (_, _) => await UpdateTaskReminderBannerAsync();
             _taskReminderTimer.Start();
+            _sessionInactivityMonitor = new SessionInactivityMonitor(this, OnSessionTimedOut);
+            _sessionInactivityMonitor.RemainingTimeChanged += (_, remaining) =>
+            {
+                AdminSessionTimeoutText.Text = $"Auto logout in {FormatRemainingTime(remaining)}";
+            };
+            _sessionInactivityMonitor.Start();
             _userService = userService;
             if (userService is ApiUserService api)
             {
@@ -114,6 +121,14 @@ namespace DMS.Views
         private static bool IsTaskReminderTestMode() =>
             string.Equals(Environment.GetEnvironmentVariable("DMS_TASK_REMINDER_TEST"), "true", StringComparison.OrdinalIgnoreCase);
 
+        private static string FormatRemainingTime(TimeSpan remaining)
+        {
+            var totalSeconds = Math.Max(0, (int)Math.Ceiling(remaining.TotalSeconds));
+            var minutes = totalSeconds / 60;
+            var seconds = totalSeconds % 60;
+            return $"{minutes:00}:{seconds:00}";
+        }
+
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new NotificationsPage(_userService, () => _ = UpdateNotificationCountAsync()));
@@ -177,13 +192,24 @@ namespace DMS.Views
 
             if (result == MessageBoxResult.Yes)
             {
-                _taskReminderTimer.Stop();
-                _ = DisposeChatConnectionAsync();
-                AppSession.Clear();
-                var loginWindow = new LoginWindow(_userService);
-                loginWindow.Show();
-                Close();
+                OnLogoutRequested();
             }
+        }
+
+        private void OnSessionTimedOut()
+        {
+            Dispatcher.Invoke(OnLogoutRequested);
+        }
+
+        private void OnLogoutRequested()
+        {
+            _taskReminderTimer.Stop();
+            _sessionInactivityMonitor.Stop();
+            _ = DisposeChatConnectionAsync();
+            AppSession.Clear();
+            var loginWindow = new LoginWindow(_userService);
+            loginWindow.Show();
+            Close();
         }
 
         private async Task StartChatConnectionAsync()

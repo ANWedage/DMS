@@ -47,6 +47,31 @@ public sealed class ApiUserService : IUserService, IDisposable
 
     public User? GetUserByUsername(string username) => null;
 
+    public bool UsernameExistsForRole(string username, bool isAdmin)
+    {
+        var encodedUsername = Uri.EscapeDataString(SecurityValidator.NormalizeUsername(username));
+        using var response = Send(HttpMethod.Get, $"api/auth/username-exists?username={encodedUsername}&role={(isAdmin ? "Admin" : "User")}", allowErrorResponse: true);
+        if (!response.IsSuccessStatusCode)
+            return false;
+
+        return Read<bool>(response);
+    }
+
+    public bool ResetPassword(string username, string newPassword, bool isAdmin)
+    {
+        using var response = Send(HttpMethod.Post, "api/auth/reset-password", new { username, newPassword, isAdmin }, allowErrorResponse: true);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return false;
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var message = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(message) ? "The password could not be reset." : message);
+        }
+
+        return true;
+    }
+
     public bool SetUserStatus(string userId, bool isActive, string? adminName = null)
     {
         using var response = Send(HttpMethod.Post, $"api/admin/users/{Uri.EscapeDataString(userId)}/status", new { isActive });

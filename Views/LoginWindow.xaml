@@ -123,6 +123,8 @@
             <Button Grid.Row="12" Content="{Binding LoginButtonText}" Command="{Binding LoginCommand}" Height="46" IsDefault="True"/>
 
             <TextBlock Grid.Row="14" HorizontalAlignment="Center" Foreground="{StaticResource MutedBrush}">
+                <Hyperlink Click="ForgotPasswordLink_Click" Style="{StaticResource LinkStyle}">Forgot password?</Hyperlink>
+                <Run Text="  |  "/>
                 <Run Text="New to DMS?"/>
                 <Hyperlink Command="{Binding CreateAccountCommand}" Style="{StaticResource LinkStyle}">Create an account</Hyperlink>
             </TextBlock>

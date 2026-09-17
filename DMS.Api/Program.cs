@@ -51,8 +51,29 @@ var app = builder.Build();
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapHub<ChatHub>("/chatHub");
 
-app.MapGet("/api/auth/username-exists", (string username, IUserService users) =>
-    Results.Ok(users.UsernameExists(username)));
+app.MapGet("/api/auth/username-exists", (string username, string? role, IUserService users) =>
+{
+    if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
+        return Results.Ok(users.UsernameExistsForRole(username, isAdmin: true));
+
+    return Results.Ok(users.UsernameExistsForRole(username, isAdmin: false));
+});
+
+app.MapPost("/api/auth/reset-password", (ResetPasswordRequest request, IUserService users) =>
+{
+    try
+    {
+        var updated = users.ResetPassword(request.Username, request.NewPassword, request.IsAdmin);
+        if (!updated)
+            return Results.NotFound(new { error = "No account was found for that username." });
+
+        return Results.Ok(new { success = true });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+});
 
 app.MapPost("/api/auth/register", (RegisterRequest request, IUserService users, JwtTokenService tokens) =>
 {

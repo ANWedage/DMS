@@ -75,7 +75,21 @@
                             <ListBox x:Name="TaskListBox" SelectionChanged="TaskListBox_SelectionChanged" BorderThickness="0" ItemContainerStyle="{StaticResource TaskListItemStyle}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Padding="12" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="7" Background="#FBFCFC">
+                                        <Border Padding="12" CornerRadius="7">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="#FBFCFC"/>
+                                                    <Setter Property="BorderBrush" Value="#DDE3E5"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
+                                                            <Setter Property="Background" Value="#E5F4F2"/>
+                                                            <Setter Property="BorderBrush" Value="#126E70"/>
+                                                            <Setter Property="BorderThickness" Value="2"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
                                             <StackPanel>
                                                 <TextBlock Text="{Binding Component.Name}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                                 <TextBlock Text="{Binding Project.Name}" Foreground="#66727D" FontSize="12" Margin="0,4,0,0"/>

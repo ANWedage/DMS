@@ -148,7 +148,7 @@ namespace DMS.Views
             {
                 // Load settings and attendance data in parallel for better performance
                 var settingsTask = Task.Run(_userService.GetMeetingSettings);
-                var attendanceTask = LoadAttendanceAsync();
+                var attendanceTask = LoadAttendanceAsync(settingsTask);
                 
                 await Task.WhenAll(settingsTask, attendanceTask);
                 
@@ -168,18 +168,20 @@ namespace DMS.Views
             }
         }
 
-        private async Task LoadAttendanceAsync()
+        private async Task LoadAttendanceAsync(Task<MeetingSettings>? sharedSettingsTask = null)
         {
             try
             {
                 var date = AttendanceDatePicker.SelectedDate ?? DateTime.Today;
                 var usersTask = Task.Run(_userService.GetAllUsers);
                 var attendanceTask = Task.Run(() => _userService.GetAllAttendance(date));
-                var settingsTask = Task.Run(_userService.GetMeetingSettings);
+                var settingsTask = sharedSettingsTask ?? Task.Run(_userService.GetMeetingSettings);
                 await Task.WhenAll(usersTask, attendanceTask, settingsTask);
 
                 var records = attendanceTask.Result;
                 var slots = MeetingSchedule.ForDate(settingsTask.Result, date);
+                var recordsByUserAndMeeting = records.ToDictionary(
+                    item => (item.UserId, item.MeetingType));
                 _rows.Clear();
 
                 if (!MeetingSchedule.IsWorkingDay(date))
@@ -194,7 +196,7 @@ namespace DMS.Views
                     for (var slotIndex = 0; slotIndex < slots.Count; slotIndex++)
                     {
                         var slot = slots[slotIndex];
-                        var record = records.FirstOrDefault(item => item.UserId == user.Id && item.MeetingType == slot.Type);
+                        recordsByUserAndMeeting.TryGetValue((user.Id, slot.Type), out var record);
                         _rows.Add(new AttendanceRow
                         {
                             RecordId = record?.Id ?? string.Empty,

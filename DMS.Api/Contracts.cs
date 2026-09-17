@@ -7,6 +7,7 @@ namespace DMS.Api;
 
 public sealed record RegisterRequest(string Email, string ContactNumber, string Password, string Username);
 public sealed record LoginRequest(string Username, string Password);
+public sealed record ResetPasswordRequest(string Username, string NewPassword, bool IsAdmin);
 public sealed record SetUsernameRequest(string Username);
 public sealed record AttendanceRequest(string MeetingType, DateOnly Date);
 public sealed record UserStatusRequest(bool IsActive);

@@ -23,6 +23,12 @@ namespace DMS.Services
         /// <summary>Looks up a user by username for validation and status checks.</summary>
         User? GetUserByUsername(string username);
 
+        /// <summary>Returns true when the supplied username exists for the selected user/admin role.</summary>
+        bool UsernameExistsForRole(string username, bool isAdmin);
+
+        /// <summary>Resets the password for the matching user/admin account using the supplied username.</summary>
+        bool ResetPassword(string username, string newPassword, bool isAdmin);
+
         /// <summary>Updates the active/deactivated state of a user account.</summary>
         bool SetUserStatus(string userId, bool isActive, string? adminName = null);
 

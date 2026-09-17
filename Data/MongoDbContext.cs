@@ -50,6 +50,11 @@ namespace DMS.Data
                 new CreateIndexOptions { Unique = true });
 
             Attendance.Indexes.CreateOne(attendanceIndex);
+            Attendance.Indexes.CreateOne(new CreateIndexModel<AttendanceRecord>(
+                Builders<AttendanceRecord>.IndexKeys
+                    .Ascending(a => a.MeetingDate)
+                    .Ascending(a => a.UserId)
+                    .Ascending(a => a.MeetingType)));
 
             ComponentAssignments.Indexes.CreateOne(new CreateIndexModel<ComponentAssignment>(
                 Builders<ComponentAssignment>.IndexKeys.Ascending(a => a.ComponentId).Ascending(a => a.UserId),

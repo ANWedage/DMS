@@ -214,6 +214,49 @@ namespace DMS.Services
             return _context.Users.Find(u => u.Username == normalizedUsername).FirstOrDefault();
         }
 
+        public bool UsernameExistsForRole(string username, bool isAdmin)
+        {
+            var normalizedUsername = SecurityValidator.NormalizeUsername(username);
+            if (!SecurityValidator.IsValidUsername(normalizedUsername))
+                return false;
+
+            if (isAdmin)
+                return _context.Admins.Find(a => a.Username == normalizedUsername).Any();
+
+            return _context.Users.Find(u => u.Username == normalizedUsername).Any();
+        }
+
+        public bool ResetPassword(string username, string newPassword, bool isAdmin)
+        {
+            var normalizedUsername = SecurityValidator.NormalizeUsername(username);
+            if (!SecurityValidator.IsValidUsername(normalizedUsername))
+                throw new InvalidOperationException("Username is invalid.");
+
+            if (!SecurityValidator.IsStrongPassword(newPassword))
+                throw new InvalidOperationException("Password must be at least 8 characters and include uppercase, lowercase, a number, and a symbol.");
+
+            var (hash, salt) = PasswordHasher.HashPassword(newPassword);
+
+            if (isAdmin)
+            {
+                var result = _context.Admins.UpdateOne(
+                    a => a.Username == normalizedUsername,
+                    Builders<AdminUser>.Update
+                        .Set(a => a.PasswordHash, hash)
+                        .Set(a => a.PasswordSalt, salt));
+
+                return result.ModifiedCount > 0;
+            }
+
+            var userResult = _context.Users.UpdateOne(
+                u => u.Username == normalizedUsername,
+                Builders<User>.Update
+                    .Set(u => u.PasswordHash, hash)
+                    .Set(u => u.PasswordSalt, salt));
+
+            return userResult.ModifiedCount > 0;
+        }
+
         public bool SetUserStatus(string userId, bool isActive, string? adminName = null)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -684,11 +727,11 @@ namespace DMS.Services
             var settings = GetMeetingSettings();
             var now = GetApplicationNow(settings);
             var activeUsers = _context.Users.Find(u => u.IsActive).ToList();
+            var meetingTypes = MeetingSchedule.ForDate(settings, date).Select(slot => slot.Type).ToList();
 
             // Used by admin operations to ensure all users have attendance records
-            foreach (var user in activeUsers)
-            {
-                foreach (var meetingType in MeetingSchedule.ForDate(settings, date).Select(slot => slot.Type))
+            var ensureOperations = activeUsers
+                .SelectMany(user => meetingTypes.Select(meetingType =>
                 {
                     var filter = Builders<AttendanceRecord>.Filter.And(
                         Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, user.Id),
@@ -701,21 +744,29 @@ namespace DMS.Services
                         MeetingDate = dateText,
                         MeetingType = meetingType
                     };
-                    _context.Attendance.UpdateOne(filter, Builders<AttendanceRecord>.Update
+
+                    return new UpdateOneModel<AttendanceRecord>(filter, Builders<AttendanceRecord>.Update
                         .SetOnInsert(a => a.UserId, record.UserId)
                         .SetOnInsert(a => a.MeetingDate, record.MeetingDate)
                         .SetOnInsert(a => a.MeetingType, record.MeetingType)
                         .SetOnInsert(a => a.Status, record.Status)
                         .SetOnInsert(a => a.CreatedAt, record.CreatedAt)
-                        .SetOnInsert(a => a.UpdatedAt, record.UpdatedAt),
-                        new UpdateOptions { IsUpsert = true });
-                }
+                        .SetOnInsert(a => a.UpdatedAt, record.UpdatedAt))
+                    {
+                        IsUpsert = true
+                    };
+                }))
+                .ToList();
+
+            if (ensureOperations.Count > 0)
+            {
+                _context.Attendance.BulkWrite(ensureOperations, new BulkWriteOptions { IsOrdered = false });
             }
 
             if (date.Date != now.Date)
                 return;
 
-            foreach (var meetingType in MeetingSchedule.ForDate(settings, date).Select(slot => slot.Type))
+            foreach (var meetingType in meetingTypes)
             {
                 if (!IsWindowClosed(meetingType, settings, now))
                     continue;
