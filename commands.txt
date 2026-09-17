@@ -20,3 +20,7 @@ git push origin v1.3.18
 $env:DMS_MONGO_CONNECTION_STRING = "mongodb+srv://adeepanethwedage10171_db_user:lP6fXLxsPISfav13@dms.42hrhxm.mongodb.net/?appName=dms"
 
 .\scripts\create-admin.ps1
+
+
+
+commit,push and release new version
