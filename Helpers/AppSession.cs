@@ -44,6 +44,40 @@ namespace DMS.Helpers
             Save();
         }
 
+        public static void RecordActivity()
+        {
+            if (string.IsNullOrWhiteSpace(CurrentUserId))
+                return;
+
+            try
+            {
+                var directory = Path.GetDirectoryName(SessionFilePath);
+                if (directory != null)
+                    Directory.CreateDirectory(directory);
+
+                var session = new SessionSnapshot(
+                    CurrentUserId,
+                    CurrentUsername,
+                    CurrentDisplayName,
+                    CurrentRole,
+                    AccessToken,
+                    DateTimeOffset.UtcNow);
+
+                File.WriteAllText(SessionFilePath, JsonSerializer.Serialize(session));
+            }
+            catch
+            {
+            }
+        }
+
+        public static bool IsSessionExpired(SessionSnapshot? session, TimeSpan timeout)
+        {
+            if (session is null || string.IsNullOrWhiteSpace(session.UserId) || !session.LastActivityUtc.HasValue)
+                return false;
+
+            return DateTimeOffset.UtcNow - session.LastActivityUtc.Value >= timeout;
+        }
+
         public static SessionSnapshot? Load()
         {
             try
@@ -98,7 +132,8 @@ namespace DMS.Helpers
                     CurrentUsername,
                     CurrentDisplayName,
                     CurrentRole,
-                    AccessToken);
+                    AccessToken,
+                    DateTimeOffset.UtcNow);
                 File.WriteAllText(SessionFilePath, JsonSerializer.Serialize(session));
             }
             catch
@@ -111,6 +146,7 @@ namespace DMS.Helpers
             string? Username,
             string? DisplayName,
             string Role,
-            string? AccessToken);
+            string? AccessToken,
+            DateTimeOffset? LastActivityUtc = null);
     }
 }

@@ -60,6 +60,7 @@ namespace DMS.Helpers
                 CloseWarning();
             }
 
+            AppSession.RecordActivity();
             NotifyRemainingTimeChanged();
         }
 
