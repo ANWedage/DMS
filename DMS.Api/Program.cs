@@ -328,8 +328,11 @@ authenticated.MapGet("/chat/attachments/{attachmentId}/download", (string attach
     try
     {
         var response = users.DownloadChatAttachment(userId, role, attachmentId);
-        var bytes = Convert.FromBase64String(response.ContentBase64 ?? string.Empty);
-        return Results.File(bytes, "application/pdf", response.FileName);
+        return Results.Ok(new ChatAttachmentDownloadResponse(
+            response.AttachmentId,
+            response.FileName,
+            response.ContentBase64,
+            response.SizeBytes));
     }
     catch (InvalidOperationException ex)
     {
