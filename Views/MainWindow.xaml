@@ -96,7 +96,6 @@
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Username}" Foreground="#17212B" FontWeight="SemiBold"/>
                                 <TextBlock Text="{Binding Email}" Style="{StaticResource MutedStyle}" FontSize="12"/>
-                                <TextBlock x:Name="SessionTimeoutText" Margin="0,6,0,0" Foreground="#B74B4B" FontWeight="SemiBold" FontSize="11" Text="Auto logout in 00:59"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

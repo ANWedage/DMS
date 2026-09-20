@@ -83,7 +83,6 @@
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Administrator" Foreground="#17212B" FontWeight="SemiBold"/>
                         <TextBlock Text="{x:Static helpers:AppSession.CurrentDisplayName}" Foreground="#66727D" FontSize="12"/>
-                        <TextBlock x:Name="AdminSessionTimeoutText" Margin="0,6,0,0" Foreground="#B74B4B" FontWeight="SemiBold" FontSize="11" Text="Auto logout in 00:59"/>
                     </StackPanel>
                 </Border>
                 <Button Content="⏻" Click="SignOutButton_Click" Margin="12,0,0,0" Width="36" Height="36"

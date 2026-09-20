@@ -70,11 +70,6 @@ namespace DMS
             {
                 startupWindow = new LoginWindow(userService);
             }
-            else if (AppSession.IsSessionExpired(savedSession, TimeSpan.FromMinutes(3)))
-            {
-                AppSession.Clear();
-                startupWindow = new LoginWindow(userService);
-            }
             else
             {
                 try
