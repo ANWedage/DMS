@@ -60,6 +60,7 @@ namespace DMS.Views
                     .OrderBy(u => string.IsNullOrWhiteSpace(u.Username) ? u.Email : u.Username)
                     .ToList();
 
+                UpdateDeveloperCount();
                 UpdateDeactivatedByColumnVisibility();
                 ApplyFilter();
             }
@@ -202,6 +203,18 @@ namespace DMS.Views
                 .ToList();
 
             DeveloperListView.ItemsSource = filteredUsers;
+        }
+
+        private void UpdateDeveloperCount()
+        {
+            var totalUsers = _allUsers.Count;
+            var inactiveUsers = _allUsers.Count(user => !user.IsActive);
+
+            DeveloperCountText.Text = totalUsers.ToString();
+            InactiveDeveloperCountText.Text = inactiveUsers.ToString();
+
+            DeveloperCountText.ToolTip = $"{totalUsers} total developers";
+            InactiveDeveloperCountText.ToolTip = $"{inactiveUsers} inactive developers";
         }
 
         private void UpdateDeactivatedByColumnVisibility()

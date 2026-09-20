@@ -131,6 +131,11 @@ namespace DMS.Views
             }
 
             UserTaskReminderBanner.Visibility = Visibility.Visible;
+
+            if (!IsActive)
+            {
+                DesktopTaskReminderNotification.Show("Daily task reminder", "Complete and submit your task update before the workday ends.");
+            }
         }
 
         private async Task<DateTime> GetTaskReminderNowAsync()
@@ -178,9 +183,7 @@ namespace DMS.Views
         private void OnProfileChanged()
         {
             _ = DisposeChatConnectionAsync();
-            AppSession.Clear();
-            var loginWindow = new LoginWindow(_userService);
-            loginWindow.Show();
+            App.ForceLogoutToLogin(_userService);
             Close();
         }
 
@@ -234,9 +237,7 @@ namespace DMS.Views
             _taskReminderTimer.Stop();
             _sessionInactivityMonitor.Stop();
             _ = DisposeChatConnectionAsync();
-            AppSession.Clear();
-            var loginWindow = new LoginWindow(_userService);
-            loginWindow.Show();
+            App.ForceLogoutToLogin(_userService);
             Close();
         }
 

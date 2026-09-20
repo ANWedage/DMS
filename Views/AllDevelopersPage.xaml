@@ -22,6 +22,31 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Border Width="220" Height="78" Margin="0,0,10,0" Background="#F8FBFB" BorderBrush="#B7D6DD" BorderThickness="1.5" CornerRadius="12" Padding="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="1"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="#E7F3F2" Padding="14,10,10,10" CornerRadius="12,0,0,12">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="TOTAL" Foreground="#0F4C5C" FontSize="10" FontWeight="SemiBold" Opacity="0.9"/>
+                                    <TextBlock x:Name="DeveloperCountText" Text="0" Foreground="#12343D" FontSize="28" FontWeight="Bold" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Background="#D9E7EA" Width="1" Margin="0,10"/>
+
+                            <Border Grid.Column="2" Background="#FDEAEA" Padding="10,10,14,10" CornerRadius="0,12,12,0">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="INACTIVE" Foreground="#8C2F2F" FontSize="10" FontWeight="SemiBold" Opacity="0.9"/>
+                                    <TextBlock x:Name="InactiveDeveloperCountText" Text="0" Foreground="#B63A3A" FontSize="28" FontWeight="Bold" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
                     <StackPanel Margin="0,8,10,0">
                         <TextBlock Text="Submission date" FontSize="11" Foreground="#66727D"/>
                         <DatePicker x:Name="DailyTaskDatePicker"

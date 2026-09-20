@@ -79,7 +79,11 @@ namespace DMS.Services
         long GetUnreadChatCount(string currentUserId, string currentRole);
         List<ChatMessage> GetChatMessages(string currentUserId, string currentRole, string otherUserId, string otherRole);
         bool DeleteChatConversation(string currentUserId, string currentRole, string otherUserId, string otherRole);
-        ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText);
+        ChatAttachment? GetChatAttachment(string currentUserId, string currentRole, string attachmentId);
+        ChatAttachmentDownloadResponse DownloadChatAttachment(string currentUserId, string currentRole, string attachmentId);
+        ChatAttachment UploadChatAttachment(string senderId, string senderRole, string recipientId, string recipientRole, string fileName, byte[] content);
+        bool DeleteChatAttachment(string currentUserId, string currentRole, string attachmentId);
+        ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText, string? attachmentId = null);
         bool MarkChatMessagesRead(string recipientId, string recipientRole, string senderId, string senderRole);
 
         bool EmailExists(string email);

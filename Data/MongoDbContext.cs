@@ -1,4 +1,5 @@
 using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
 using DMS.Models;
 
 namespace DMS.Data
@@ -23,6 +24,14 @@ namespace DMS.Data
         public IMongoCollection<DailyTaskUpdate> DailyTaskUpdates => _database.GetCollection<DailyTaskUpdate>("DailyTaskUpdates");
         public IMongoCollection<Notification> Notifications => _database.GetCollection<Notification>("Notifications");
         public IMongoCollection<ChatMessage> ChatMessages => _database.GetCollection<ChatMessage>("ChatMessages");
+        public IMongoCollection<ChatAttachment> ChatAttachments => _database.GetCollection<ChatAttachment>("ChatAttachments");
+        public GridFSBucket ChatAttachmentsBucket => new(_database, new GridFSBucketOptions
+        {
+            BucketName = "ChatAttachmentsBucket",
+            ChunkSizeBytes = 255 * 1024,
+            WriteConcern = WriteConcern.WMajority,
+            ReadConcern = ReadConcern.Majority
+        });
 
         /// <summary>Creates unique indexes on Email and Username (first run only - safe to call every startup).</summary>
         public void EnsureIndexes()
@@ -79,7 +88,17 @@ namespace DMS.Data
                 new CreateIndexModel<ChatMessage>(
                     Builders<ChatMessage>.IndexKeys.Ascending(m => m.ConversationKey).Ascending(m => m.CreatedAt)),
                 new CreateIndexModel<ChatMessage>(
-                    Builders<ChatMessage>.IndexKeys.Ascending(m => m.RecipientId).Ascending(m => m.RecipientRole).Ascending(m => m.ReadAt))
+                    Builders<ChatMessage>.IndexKeys.Ascending(m => m.RecipientId).Ascending(m => m.RecipientRole).Ascending(m => m.ReadAt)),
+                new CreateIndexModel<ChatMessage>(
+                    Builders<ChatMessage>.IndexKeys.Ascending(m => m.AttachmentId))
+            });
+
+            ChatAttachments.Indexes.CreateMany(new[]
+            {
+                new CreateIndexModel<ChatAttachment>(
+                    Builders<ChatAttachment>.IndexKeys.Ascending(a => a.ConversationKey).Ascending(a => a.CreatedAt)),
+                new CreateIndexModel<ChatAttachment>(
+                    Builders<ChatAttachment>.IndexKeys.Ascending(a => a.RecipientId).Ascending(a => a.RecipientRole).Ascending(a => a.IsDeleted))
             });
         }
     }

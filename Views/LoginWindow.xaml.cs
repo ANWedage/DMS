@@ -15,6 +15,8 @@ namespace DMS.Views
         public LoginWindow(IUserService userService)
         {
             InitializeComponent();
+            WindowState = WindowState.Normal;
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             _userService = userService;
             _viewModel = new LoginViewModel(userService);

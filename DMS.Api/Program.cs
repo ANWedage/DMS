@@ -276,11 +276,86 @@ authenticated.MapPost("/chat/messages", async (ChatMessageRequest request, Claim
     if (string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
     try
     {
-        var message = users.SaveChatMessage(userId, role, request.RecipientId, request.RecipientRole, request.MessageText);
+        var message = users.SaveChatMessage(userId, role, request.RecipientId, request.RecipientRole, request.MessageText, request.AttachmentId);
         await hub.Clients.Users(userId, request.RecipientId).SendAsync("ReceiveMessage", message);
         return Results.Ok(message);
     }
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
+authenticated.MapPost("/chat/attachments/upload", (ChatAttachmentUploadRequest request, ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
+    try
+    {
+        var bytes = Convert.FromBase64String(request.ContentBase64 ?? string.Empty);
+        var attachment = users.UploadChatAttachment(userId, role, request.RecipientId, request.RecipientRole, request.FileName, bytes);
+        return Results.Ok(attachment);
+    }
+    catch (FormatException)
+    {
+        return Results.BadRequest(new { error = "The uploaded file data could not be read." });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+});
+
+authenticated.MapGet("/chat/attachments/{attachmentId}", (string attachmentId, ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
+    try
+    {
+        var attachment = users.GetChatAttachment(userId, role, attachmentId);
+        return attachment == null ? Results.NotFound() : Results.Ok(attachment);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+});
+
+authenticated.MapGet("/chat/attachments/{attachmentId}/download", (string attachmentId, ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
+    try
+    {
+        var response = users.DownloadChatAttachment(userId, role, attachmentId);
+        var bytes = Convert.FromBase64String(response.ContentBase64 ?? string.Empty);
+        return Results.File(bytes, "application/pdf", response.FileName);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (FormatException)
+    {
+        return Results.BadRequest(new { error = "The stored attachment data could not be read." });
+    }
+});
+
+authenticated.MapDelete("/chat/attachments/{attachmentId}", (string attachmentId, ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    if (string.IsNullOrWhiteSpace(userId)) return Results.Forbid();
+    try
+    {
+        return users.DeleteChatAttachment(userId, role, attachmentId)
+            ? Results.NoContent()
+            : Results.NotFound();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
 });
 
 authenticated.MapPost("/chat/conversations/{senderRole}/{senderId}/read",

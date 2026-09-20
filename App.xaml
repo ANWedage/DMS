@@ -4,6 +4,7 @@
              xmlns:helpers="clr-namespace:DMS.Helpers">
     <Application.Resources>
         <helpers:StatusBrushConverter x:Key="StatusBrushConverter"/>
+        <helpers:InitialsConverter x:Key="InitialsConverter"/>
         <SolidColorBrush x:Key="InkBrush" Color="#17212B"/>
         <SolidColorBrush x:Key="MutedBrush" Color="#66727D"/>
         <SolidColorBrush x:Key="CanvasBrush" Color="#EEF1F2"/>

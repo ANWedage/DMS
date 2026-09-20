@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -102,9 +103,42 @@ namespace DMS
                 }
             }
 
+            startupWindow.WindowState = WindowState.Normal;
             startupWindow.Show();
+            if (Application.Current != null)
+                Application.Current.MainWindow = startupWindow;
             if (ShouldCheckForUpdates())
                 _ = CheckForUpdatesAsync();
+        }
+
+        public static void ForceLogoutToLogin(IUserService userService)
+        {
+            AppSession.Clear();
+
+            var loginWindow = new LoginWindow(userService)
+            {
+                WindowState = WindowState.Normal,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen
+            };
+
+            if (Application.Current != null)
+            {
+                var windows = Application.Current.Windows.Cast<Window>().Where(w => !ReferenceEquals(w, loginWindow)).ToList();
+                foreach (var window in windows)
+                {
+                    try
+                    {
+                        window.Close();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                Application.Current.MainWindow = loginWindow;
+            }
+
+            loginWindow.Show();
         }
 
         private static bool ShouldCheckForUpdates()

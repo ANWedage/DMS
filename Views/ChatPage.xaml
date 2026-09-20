@@ -10,6 +10,7 @@
             <Setter Property="Padding" Value="12,0"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#34515B"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#DDEDEA"/>
@@ -48,7 +49,7 @@
                     </StackPanel>
                 </Border>
                 <Button Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="10,0,0,0"
-                        Click="RefreshButton_Click" ToolTip="Refresh chat"/>
+                        Click="RefreshButton_Click" ToolTip="Refresh chat" Cursor="Hand"/>
             </StackPanel>
         </Grid>
 
@@ -78,7 +79,9 @@
                                 <TextBlock Text="Your conversations stay between the selected people." Foreground="#66727D" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             </StackPanel>
                         </Border>
-                        <TextBlock x:Name="ChatStatusText" Foreground="#B54736" TextWrapping="Wrap" Margin="4,18,4,0"/>
+                        <Border x:Name="ChatStatusBadge" Background="#FDEDED" BorderBrush="#F3C2C2" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,18,0,0" Visibility="Collapsed">
+                            <TextBlock x:Name="ChatStatusText" Foreground="#9B2C2C" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        </Border>
                     </StackPanel>
                 </Border>
 
@@ -98,26 +101,27 @@
                         <TextBox x:Name="SearchTextBox" Height="36" Padding="34,8,10,8" TextChanged="SearchTextBox_TextChanged" ToolTip="Search users"/>
                         <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" Foreground="#88949B" FontSize="14" Margin="11,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
                     </Grid>
-                    <ListBox Grid.Row="2" x:Name="ConversationList" BorderThickness="0" Margin="16,0,12,12" SelectionChanged="ConversationList_SelectionChanged">
+                    <ListBox Grid.Row="2" x:Name="ConversationList" BorderThickness="0" Margin="16,0,12,12" SelectionChanged="ConversationList_SelectionChanged" Background="#F6F9F9" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="Padding" Value="0"/>
-                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Margin" Value="0,0,0,8"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                             </Style>
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Border Padding="12" BorderThickness="1" CornerRadius="8">
+                                <Border Padding="12,10" BorderThickness="1" CornerRadius="10">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="Background" Value="#FFFFFF"/>
-                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                            <Setter Property="BorderBrush" Value="#E2EAE9"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
                                                     <Setter Property="Background" Value="#E8F3F1"/>
-                                                    <Setter Property="BorderBrush" Value="#B9DCD5"/>
+                                                    <Setter Property="BorderBrush" Value="#A6D7CF"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -127,63 +131,87 @@
                                             <MenuItem Header="Delete chat" Tag="{Binding}" Click="DeleteChatMenuItem_Click"/>
                                         </ContextMenu>
                                     </Border.ContextMenu>
-                                    <StackPanel>
-                                        <DockPanel>
-                                            <TextBlock Text="{Binding OtherDisplayName}" FontWeight="SemiBold" Foreground="#17212B"/>
-                                            <TextBlock DockPanel.Dock="Right" Text="{Binding LatestMessageAt, StringFormat={}{0:HH:mm}}" Foreground="#66727D" FontSize="11"/>
-                                        </DockPanel>
-                                        <TextBlock Text="{Binding LatestMessage}" TextTrimming="CharacterEllipsis" Foreground="#66727D" FontSize="12" Margin="0,5,0,0"/>
-                                        <Border HorizontalAlignment="Left" Background="#E97858" CornerRadius="9" Padding="6,1" Margin="0,5,0,0">
-                                            <TextBlock Text="{Binding UnreadCount}" Foreground="White" FontSize="11"/>
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding UnreadCount}" Value="0"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16" Background="#DDEEEA" Margin="0,0,10,0">
+                                            <TextBlock Text="{Binding OtherDisplayName, Converter={StaticResource InitialsConverter}}" Foreground="#0D5558" FontWeight="SemiBold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
-                                    </StackPanel>
+
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding OtherDisplayName}" FontWeight="SemiBold" Foreground="#17212B" FontSize="13"/>
+                                            <TextBlock Text="{Binding LatestMessage}" TextTrimming="CharacterEllipsis" Foreground="#66727D" FontSize="12" Margin="0,4,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding LatestMessageAt, StringFormat={}{0:HH:mm}}" Foreground="#66727D" FontSize="11" Margin="0,0,0,6"/>
+                                            <Border Background="#E97858" CornerRadius="9" Padding="6,2" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding UnreadCount}" Foreground="White" FontSize="10" FontWeight="SemiBold"/>
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding UnreadCount}" Value="0"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
                                 </Border>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <ListBox Grid.Row="2" x:Name="PeopleList" Visibility="Collapsed" BorderThickness="0" Margin="16,0,12,12" SelectionChanged="PeopleList_SelectionChanged">
+                    <ListBox Grid.Row="2" x:Name="PeopleList" Visibility="Collapsed" BorderThickness="0" Margin="16,0,12,12" SelectionChanged="PeopleList_SelectionChanged" Background="#F6F9F9" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="Padding" Value="0"/>
-                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Margin" Value="0,0,0,8"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                             </Style>
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Border Padding="12" BorderThickness="1" CornerRadius="8">
+                                <Border Padding="12,10" BorderThickness="1" CornerRadius="10">
                                     <Border.Style>
                                         <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#F8FBFB"/>
-                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                            <Setter Property="Background" Value="#FFFFFF"/>
+                                            <Setter Property="BorderBrush" Value="#E2EAE9"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding Role}" Value="Admin">
-                                                    <Setter Property="Background" Value="#E6F0FA"/>
-                                                    <Setter Property="BorderBrush" Value="#B5D2EA"/>
+                                                    <Setter Property="Background" Value="#EEF6FF"/>
+                                                    <Setter Property="BorderBrush" Value="#C9DCF7"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
-                                                    <Setter Property="Background" Value="#DDF1F7"/>
-                                                    <Setter Property="BorderBrush" Value="#42A5D5"/>
+                                                    <Setter Property="Background" Value="#E8F3F1"/>
+                                                    <Setter Property="BorderBrush" Value="#A6D7CF"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
-                                    <DockPanel>
-                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                        <Border DockPanel.Dock="Right" CornerRadius="4" Padding="5,2" Margin="8,0,0,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0" Width="30" Height="30" CornerRadius="15" Background="#DDEEEA" Margin="0,0,10,0">
+                                            <TextBlock Text="{Binding DisplayName, Converter={StaticResource InitialsConverter}}" Foreground="#0D5558" FontWeight="SemiBold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#17212B"/>
+
+                                        <Border Grid.Column="2" CornerRadius="6" Padding="6,2" Margin="8,0,0,0" Background="#DCE9F6">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
-                                                    <Setter Property="Background" Value="#CFE5F6"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Role}" Value="Admin">
                                                             <Setter Property="Visibility" Value="Visible"/>
@@ -191,9 +219,9 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <TextBlock Text="{Binding Role}" Foreground="#34515B" FontSize="11" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Role}" Foreground="#34515B" FontSize="10" FontWeight="SemiBold"/>
                                         </Border>
-                                    </DockPanel>
+                                    </Grid>
                                 </Border>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -211,6 +239,24 @@
                             <Border Width="40" Height="40" Background="#DCECE9" CornerRadius="20" DockPanel.Dock="Left" Margin="0,0,12,0">
                                 <TextBlock Text="&#xE77B;" FontFamily="Segoe MDL2 Assets" Foreground="#0D5558" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
+                            <Button DockPanel.Dock="Right" Width="30" Height="30" Margin="10,0,0,0" Click="CloseChatButton_Click" ToolTip="Close current chat"
+                                    Background="#FDEAE7" BorderBrush="#F0B7AC" BorderThickness="1" Foreground="#B54736" Padding="0"
+                                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Border.CornerRadius="15" Cursor="Hand">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="15">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
+                                <TextBlock Text="×" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,-2,0,0"/>
+                            </Button>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock x:Name="SelectedUserText" Text="Select a conversation" FontSize="18" FontWeight="SemiBold" Foreground="#17212B"/>
                                 <TextBlock x:Name="SelectedRoleText" Foreground="#34515B" FontWeight="SemiBold" FontSize="12" Margin="0,3,0,0"/>
@@ -244,7 +290,19 @@
                                             </Style>
                                         </Border.Style>
                                         <StackPanel>
-                                            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="#17212B"/>
+                                            <Border Background="#E7F2F3" BorderBrush="#CFE2E2" BorderThickness="1" CornerRadius="8" Padding="10,7" Margin="0,0,0,6" Visibility="{Binding AttachmentVisible}">
+                                                <DockPanel>
+                                                    <Border Width="18" Height="18" CornerRadius="4" Background="#D9ECE6" Margin="0,0,8,0">
+                                                        <TextBlock Text="PDF" Foreground="#0D5558" FontSize="8" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding AttachmentName}" Foreground="#17212B" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                </DockPanel>
+                                            </Border>
+                                            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="#17212B" Visibility="{Binding TextVisible}"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <Button Content="Download PDF" Visibility="{Binding AttachmentVisible}" Tag="{Binding AttachmentId}" Click="DownloadAttachmentButton_Click" Margin="0,0,8,0" Cursor="Hand"/>
+                                                <Button Content="Delete" Visibility="{Binding DeleteVisible}" Tag="{Binding AttachmentId}" Click="DeleteAttachmentButton_Click" Background="#FCEBE7" Foreground="#B54736" Cursor="Hand"/>
+                                            </StackPanel>
                                             <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:HH:mm}}" FontSize="10" Foreground="#66727D" HorizontalAlignment="Right" Margin="12,4,0,0"/>
                                         </StackPanel>
                                     </Border>
@@ -253,13 +311,45 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
                     <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#DDE3E5" BorderThickness="0,1,0,0" Padding="16">
-                        <DockPanel>
-                            <Button DockPanel.Dock="Right" Content="Send" Width="82" Height="38" Margin="10,0,0,0" Click="SendButton_Click"/>
-                            <Grid>
-                                <TextBox x:Name="MessageTextBox" MinHeight="42" Padding="12,9" VerticalContentAlignment="Center" AcceptsReturn="True" TextWrapping="Wrap" KeyDown="MessageTextBox_KeyDown" TextChanged="MessageTextBox_TextChanged" ToolTip="Write a message"/>
-                                <TextBlock x:Name="MessagePlaceholderText" Text="Write a message..." Foreground="#829197" Margin="12,0,10,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                            </Grid>
-                        </DockPanel>
+                        <StackPanel>
+                            <Border x:Name="AttachmentPreviewBorder" Background="#EAF7F2" BorderBrush="#B7DCCB" BorderThickness="1" CornerRadius="10" Padding="10,8" Margin="0,0,0,10" Visibility="Collapsed">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Left">
+                                        <TextBlock Text="Ready to send" Foreground="#0D5558" FontWeight="SemiBold" FontSize="11"/>
+                                        <TextBlock x:Name="AttachmentPreviewNameText" Text="sample.pdf" Foreground="#17212B" FontWeight="SemiBold" Margin="0,3,0,0"/>
+                                        <TextBlock x:Name="AttachmentPreviewMetaText" Text="0 KB" Foreground="#66727D" FontSize="11"/>
+                                    </StackPanel>
+                                    <Button DockPanel.Dock="Right" Width="30" Height="30" Margin="12,0,0,0" Click="ClearPendingAttachment_Click" ToolTip="Remove PDF"
+                                            Background="#FDEAE7" BorderBrush="#F0B7AC" BorderThickness="1" Foreground="#B54736" Padding="0"
+                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Border.CornerRadius="15">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="15">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </Button.Style>
+                                        <TextBlock Text="×" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,-2,0,0"/>
+                                    </Button>
+                                </DockPanel>
+                            </Border>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Left" Width="38" Height="38" Margin="0,0,8,0" Click="UploadPdfButton_Click" ToolTip="Upload PDF" Background="#EEF5F5" BorderBrush="#D9E6E4" BorderThickness="1" Foreground="#0D5558" FontSize="20" FontWeight="Bold" Cursor="Hand">
+                                    <TextBlock Text="+" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" Margin="0,-2,0,0"/>
+                                </Button>
+                                <Button DockPanel.Dock="Right" Content="Send" Width="82" Height="38" Margin="10,0,0,0" Click="SendButton_Click" Cursor="Hand"/>
+                                <Grid>
+                                    <TextBox x:Name="MessageTextBox" MinHeight="42" Padding="12,9" VerticalContentAlignment="Center" AcceptsReturn="True" TextWrapping="Wrap" KeyDown="MessageTextBox_KeyDown" TextChanged="MessageTextBox_TextChanged" ToolTip="Write a message"/>
+                                    <TextBlock x:Name="MessagePlaceholderText" Text="Write a message..." Foreground="#829197" Margin="12,0,10,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                </Grid>
+                            </DockPanel>
+                        </StackPanel>
                     </Border>
                 </Grid>
             </Grid>

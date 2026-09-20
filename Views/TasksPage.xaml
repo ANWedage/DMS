@@ -238,18 +238,52 @@
                                 </Grid>
                             </Border>
                         </Expander>
-                        <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,18,0,0">
+                        <Border Background="#F9FBFB" BorderBrush="#D8E3E5" BorderThickness="1.2" CornerRadius="12" Padding="18" Margin="0,18,0,0">
                             <StackPanel>
                                 <TextBlock Text="PROJECT DAILY REPORT" Foreground="#126E70" FontSize="12" FontWeight="SemiBold"/>
-                                <TextBlock Text="Project Daily Report" FontSize="19" FontWeight="SemiBold" Margin="0,3,0,0"/>
-                                <TextBlock Text="View every component and assigned member update for one date, then generate one report." Foreground="#66727D" Margin="0,4,0,0" TextWrapping="Wrap"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,12,0,12">
-                                    <TextBlock Text="Report date" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <DatePicker x:Name="ProjectReportDatePicker" Width="130"/>
-                                    <Button Content="Load Project Report" Click="LoadProjectReportButton_Click" Margin="10,0,0,0"/>
-                                    <Button Content="Generate PDF Report" Click="GenerateProjectReportButton_Click" Margin="10,0,0,0"/>
+                                <TextBlock Text="Project Daily Report" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0" Foreground="#17212B"/>
+                                <TextBlock Text="View every component and assigned member update for one date, then generate one report." Foreground="#66727D" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,14,0,12" VerticalAlignment="Center">
+                                    <TextBlock Text="Report date" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#17212B"/>
+                                    <DatePicker x:Name="ProjectReportDatePicker" Width="140" Height="32" BorderBrush="#B7D6DD" BorderThickness="1.2" Background="White"/>
+                                    <Button Content="Load Project Report" Click="LoadProjectReportButton_Click" Margin="10,0,0,0" Height="34" Padding="14,0" Background="#0F5F66" Foreground="White" BorderThickness="0" FontWeight="SemiBold"/>
+                                    <Button Content="Generate PDF Report" Click="GenerateProjectReportButton_Click" Margin="10,0,0,0" Height="34" Padding="14,0" Background="#1A7A7B" Foreground="White" BorderThickness="0" FontWeight="SemiBold"/>
                                 </StackPanel>
-                                <DataGrid x:Name="ProjectReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="300" Background="White" BorderBrush="#DDE3E5" BorderThickness="1">
+                                <DataGrid x:Name="ProjectReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="300" Background="White" BorderBrush="#BFCFD5" BorderThickness="1.2" HeadersVisibility="Column" GridLinesVisibility="All" RowHeaderWidth="0" AlternatingRowBackground="#F7FAFB" RowBackground="White" FontSize="12">
+                                    <DataGrid.Resources>
+                                        <Style TargetType="DataGridColumnHeader">
+                                            <Setter Property="Background" Value="#EAF2F3"/>
+                                            <Setter Property="Foreground" Value="#12343D"/>
+                                            <Setter Property="BorderBrush" Value="#C8D9DE"/>
+                                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                            <Setter Property="Padding" Value="8,8"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                        </Style>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="Padding" Value="8,6"/>
+                                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                            <Setter Property="BorderBrush" Value="#E1E7EA"/>
+                                            <Setter Property="Foreground" Value="#1A2530"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="Background" Value="#1F7BE6"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                        <Style TargetType="DataGridRow">
+                                            <Setter Property="MinHeight" Value="28"/>
+                                            <Setter Property="Background" Value="White"/>
+                                            <Setter Property="Foreground" Value="#1A2530"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="#1F7BE6"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.Resources>
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Component" Binding="{Binding ComponentName}" Width="170"/>
                                         <DataGridTextColumn Header="Description" Binding="{Binding ComponentDescription}" Width="240"/>
@@ -258,21 +292,55 @@
                                         <DataGridTextColumn Header="Today's Work" Binding="{Binding DailyWork}" Width="*"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
-                                <TextBlock x:Name="ProjectReportMessageText" Foreground="#66727D" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="ProjectReportMessageText" Foreground="#66727D" Margin="0,10,0,0" TextWrapping="Wrap" FontSize="12"/>
                             </StackPanel>
                         </Border>
-                        <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,18,0,0">
+                        <Border Background="#F9FBFB" BorderBrush="#D8E3E5" BorderThickness="1.2" CornerRadius="12" Padding="18" Margin="0,18,0,0">
                             <StackPanel>
                                 <TextBlock Text="SELF STUDY REPORT" Foreground="#126E70" FontSize="12" FontWeight="SemiBold"/>
-                                <TextBlock Text="Self Study Daily Report" FontSize="19" FontWeight="SemiBold" Margin="0,3,0,0"/>
-                                <TextBlock Text="Review self study entries submitted by team members for a selected date." Foreground="#66727D" Margin="0,4,0,0" TextWrapping="Wrap"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,12,0,12">
-                                    <TextBlock Text="Report date" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <DatePicker x:Name="SelfStudyReportDatePicker" Width="130"/>
-                                    <Button Content="Load Self Study Report" Click="LoadSelfStudyReportButton_Click" Margin="10,0,0,0"/>
-                                    <Button Content="Generate PDF Report" Click="GenerateSelfStudyReportButton_Click" Margin="10,0,0,0"/>
+                                <TextBlock Text="Self Study Daily Report" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,0" Foreground="#17212B"/>
+                                <TextBlock Text="Review self study entries submitted by team members for a selected date." Foreground="#66727D" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,14,0,12" VerticalAlignment="Center">
+                                    <TextBlock Text="Report date" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#17212B"/>
+                                    <DatePicker x:Name="SelfStudyReportDatePicker" Width="140" Height="32" BorderBrush="#B7D6DD" BorderThickness="1.2" Background="White"/>
+                                    <Button Content="Load Self Study Report" Click="LoadSelfStudyReportButton_Click" Margin="10,0,0,0" Height="34" Padding="14,0" Background="#0F5F66" Foreground="White" BorderThickness="0" FontWeight="SemiBold"/>
+                                    <Button Content="Generate PDF Report" Click="GenerateSelfStudyReportButton_Click" Margin="10,0,0,0" Height="34" Padding="14,0" Background="#1A7A7B" Foreground="White" BorderThickness="0" FontWeight="SemiBold"/>
                                 </StackPanel>
-                                <DataGrid x:Name="SelfStudyReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="300" Background="White" BorderBrush="#DDE3E5" BorderThickness="1">
+                                <DataGrid x:Name="SelfStudyReportGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="300" Background="White" BorderBrush="#BFCFD5" BorderThickness="1.2" HeadersVisibility="Column" GridLinesVisibility="All" RowHeaderWidth="0" AlternatingRowBackground="#F7FAFB" RowBackground="White" FontSize="12">
+                                    <DataGrid.Resources>
+                                        <Style TargetType="DataGridColumnHeader">
+                                            <Setter Property="Background" Value="#EAF2F3"/>
+                                            <Setter Property="Foreground" Value="#12343D"/>
+                                            <Setter Property="BorderBrush" Value="#C8D9DE"/>
+                                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                            <Setter Property="Padding" Value="8,8"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                        </Style>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="Padding" Value="8,6"/>
+                                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                            <Setter Property="BorderBrush" Value="#E1E7EA"/>
+                                            <Setter Property="Foreground" Value="#1A2530"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="Background" Value="#1F7BE6"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                        <Style TargetType="DataGridRow">
+                                            <Setter Property="MinHeight" Value="28"/>
+                                            <Setter Property="Background" Value="White"/>
+                                            <Setter Property="Foreground" Value="#1A2530"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="#1F7BE6"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.Resources>
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Member" Binding="{Binding UserName}" Width="170"/>
                                         <DataGridTextColumn Header="Date" Binding="{Binding UpdateDate, StringFormat=d}" Width="110"/>
@@ -281,7 +349,7 @@
                                         <DataGridTextColumn Header="Study Notes" Binding="{Binding Description}" Width="*"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
-                                <TextBlock x:Name="SelfStudyReportMessageText" Foreground="#66727D" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="SelfStudyReportMessageText" Foreground="#66727D" Margin="0,10,0,0" TextWrapping="Wrap" FontSize="12"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

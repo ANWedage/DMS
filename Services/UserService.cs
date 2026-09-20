@@ -1,5 +1,8 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
 using System.Globalization;
+using System.IO;
 using DMS.Data;
 using DMS.Helpers;
 using DMS.Models;
@@ -57,15 +60,171 @@ namespace DMS.Services
                 return _context.ChatMessages.DeleteMany(m => m.ConversationKey == conversationKey).DeletedCount > 0;
             }
 
+            public ChatAttachment? GetChatAttachment(string currentUserId, string currentRole, string attachmentId)
+            {
+                ValidateChatIdentity(currentUserId, currentRole);
+                if (string.IsNullOrWhiteSpace(attachmentId))
+                    return null;
+
+                var attachment = _context.ChatAttachments.Find(a => a.Id == attachmentId && !a.IsDeleted).FirstOrDefault();
+                if (attachment == null)
+                    return null;
+
+                var isSender = string.Equals(attachment.SenderId, currentUserId, StringComparison.Ordinal) && string.Equals(attachment.SenderRole, currentRole, StringComparison.Ordinal);
+                var isRecipient = string.Equals(attachment.RecipientId, currentUserId, StringComparison.Ordinal) && string.Equals(attachment.RecipientRole, currentRole, StringComparison.Ordinal);
+                if (!isSender && !isRecipient)
+                    throw new InvalidOperationException("You do not have access to this attachment.");
+
+                return attachment;
+            }
+
+            public ChatAttachmentDownloadResponse DownloadChatAttachment(string currentUserId, string currentRole, string attachmentId)
+            {
+                ValidateChatIdentity(currentUserId, currentRole);
+                var attachment = GetChatAttachment(currentUserId, currentRole, attachmentId);
+                if (attachment == null)
+                    throw new InvalidOperationException("The attachment could not be found.");
+
+                byte[] payload;
+                if (!string.IsNullOrWhiteSpace(attachment.StorageObjectId) && ObjectId.TryParse(attachment.StorageObjectId, out var storageObjectId))
+                {
+                    payload = _context.ChatAttachmentsBucket.DownloadAsBytes(storageObjectId);
+                }
+                else
+                {
+                    var storagePath = Path.Combine(AppContext.BaseDirectory, "ChatUploads", attachment.StoredFileName);
+                    if (!File.Exists(storagePath))
+                        throw new InvalidOperationException("The PDF file is no longer available on disk.");
+                    payload = File.ReadAllBytes(storagePath);
+                }
+
+                return new ChatAttachmentDownloadResponse(
+                    attachment.Id,
+                    attachment.OriginalFileName,
+                    Convert.ToBase64String(payload),
+                    payload.LongLength);
+            }
+
+            public ChatAttachment UploadChatAttachment(string senderId, string senderRole, string recipientId, string recipientRole, string fileName, byte[] content)
+            {
+                ValidateChatIdentity(senderId, senderRole);
+                ValidateChatParticipant(recipientId, recipientRole);
+                if (string.Equals(senderId, recipientId, StringComparison.Ordinal) && senderRole == recipientRole)
+                    throw new InvalidOperationException("You cannot send a file to yourself.");
+
+                var trimmedFileName = (fileName ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(trimmedFileName) || !trimmedFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Only PDF files can be shared in chat.");
+
+                var normalizedContent = content ?? Array.Empty<byte>();
+                if (normalizedContent.Length == 0 || normalizedContent.Length > 10 * 1024 * 1024)
+                    throw new InvalidOperationException("The PDF file must be larger than zero and no more than 10 MB.");
+
+                var attachmentId = ObjectId.GenerateNewId().ToString();
+                var storedFileName = $"{attachmentId}{Path.GetExtension(trimmedFileName)}";
+                var storageObjectId = _context.ChatAttachmentsBucket.UploadFromBytes(storedFileName, normalizedContent, new GridFSUploadOptions
+                {
+                    Metadata = new BsonDocument
+                    {
+                        ["AttachmentId"] = attachmentId,
+                        ["ConversationKey"] = BuildConversationKey(senderId, senderRole, recipientId, recipientRole),
+                        ["SenderId"] = senderId,
+                        ["RecipientId"] = recipientId,
+                        ["CreatedAt"] = DateTime.UtcNow
+                    }
+                });
+
+                var attachment = new ChatAttachment
+                {
+                    Id = attachmentId,
+                    ConversationKey = BuildConversationKey(senderId, senderRole, recipientId, recipientRole),
+                    SenderId = senderId,
+                    SenderRole = senderRole,
+                    RecipientId = recipientId,
+                    RecipientRole = recipientRole,
+                    OriginalFileName = trimmedFileName,
+                    StoredFileName = storedFileName,
+                    StorageObjectId = storageObjectId.ToString(),
+                    FileSizeBytes = normalizedContent.Length,
+                    ContentType = "application/pdf",
+                    CreatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+
+                _context.ChatAttachments.InsertOne(attachment);
+                return attachment;
+            }
+
+            public bool DeleteChatAttachment(string currentUserId, string currentRole, string attachmentId)
+            {
+                ValidateChatIdentity(currentUserId, currentRole);
+                if (string.IsNullOrWhiteSpace(attachmentId))
+                    return false;
+
+                var attachment = _context.ChatAttachments.Find(a => a.Id == attachmentId).FirstOrDefault();
+                if (attachment == null)
+                    return false;
+
+                var isSender = string.Equals(attachment.SenderId, currentUserId, StringComparison.Ordinal) && string.Equals(attachment.SenderRole, currentRole, StringComparison.Ordinal);
+                if (!isSender)
+                    throw new InvalidOperationException("Only the sender can delete this attachment.");
+
+                if (attachment.IsDeleted)
+                    return true;
+
+                if (!string.IsNullOrWhiteSpace(attachment.StorageObjectId) && ObjectId.TryParse(attachment.StorageObjectId, out var storageObjectId))
+                {
+                    try
+                    {
+                        _context.ChatAttachmentsBucket.Delete(storageObjectId);
+                    }
+                    catch (Exception)
+                    {
+                        // File may already be absent; continue to mark metadata as deleted.
+                    }
+                }
+                else
+                {
+                    var storageFile = Path.Combine(AppContext.BaseDirectory, "ChatUploads", attachment.StoredFileName);
+                    if (File.Exists(storageFile))
+                        File.Delete(storageFile);
+                }
+
+                attachment.IsDeleted = true;
+                attachment.DeletedAt = DateTime.UtcNow;
+                _context.ChatAttachments.ReplaceOne(a => a.Id == attachmentId, attachment);
+                return true;
+            }
+
             public ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText)
+                => SaveChatMessage(senderId, senderRole, recipientId, recipientRole, messageText, null);
+
+            public ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText, string? attachmentId = null)
             {
                 ValidateChatIdentity(senderId, senderRole);
                 ValidateChatParticipant(recipientId, recipientRole);
                 if (string.Equals(senderId, recipientId, StringComparison.Ordinal) && senderRole == recipientRole)
                     throw new InvalidOperationException("You cannot send a chat message to yourself.");
 
+                if (!string.IsNullOrWhiteSpace(attachmentId))
+                {
+                    var attachment = _context.ChatAttachments.Find(a => a.Id == attachmentId).FirstOrDefault();
+                    if (attachment == null)
+                        throw new InvalidOperationException("The attachment could not be found.");
+                    if (attachment.IsDeleted)
+                        throw new InvalidOperationException("The attachment has already been deleted.");
+                    if (!string.Equals(attachment.SenderId, senderId, StringComparison.Ordinal) || !string.Equals(attachment.RecipientId, recipientId, StringComparison.Ordinal))
+                        throw new InvalidOperationException("The attachment does not match this conversation.");
+                }
+
                 var text = messageText?.Trim() ?? string.Empty;
-                if (text.Length == 0 || text.Length > 4000)
+                if (text.Length == 0 && string.IsNullOrWhiteSpace(attachmentId))
+                    throw new InvalidOperationException("Chat messages must contain between 1 and 4000 characters.");
+
+                if (text.Length == 0 && !string.IsNullOrWhiteSpace(attachmentId))
+                    text = "Send attachment";
+
+                if (text.Length > 4000)
                     throw new InvalidOperationException("Chat messages must contain between 1 and 4000 characters.");
 
                 var message = new ChatMessage
@@ -75,7 +234,8 @@ namespace DMS.Services
                     SenderRole = senderRole,
                     RecipientId = recipientId,
                     RecipientRole = recipientRole,
-                    MessageText = text
+                    MessageText = text,
+                    AttachmentId = attachmentId
                 };
                 _context.ChatMessages.InsertOne(message);
                 return message;

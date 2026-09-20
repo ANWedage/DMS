@@ -14,7 +14,8 @@ public sealed record UserStatusRequest(bool IsActive);
 public sealed record AttendanceStatusRequest(string Status, string? Note);
 public sealed record ComponentAssignmentsRequest(IReadOnlyCollection<string> UserIds);
 public sealed record NotificationRequest(string RecipientRole, bool SendToAll, IReadOnlyCollection<string> RecipientIds, string Title, string Message);
-public sealed record ChatMessageRequest(string RecipientId, string RecipientRole, string MessageText);
+public sealed record ChatMessageRequest(string RecipientId, string RecipientRole, string MessageText, string? AttachmentId = null);
+public sealed record ChatAttachmentUploadRequest(string RecipientId, string RecipientRole, string FileName, string ContentBase64);
 public sealed record AuthResponse(string Token, string UserId, string? Username, string Role, string? DisplayName = null);
 
 public sealed class JwtTokenService

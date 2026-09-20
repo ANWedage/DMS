@@ -301,15 +301,42 @@ public sealed class ApiUserService : IUserService, IDisposable
         return response.IsSuccessStatusCode;
     }
 
-    public ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText)
+    public ChatMessage SaveChatMessage(string senderId, string senderRole, string recipientId, string recipientRole, string messageText, string? attachmentId = null)
     {
         EnsureChatIdentity(senderId, senderRole);
         return Read<ChatMessage>(Send(HttpMethod.Post, "api/chat/messages", new
         {
             recipientId,
             recipientRole,
-            messageText
+            messageText,
+            attachmentId
         }));
+    }
+
+    public ChatAttachment? GetChatAttachment(string currentUserId, string currentRole, string attachmentId)
+    {
+        EnsureChatIdentity(currentUserId, currentRole);
+        return Read<ChatAttachment>(Send(HttpMethod.Get, $"api/chat/attachments/{Uri.EscapeDataString(attachmentId)}"));
+    }
+
+    public ChatAttachment UploadChatAttachment(string senderId, string senderRole, string recipientId, string recipientRole, string fileName, byte[] content)
+    {
+        EnsureChatIdentity(senderId, senderRole);
+        var base64 = Convert.ToBase64String(content ?? Array.Empty<byte>());
+        return Read<ChatAttachment>(Send(HttpMethod.Post, "api/chat/attachments/upload", new
+        {
+            recipientId,
+            recipientRole,
+            fileName,
+            contentBase64 = base64
+        }));
+    }
+
+    public bool DeleteChatAttachment(string currentUserId, string currentRole, string attachmentId)
+    {
+        EnsureChatIdentity(currentUserId, currentRole);
+        using var response = Send(HttpMethod.Delete, $"api/chat/attachments/{Uri.EscapeDataString(attachmentId)}");
+        return response.IsSuccessStatusCode;
     }
 
     public bool MarkChatMessagesRead(string recipientId, string recipientRole, string senderId, string senderRole)
@@ -318,6 +345,12 @@ public sealed class ApiUserService : IUserService, IDisposable
         using var response = Send(HttpMethod.Post,
             $"api/chat/conversations/{Uri.EscapeDataString(senderRole)}/{Uri.EscapeDataString(senderId)}/read");
         return response.IsSuccessStatusCode;
+    }
+
+    public ChatAttachmentDownloadResponse DownloadChatAttachment(string currentUserId, string currentRole, string attachmentId)
+    {
+        EnsureChatIdentity(currentUserId, currentRole);
+        return Read<ChatAttachmentDownloadResponse>(Send(HttpMethod.Get, $"api/chat/attachments/{Uri.EscapeDataString(attachmentId)}/download"));
     }
 
     public HubConnection CreateChatConnection()

@@ -16,7 +16,7 @@ public sealed class ChatHub : Hub
         _users = users;
     }
 
-    public async Task<ChatMessage> SendMessage(string recipientId, string recipientRole, string messageText)
+    public async Task<ChatMessage> SendMessage(string recipientId, string recipientRole, string messageText, string? attachmentId = null)
     {
         var identity = GetIdentity();
         var senderId = identity?.Id;
@@ -26,7 +26,7 @@ public sealed class ChatHub : Hub
 
         try
         {
-            var message = _users.SaveChatMessage(senderId, senderRole, recipientId, recipientRole, messageText);
+            var message = _users.SaveChatMessage(senderId, senderRole, recipientId, recipientRole, messageText, attachmentId);
             await Clients.Users(senderId, recipientId).SendAsync("ReceiveMessage", message);
             return message;
         }
