@@ -172,6 +172,18 @@ namespace DMS.Views
             if (string.Equals(user.Position, normalizedPosition, StringComparison.Ordinal))
                 return;
 
+            var result = MessageBox.Show(
+                $"Are you sure you want to change {user.Username ?? user.Email} to {normalizedPosition}?",
+                "Confirm developer position change",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                comboBox.SelectedItem = user.Position;
+                return;
+            }
+
             try
             {
                 var updated = _userService.SetUserPosition(userId, normalizedPosition);

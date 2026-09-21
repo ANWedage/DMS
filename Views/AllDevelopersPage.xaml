@@ -214,7 +214,7 @@
                                                       Height="30"
                                                       HorizontalAlignment="Left"
                                                       Tag="{Binding Id}"
-                                                      SelectedItem="{Binding Position, Mode=TwoWay}"
+                                                      SelectedItem="{Binding Position, Mode=OneWay}"
                                                       SelectionChanged="PositionComboBox_SelectionChanged"
                                                       FontWeight="SemiBold"
                                                       BorderThickness="1"
