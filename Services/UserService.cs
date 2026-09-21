@@ -1277,7 +1277,7 @@ namespace DMS.Services
             var project = _context.Projects.Find(p => p.Id == projectId).FirstOrDefault()
                 ?? throw new InvalidOperationException("The project could not be found.");
             var components = _context.Components.Find(c => c.ProjectId == projectId).ToList();
-            var users = _context.Users.Find(_ => true).ToList().ToDictionary(u => u.Id, u => u.Username ?? u.Email);
+            var users = _context.Users.Find(_ => true).ToList().ToDictionary(u => u.Id);
             var rows = new List<ProjectDailyTaskReportRow>();
 
             foreach (var component in components)
@@ -1295,7 +1295,8 @@ namespace DMS.Services
                         ComponentName = component.Name,
                         ComponentDescription = component.Description,
                         UserId = assignment.UserId,
-                        UserName = users.TryGetValue(assignment.UserId, out var name) ? name : "Unknown member",
+                        UserName = users.TryGetValue(assignment.UserId, out var user) ? user.Username ?? user.Email : "Unknown member",
+                        Position = users.TryGetValue(assignment.UserId, out user) ? user.Position : string.Empty,
                         Status = update?.Status ?? "Not submitted",
                         DailyWork = update?.Description ?? "No update submitted",
                         UpdateDate = calendarDate,

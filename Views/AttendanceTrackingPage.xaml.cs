@@ -68,6 +68,7 @@ namespace DMS.Views
                 var rows = _rows.ToList();
                 Document.Create(document => document.Page(page =>
                 {
+                    page.Size(PageSizes.A4.Landscape());
                     page.Margin(30);
                     page.Header().Column(column =>
                     {
@@ -83,6 +84,7 @@ namespace DMS.Views
                             columns.RelativeColumn(1.5f);
                             columns.RelativeColumn(2);
                             columns.RelativeColumn(2.5f);
+                            columns.RelativeColumn(1.2f);
                         });
 
                         table.Header(header =>
@@ -92,6 +94,7 @@ namespace DMS.Views
                             header.Cell().Element(HeaderCell).Text("Status");
                             header.Cell().Element(HeaderCell).Text("Marked by");
                             header.Cell().Element(HeaderCell).Text("Admin note");
+                            header.Cell().Element(HeaderCell).Text("Position");
                         });
 
                         foreach (var row in rows)
@@ -101,6 +104,7 @@ namespace DMS.Views
                             table.Cell().Element(StatusCell(row.Status)).Text(row.Status);
                             table.Cell().Element(BodyCell).Text(row.MarkedByDisplay);
                             table.Cell().Element(BodyCell).Text(row.AdminNote);
+                            table.Cell().Element(BodyCell).Text(row.Position);
                         }
                     });
                     page.Footer().AlignCenter().Text(text =>
@@ -202,6 +206,7 @@ namespace DMS.Views
                         {
                             RecordId = record?.Id ?? string.Empty,
                             MemberName = slotIndex == 0 ? user.Username ?? user.Email : string.Empty,
+                            Position = user.Position,
                             MeetingType = slot.DisplayName,
                             Status = record?.Status ?? AttendanceStatuses.Pending,
                             MarkedByDisplay = record == null ? "-" : record.ChangedByAdminName ?? record.MarkedBy ?? "-",
@@ -299,6 +304,7 @@ namespace DMS.Views
         {
             public string RecordId { get; init; } = string.Empty;
             public string MemberName { get; init; } = string.Empty;
+            public string Position { get; init; } = string.Empty;
             public string MeetingType { get; init; } = string.Empty;
             public string MarkedByDisplay { get; init; } = string.Empty;
             public string Status { get; set; } = AttendanceStatuses.Pending;

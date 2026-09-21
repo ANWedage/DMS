@@ -111,6 +111,7 @@ public sealed class ProjectDailyTaskReportRow
     public string ComponentDescription { get; init; } = string.Empty;
     public string UserId { get; init; } = string.Empty;
     public string UserName { get; init; } = string.Empty;
+    public string Position { get; init; } = string.Empty;
     public string Status { get; init; } = "Not submitted";
     public string DailyWork { get; init; } = "No update submitted";
     [BsonDateTimeOptions(Kind = DateTimeKind.Unspecified)]

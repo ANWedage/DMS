@@ -361,14 +361,17 @@ namespace DMS.Views
         var date = SelfStudyReportDatePicker.SelectedDate ?? DateTime.Today;
         try
         {
-            var updates = await Task.Run(() => _userService.GetSelfStudyUpdates(string.Empty, true));
-            var userNames = _users.ToDictionary(user => user.Id, user => user.Username ?? user.Email);
+            var updatesTask = Task.Run(() => _userService.GetSelfStudyUpdates(string.Empty, true));
+            var usersTask = Task.Run(_userService.GetAllUsers);
+            await Task.WhenAll(updatesTask, usersTask);
+            var userById = usersTask.Result.ToDictionary(user => user.Id);
 
-            _selfStudyReportRows = updates
+            _selfStudyReportRows = updatesTask.Result
                 .Where(update => update.UpdateDate.Date == date.Date)
                 .Select(update => new SelfStudyReportRow
                 {
-                    UserName = userNames.TryGetValue(update.UserId, out var userName) ? userName : "Unknown member",
+                    UserName = userById.TryGetValue(update.UserId, out var user) ? user.Username ?? user.Email : "Unknown member",
+                    Position = userById.TryGetValue(update.UserId, out user) ? user.Position : string.Empty,
                     UpdateDate = update.UpdateDate,
                     Topic = string.IsNullOrWhiteSpace(update.SelfStudyTopic) ? "General study" : update.SelfStudyTopic,
                     Status = update.Status,
@@ -415,6 +418,7 @@ namespace DMS.Views
             var rows = _selfStudyReportRows.ToList();
             Document.Create(document => document.Page(page =>
             {
+                page.Size(PageSizes.A4.Landscape());
                 page.Margin(30);
                 page.Header().Column(column =>
                 {
@@ -430,6 +434,7 @@ namespace DMS.Views
                         columns.RelativeColumn(1.4f);
                         columns.RelativeColumn(1.1f);
                         columns.RelativeColumn(3);
+                        columns.RelativeColumn(1.2f);
                     });
                     table.Header(header =>
                     {
@@ -438,6 +443,7 @@ namespace DMS.Views
                         header.Cell().Element(ReportHeaderCell).Text("Status");
                         header.Cell().Element(ReportHeaderCell).Text("Date");
                         header.Cell().Element(ReportHeaderCell).Text("Study Notes");
+                        header.Cell().Element(ReportHeaderCell).Text("Position");
                     });
                     foreach (var row in rows)
                     {
@@ -446,6 +452,7 @@ namespace DMS.Views
                         table.Cell().Element(ReportBodyCell).Text(row.Status);
                         table.Cell().Element(ReportBodyCell).Text(row.UpdateDate.ToString("yyyy-MM-dd"));
                         table.Cell().Element(ReportBodyCell).Text(row.Description);
+                        table.Cell().Element(ReportBodyCell).Text(row.Position);
                     }
                 });
                 page.Footer().AlignCenter().Text(text =>
@@ -492,6 +499,7 @@ namespace DMS.Views
             var rows = _projectReportRows.ToList();
             Document.Create(document => document.Page(page =>
             {
+                page.Size(PageSizes.A4.Landscape());
                 page.Margin(30);
                 page.Header().Column(column =>
                 {
@@ -508,6 +516,7 @@ namespace DMS.Views
                         columns.RelativeColumn(1.3f);
                         columns.RelativeColumn(1.1f);
                         columns.RelativeColumn(3);
+                        columns.RelativeColumn(1.2f);
                     });
                     table.Header(header =>
                     {
@@ -516,6 +525,7 @@ namespace DMS.Views
                         header.Cell().Element(ReportHeaderCell).Text("Member");
                         header.Cell().Element(ReportHeaderCell).Text("Status");
                         header.Cell().Element(ReportHeaderCell).Text("Today's Work");
+                        header.Cell().Element(ReportHeaderCell).Text("Position");
                     });
                     foreach (var row in rows)
                     {
@@ -524,6 +534,7 @@ namespace DMS.Views
                         table.Cell().Element(ReportBodyCell).Text(row.UserName);
                         table.Cell().Element(ReportBodyCell).Text(row.Status);
                         table.Cell().Element(ReportBodyCell).Text(row.DailyWork);
+                        table.Cell().Element(ReportBodyCell).Text(row.Position);
                     }
                 });
                 page.Footer().AlignCenter().Text(text =>
@@ -555,6 +566,7 @@ namespace DMS.Views
     private sealed class DailyUpdateDisplayRow
     {
         public string UserName { get; init; } = string.Empty;
+        public string Position { get; init; } = string.Empty;
         public DateTime UpdateDate { get; init; }
         public string Status { get; init; } = string.Empty;
         public string Description { get; init; } = string.Empty;
@@ -563,6 +575,7 @@ namespace DMS.Views
     private sealed class SelfStudyReportRow
     {
         public string UserName { get; init; } = string.Empty;
+        public string Position { get; init; } = string.Empty;
         public DateTime UpdateDate { get; init; }
         public string Topic { get; init; } = string.Empty;
         public string Status { get; init; } = string.Empty;
