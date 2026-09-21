@@ -32,6 +32,9 @@ namespace DMS.Services
         /// <summary>Updates the active/deactivated state of a user account.</summary>
         bool SetUserStatus(string userId, bool isActive, string? adminName = null);
 
+        /// <summary>Updates the developer role/position for a user account.</summary>
+        bool SetUserPosition(string userId, string? position);
+
         /// <summary>Deletes a user account and its attendance records.</summary>
         bool DeleteUserAccount(string userId);
 

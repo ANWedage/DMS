@@ -89,6 +89,7 @@ public sealed class AttendanceModel : PageModel
                         AttendanceStatuses.Present => "success",
                         AttendanceStatuses.Absent => "danger",
                         AttendanceStatuses.AbsentInformed => "warning",
+                        AttendanceStatuses.Leave => "primary",
                         _ => "neutral"
                     }
                 };

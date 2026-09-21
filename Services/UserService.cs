@@ -430,6 +430,22 @@ namespace DMS.Services
             return result.ModifiedCount > 0;
         }
 
+        public bool SetUserPosition(string userId, string? position)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return false;
+
+            var normalizedPosition = User.NormalizePosition(position);
+            if (!User.IsSupportedPosition(normalizedPosition))
+                return false;
+
+            var result = _context.Users.UpdateOne(
+                u => u.Id == userId,
+                Builders<User>.Update.Set(u => u.Position, normalizedPosition));
+
+            return result.ModifiedCount > 0;
+        }
+
         public bool DeleteUserAccount(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -807,7 +823,8 @@ namespace DMS.Services
             {
                 AttendanceStatuses.Present,
                 AttendanceStatuses.Absent,
-                AttendanceStatuses.AbsentInformed
+                AttendanceStatuses.AbsentInformed,
+                AttendanceStatuses.Leave
             };
             if (string.IsNullOrWhiteSpace(attendanceId) || !validStatuses.Contains(status))
                 return false;

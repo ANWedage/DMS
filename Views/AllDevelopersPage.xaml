@@ -173,6 +173,107 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
+                            <GridViewColumn Header="Position" Width="220">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0">
+                                            <Border Width="64"
+                                                    Height="22"
+                                                    CornerRadius="11"
+                                                    Margin="0,0,8,0"
+                                                    VerticalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#E5E7EB"/>
+                                                        <Setter Property="BorderBrush" Value="#D1D5DB"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Position}" Value="QA">
+                                                                <Setter Property="Background" Value="#3BAA59"/>
+                                                                <Setter Property="BorderBrush" Value="#2E8B4D"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Position}" Value="UI/UX">
+                                                                <Setter Property="Background" Value="#8B5CF6"/>
+                                                                <Setter Property="BorderBrush" Value="#7C3AED"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Position}" Value="Full Stack">
+                                                                <Setter Property="Background" Value="#0EA5E9"/>
+                                                                <Setter Property="BorderBrush" Value="#0284C7"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding Position, FallbackValue='-'}"
+                                                           FontSize="11"
+                                                           FontWeight="Bold"
+                                                           Foreground="White"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ComboBox Width="110"
+                                                      Height="30"
+                                                      HorizontalAlignment="Left"
+                                                      Tag="{Binding Id}"
+                                                      SelectedItem="{Binding Position, Mode=TwoWay}"
+                                                      SelectionChanged="PositionComboBox_SelectionChanged"
+                                                      FontWeight="SemiBold"
+                                                      BorderThickness="1"
+                                                      BorderBrush="#B7D6DD">
+                                                <ComboBox.Resources>
+                                                    <Style TargetType="ComboBoxItem">
+                                                        <Setter Property="Padding" Value="8,4"/>
+                                                        <Setter Property="Foreground" Value="#1F2937"/>
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="Content" Value="QA">
+                                                                <Setter Property="Background" Value="#EAF7EC"/>
+                                                                <Setter Property="Foreground" Value="#166534"/>
+                                                            </Trigger>
+                                                            <Trigger Property="Content" Value="UI/UX">
+                                                                <Setter Property="Background" Value="#F3E8FF"/>
+                                                                <Setter Property="Foreground" Value="#6D28D9"/>
+                                                            </Trigger>
+                                                            <Trigger Property="Content" Value="Full Stack">
+                                                                <Setter Property="Background" Value="#E0F2FE"/>
+                                                                <Setter Property="Foreground" Value="#075985"/>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ComboBox.Resources>
+                                                <ComboBox.Items>
+                                                    <sys:String>QA</sys:String>
+                                                    <sys:String>UI/UX</sys:String>
+                                                    <sys:String>Full Stack</sys:String>
+                                                </ComboBox.Items>
+                                                <ComboBox.Style>
+                                                    <Style TargetType="ComboBox">
+                                                        <Setter Property="Background" Value="#E5E7EB"/>
+                                                        <Setter Property="Foreground" Value="#1F2937"/>
+                                                        <Setter Property="TextElement.Foreground" Value="#1F2937"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Position}" Value="QA">
+                                                                <Setter Property="Background" Value="#EAF7EC"/>
+                                                                <Setter Property="Foreground" Value="#166534"/>
+                                                                <Setter Property="TextElement.Foreground" Value="#166534"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Position}" Value="UI/UX">
+                                                                <Setter Property="Background" Value="#F3E8FF"/>
+                                                                <Setter Property="Foreground" Value="#6D28D9"/>
+                                                                <Setter Property="TextElement.Foreground" Value="#6D28D9"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Position}" Value="Full Stack">
+                                                                <Setter Property="Background" Value="#E0F2FE"/>
+                                                                <Setter Property="Foreground" Value="#075985"/>
+                                                                <Setter Property="TextElement.Foreground" Value="#075985"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ComboBox.Style>
+                                            </ComboBox>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
                             <GridViewColumn Header="Actions" Width="100">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>

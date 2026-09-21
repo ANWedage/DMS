@@ -137,6 +137,7 @@ namespace DMS.Views
                 AttendanceStatuses.Present => Colors.Green.Lighten3,
                 AttendanceStatuses.Absent => Colors.Red.Lighten3,
                 AttendanceStatuses.AbsentInformed => Colors.Orange.Lighten3,
+                AttendanceStatuses.Leave => Colors.Purple.Lighten3,
                 _ => Colors.Grey.Lighten3
             };
             return container => container.Background(color).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5);
@@ -306,7 +307,8 @@ namespace DMS.Views
             {
                 AttendanceStatuses.Present,
                 AttendanceStatuses.Absent,
-                AttendanceStatuses.AbsentInformed
+                AttendanceStatuses.AbsentInformed,
+                AttendanceStatuses.Leave
             };
         }
     }

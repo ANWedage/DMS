@@ -20,6 +20,39 @@ namespace DMS.Models
         [BsonElement("ContactNumber")]
         public string ContactNumber { get; set; } = string.Empty;
 
+        private string _position = string.Empty;
+        [BsonElement("Position")]
+        public string Position
+        {
+            get => _position;
+            set
+            {
+                var normalized = NormalizePosition(value);
+                if (_position == normalized) return;
+                _position = normalized;
+                OnPropertyChanged();
+            }
+        }
+
+        public static string[] SupportedPositions => new[] { "QA", "UI/UX", "Full Stack" };
+
+        public static string NormalizePosition(string? position)
+        {
+            if (string.IsNullOrWhiteSpace(position))
+                return string.Empty;
+
+            var trimmed = position.Trim();
+            return trimmed switch
+            {
+                "QA" => "QA",
+                "UI/UX" => "UI/UX",
+                "Full Stack" => "Full Stack",
+                _ => string.Empty
+            };
+        }
+
+        public static bool IsSupportedPosition(string? position) => NormalizePosition(position) != string.Empty;
+
         [BsonElement("PasswordHash")]
         public string PasswordHash { get; set; } = string.Empty;
 

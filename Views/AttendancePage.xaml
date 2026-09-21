@@ -46,6 +46,9 @@
                                                         <DataTrigger Binding="{Binding Status}" Value="Absent (informed)">
                                                             <Setter Property="Foreground" Value="#E58A2B"/>
                                                         </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Leave">
+                                                            <Setter Property="Foreground" Value="#7C6EF6"/>
+                                                        </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </TextBlock.Style>

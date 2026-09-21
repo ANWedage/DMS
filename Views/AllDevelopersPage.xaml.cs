@@ -155,6 +155,43 @@ namespace DMS.Views
             }
         }
 
+        private async void PositionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is not ComboBox comboBox || comboBox.Tag is not string userId)
+                return;
+
+            var selectedPosition = comboBox.SelectedItem as string;
+            if (string.IsNullOrWhiteSpace(selectedPosition))
+                return;
+
+            var user = _allUsers.FirstOrDefault(u => u.Id == userId);
+            if (user is null)
+                return;
+
+            var normalizedPosition = User.NormalizePosition(selectedPosition);
+            if (string.Equals(user.Position, normalizedPosition, StringComparison.Ordinal))
+                return;
+
+            try
+            {
+                var updated = _userService.SetUserPosition(userId, normalizedPosition);
+                if (!updated)
+                {
+                    MessageBox.Show("Unable to save the developer position.", "Developer position", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    comboBox.SelectedValue = user.Position;
+                    return;
+                }
+
+                user.Position = normalizedPosition;
+                await ReloadDevelopersAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to save the developer position: {ex.Message}", "Developer position", MessageBoxButton.OK, MessageBoxImage.Error);
+                comboBox.SelectedValue = user.Position;
+            }
+        }
+
         private async void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button button || button.Tag is not string userId)
@@ -199,7 +236,8 @@ namespace DMS.Views
                 : _allUsers.Where(u =>
                     (u.Username ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase)
                     || (u.Email ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase)
-                    || (u.ContactNumber ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                    || (u.ContactNumber ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                    || (u.Position ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             DeveloperListView.ItemsSource = filteredUsers;

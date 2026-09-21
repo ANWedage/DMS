@@ -429,6 +429,16 @@ authenticated.MapPost("/admin/users/{userId}/status", (string userId, UserStatus
         : Results.NotFound();
 });
 
+authenticated.MapPost("/admin/users/{userId}/position", (string userId, UserPositionRequest request, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin"))
+        return Results.Forbid();
+
+    return users.SetUserPosition(userId, request.Position)
+        ? Results.NoContent()
+        : Results.NotFound();
+});
+
 authenticated.MapDelete("/admin/users/{userId}", (string userId, ClaimsPrincipal principal, IUserService users) =>
 {
     if (!principal.IsInRole("Admin"))

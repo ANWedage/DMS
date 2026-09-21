@@ -11,6 +11,7 @@ public sealed record ResetPasswordRequest(string Username, string NewPassword, b
 public sealed record SetUsernameRequest(string Username);
 public sealed record AttendanceRequest(string MeetingType, DateOnly Date);
 public sealed record UserStatusRequest(bool IsActive);
+public sealed record UserPositionRequest(string Position);
 public sealed record AttendanceStatusRequest(string Status, string? Note);
 public sealed record ComponentAssignmentsRequest(IReadOnlyCollection<string> UserIds);
 public sealed record NotificationRequest(string RecipientRole, bool SendToAll, IReadOnlyCollection<string> RecipientIds, string Title, string Message);

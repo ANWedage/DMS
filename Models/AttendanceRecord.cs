@@ -9,6 +9,7 @@ namespace DMS.Models
         public const string Present = "Present";
         public const string Absent = "Absent";
         public const string AbsentInformed = "Absent (informed)";
+        public const string Leave = "Leave";
     }
 
     public static class MeetingTypes

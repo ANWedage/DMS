@@ -78,6 +78,16 @@ public sealed class ApiUserService : IUserService, IDisposable
         return response.IsSuccessStatusCode;
     }
 
+    public bool SetUserPosition(string userId, string? position)
+    {
+        var normalizedPosition = User.NormalizePosition(position);
+        if (!User.IsSupportedPosition(normalizedPosition))
+            return false;
+
+        using var response = Send(HttpMethod.Post, $"api/admin/users/{Uri.EscapeDataString(userId)}/position", new { position = normalizedPosition }, allowErrorResponse: true);
+        return response.IsSuccessStatusCode;
+    }
+
     public bool DeleteUserAccount(string userId)
     {
         using var response = Send(HttpMethod.Post, $"api/admin/users/{Uri.EscapeDataString(userId)}/delete", allowErrorResponse: true);

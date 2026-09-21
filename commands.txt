@@ -5,11 +5,11 @@ dotnet run --project ".\DMS.csproj"
 
 
 git add .
-git commit -m "Prepare DMS release"
+git commit -m "version 2.1.4"
 git push origin main
 
-git tag v1.3.18
-git push origin v1.3.18
+git tag v2.1.4
+git push origin v2.1.4
 
 
 
