@@ -167,36 +167,74 @@ public partial class AdminDailyWorkPage : Page
             var dailyTaskRows = dailyTaskTask.Result;
             Document.Create(document => document.Page(page =>
             {
-                page.Size(PageSizes.A4);
-                page.Margin(36);
+                page.Size(PageSizes.A4.Landscape());
+                page.Margin(30);
                 page.Header().Column(column =>
                 {
-                    column.Item().Text("Attendance and Task Submission Report").FontSize(20).Bold();
+                    column.Item().Text("DMS Attendance and Task Submission Report").FontSize(20).Bold();
+                    column.Item().Text("All Administrators").FontSize(12).SemiBold();
                     column.Item().Text($"Date: {date:yyyy-MM-dd}").FontSize(11);
                 });
-                page.Content().PaddingTop(20).Column(column =>
+                page.Content().PaddingTop(18).Column(column =>
                 {
-                    if (includeAttendance)
+                    column.Item().Text("Attendance").FontSize(15).Bold();
+                    column.Item().PaddingTop(8).Table(table =>
                     {
-                        column.Item().Text("Attendance").FontSize(15).Bold();
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn(3);
+                            columns.RelativeColumn(1.5f);
+                            columns.RelativeColumn(1.5f);
+                        });
+                        table.Header(header =>
+                        {
+                            header.Cell().Element(HeaderCell).Text("Administrator");
+                            header.Cell().Element(HeaderCell).Text("Meeting");
+                            header.Cell().Element(HeaderCell).Text("Status");
+                        });
                         foreach (var row in attendanceRows)
-                            column.Item().PaddingTop(6).Text($"{row.AdminName} - {row.MeetingType}: {row.Status}");
-                        if (attendanceRows.Count == 0) column.Item().PaddingTop(6).Text("No attendance records.");
-                    }
-                    if (includeTask)
+                        {
+                            table.Cell().Element(BodyCell).Text(row.AdminName);
+                            table.Cell().Element(BodyCell).Text(row.MeetingType);
+                            table.Cell().Element(StatusCell(row.Status)).Text(row.Status);
+                        }
+                        if (attendanceRows.Count == 0)
+                            table.Cell().ColumnSpan(3).Element(BodyCell).Text("No attendance records.");
+                    });
+
+                    column.Item().PaddingTop(20).Text("Daily Task Submissions").FontSize(15).Bold();
+                    column.Item().PaddingTop(8).Table(table =>
                     {
-                        column.Item().PaddingTop(18).Text("Daily Tasks").FontSize(15).Bold();
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn(2.5f);
+                            columns.RelativeColumn(1.4f);
+                            columns.RelativeColumn(5);
+                            columns.RelativeColumn(3);
+                        });
+                        table.Header(header =>
+                        {
+                            header.Cell().Element(HeaderCell).Text("Administrator");
+                            header.Cell().Element(HeaderCell).Text("Status");
+                            header.Cell().Element(HeaderCell).Text("Work completed");
+                            header.Cell().Element(HeaderCell).Text("Blocked reason");
+                        });
                         foreach (var row in dailyTaskRows)
                         {
-                            column.Item().PaddingTop(8).Text($"{row.AdminName} - {row.Status}").Bold();
-                            column.Item().PaddingTop(3).Text(row.Description);
-                            if (!string.IsNullOrWhiteSpace(row.BlockedReason))
-                                column.Item().PaddingTop(3).Text($"Blocked reason: {row.BlockedReason}");
+                            table.Cell().Element(BodyCell).Text(row.AdminName);
+                            table.Cell().Element(StatusCell(row.Status)).Text(row.Status);
+                            table.Cell().Element(BodyCell).Text(row.Description);
+                            table.Cell().Element(BodyCell).Text(row.BlockedReason ?? string.Empty);
                         }
-                        if (dailyTaskRows.Count == 0) column.Item().PaddingTop(6).Text("No administrators found.");
-                    }
+                        if (dailyTaskRows.Count == 0)
+                            table.Cell().ColumnSpan(4).Element(BodyCell).Text("No administrators found.");
+                    });
                 });
-                page.Footer().AlignCenter().Text("Generated by DMS");
+                page.Footer().AlignCenter().Text(text =>
+                {
+                    text.Span("Generated by ");
+                    text.Span(AppSession.CurrentDisplayName ?? AppSession.CurrentUsername ?? "Administrator").Bold();
+                });
             })).GeneratePdf(dialog.FileName);
             ReportMessageText.Text = $"All-admin PDF saved to {dialog.FileName}";
         }
@@ -205,6 +243,31 @@ public partial class AdminDailyWorkPage : Page
         {
             _isGeneratingReport = false;
         }
+    }
+
+    private static IContainer HeaderCell(IContainer container)
+    {
+        return container.Background(Colors.Grey.Darken2).Padding(5)
+            .DefaultTextStyle(style => style.FontColor(Colors.White).Bold());
+    }
+
+    private static IContainer BodyCell(IContainer container)
+    {
+        return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5);
+    }
+
+    private static Func<IContainer, IContainer> StatusCell(string status)
+    {
+        var color = status switch
+        {
+            AttendanceStatuses.Present or TaskStatuses.Completed => Colors.Green.Lighten3,
+            AttendanceStatuses.Absent => Colors.Red.Lighten3,
+            TaskStatuses.Blocked => Colors.Orange.Lighten3,
+            "Not submitted" => Colors.Grey.Lighten3,
+            _ => Colors.Grey.Lighten4
+        };
+        return container => container.Background(color).BorderBottom(1)
+            .BorderColor(Colors.Grey.Lighten2).Padding(5);
     }
 
 }
