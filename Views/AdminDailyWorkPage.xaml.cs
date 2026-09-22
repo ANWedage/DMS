@@ -93,7 +93,8 @@ public partial class AdminDailyWorkPage : Page
 
         try
         {
-            await Task.Run(() => _userService.MarkAdminAttendancePresent(AdminId, meetingType, SelectedDate));
+            var date = SelectedDate;
+            await Task.Run(() => _userService.MarkAdminAttendancePresent(AdminId, meetingType, date));
             AttendanceMessageText.Text = $"{meetingType} attendance marked present.";
             await LoadPageAsync();
         }
@@ -112,10 +113,11 @@ public partial class AdminDailyWorkPage : Page
 
         try
         {
+            var date = SelectedDate;
             await Task.Run(() => _userService.SaveAdminDailyTask(new AdminDailyTaskUpdate
             {
                 AdminId = AdminId,
-                UpdateDate = SelectedDate,
+                UpdateDate = date,
                 Description = description,
                 Status = status,
                 BlockedReason = blockedReason
