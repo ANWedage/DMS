@@ -230,6 +230,12 @@ public sealed class ApiUserService : IUserService, IDisposable
 
     public MeetingSettings GetMeetingSettings() => Read<MeetingSettings>(Send(HttpMethod.Get, "api/meeting-settings"));
 
+    public MeetingSettings GetMeetingSettingsForUser(string userId)
+    {
+        EnsureCurrentUser(userId);
+        return Read<MeetingSettings>(Send(HttpMethod.Get, "api/meeting-settings/me"));
+    }
+
     public void SaveMeetingSettings(MeetingSettings settings, string adminId, string adminName)
     {
         using var response = Send(HttpMethod.Put, "api/admin/meeting-settings", settings);

@@ -12,6 +12,7 @@ namespace DMS.Views
         private readonly IUserService _userService;
         private readonly string _userId;
         private MeetingSettings _settings = new();
+        private string _position = string.Empty;
 
         public AttendancePage(IUserService userService, string userId)
         {
@@ -45,12 +46,14 @@ namespace DMS.Views
                 var date = AttendanceDatePicker.SelectedDate ?? DateTime.Today;
                 
                 // Execute both operations in parallel for better performance
-                var settingsTask = Task.Run(_userService.GetMeetingSettings);
+                var settingsTask = Task.Run(() => _userService.GetMeetingSettingsForUser(_userId));
                 var attendanceTask = Task.Run(() => _userService.GetUserAttendance(_userId, date));
+                var userTask = Task.Run(() => _userService.GetUserById(_userId));
                 
-                await Task.WhenAll(settingsTask, attendanceTask);
+                await Task.WhenAll(settingsTask, attendanceTask, userTask);
                 
                 _settings = settingsTask.Result;
+                _position = userTask.Result.Position;
                 var records = attendanceTask.Result;
 
                 if (!MeetingSchedule.IsWorkingDay(date))
@@ -59,8 +62,15 @@ namespace DMS.Views
                     MessageText.Text = "Weekend: non-working day. Attendance is not required.";
                     return;
                 }
+
+                if (!User.IsSupportedPosition(_position))
+                {
+                    AttendanceItems.ItemsSource = null;
+                    MessageText.Text = "Your team has not been assigned yet. Please contact an administrator.";
+                    return;
+                }
                 
-                var rows = MeetingSchedule.ForDate(_settings, date)
+                var rows = MeetingSchedule.ForDate(_settings, date, _position)
                     .Select(slot => CreateRow(records, slot, date))
                     .ToArray();
                 AttendanceItems.ItemsSource = rows;

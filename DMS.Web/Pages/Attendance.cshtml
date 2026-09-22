@@ -36,6 +36,16 @@
         </div>
     </section>
 }
+else if (Model.IsUnassigned)
+{
+    <section class="submitted-panel">
+        <div class="status-icon" aria-hidden="true">i</div>
+        <div>
+            <strong>Team not assigned</strong>
+            <p>Your team has not been assigned yet. Please contact an administrator.</p>
+        </div>
+    </section>
+}
 else
 {
     <form method="post" class="attendance-list">

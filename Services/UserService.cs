@@ -715,21 +715,41 @@ namespace DMS.Services
         {
             var settings = _context.MeetingSettings.Find(s => s.Id == MeetingSettings.DefaultId).FirstOrDefault();
             if (settings != null)
+            {
+                settings.EnsureTeamSettings();
                 return settings;
+            }
 
             settings = new MeetingSettings();
+            settings.EnsureTeamSettings();
             _context.MeetingSettings.InsertOne(settings);
+            return settings;
+        }
+
+        public MeetingSettings GetMeetingSettingsForUser(string userId)
+        {
+            var user = GetUserById(userId);
+            var settings = GetMeetingSettings();
+            var teamSettings = settings.GetTeamSettings(user.Position);
+            settings.MorningTime = teamSettings.MorningTime;
+            settings.EveningTime = teamSettings.EveningTime;
+            settings.MorningMeetingLink = teamSettings.MorningMeetingLink;
+            settings.EveningMeetingLink = teamSettings.EveningMeetingLink;
             return settings;
         }
 
         public void SaveMeetingSettings(MeetingSettings settings, string adminId, string adminName)
         {
-            if (!TimeSpan.TryParseExact(settings.MorningTime, @"hh\:mm", CultureInfo.InvariantCulture, out _)
-                || !TimeSpan.TryParseExact(settings.EveningTime, @"hh\:mm", CultureInfo.InvariantCulture, out _)
+            settings.EnsureTeamSettings();
+            if (!IsValidTeamSettings(settings.FullStack!)
+                || !IsValidTeamSettings(settings.QA!)
+                || !IsValidTeamSettings(settings.UIUX!)
                 || !TimeSpan.TryParseExact(settings.WeeklyTime, @"hh\:mm", CultureInfo.InvariantCulture, out _))
                 throw new InvalidOperationException("Meeting times must use HH:mm format.");
 
-            if (!IsValidMeetingLink(settings.MorningMeetingLink) || !IsValidMeetingLink(settings.EveningMeetingLink)
+            if (!IsValidMeetingLink(settings.FullStack!.MorningMeetingLink) || !IsValidMeetingLink(settings.FullStack.EveningMeetingLink)
+                || !IsValidMeetingLink(settings.QA!.MorningMeetingLink) || !IsValidMeetingLink(settings.QA.EveningMeetingLink)
+                || !IsValidMeetingLink(settings.UIUX!.MorningMeetingLink) || !IsValidMeetingLink(settings.UIUX.EveningMeetingLink)
                 || !IsValidMeetingLink(settings.WeeklyMeetingLink))
                 throw new InvalidOperationException("Meeting links must be valid http or https URLs.");
             if (!IsValidMeetingLink(settings.DailyTaskFormLink) || !IsValidMeetingLink(settings.LeaveFormLink))
@@ -738,6 +758,9 @@ namespace DMS.Services
             var update = Builders<MeetingSettings>.Update
                 .Set(s => s.MorningTime, settings.MorningTime)
                 .Set(s => s.EveningTime, settings.EveningTime)
+                .Set(s => s.FullStack, settings.FullStack)
+                .Set(s => s.QA, settings.QA)
+                .Set(s => s.UIUX, settings.UIUX)
                 .Set(s => s.WeeklyTime, settings.WeeklyTime)
                 .Set(s => s.MorningMeetingLink, settings.MorningMeetingLink?.Trim() ?? string.Empty)
                 .Set(s => s.EveningMeetingLink, settings.EveningMeetingLink?.Trim() ?? string.Empty)
@@ -755,6 +778,10 @@ namespace DMS.Services
                 new UpdateOptions { IsUpsert = true });
         }
 
+        private static bool IsValidTeamSettings(TeamMeetingSettings settings) =>
+            TimeSpan.TryParseExact(settings.MorningTime, @"hh\:mm", CultureInfo.InvariantCulture, out _)
+            && TimeSpan.TryParseExact(settings.EveningTime, @"hh\:mm", CultureInfo.InvariantCulture, out _);
+
         public List<AttendanceRecord> GetUserAttendance(string userId, DateTime date)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -763,8 +790,13 @@ namespace DMS.Services
             if (!MeetingSchedule.IsWorkingDay(date))
                 return new List<AttendanceRecord>();
 
-            EnsureUserDailyAttendance(userId, date);
-            var activeTypes = MeetingSchedule.ForDate(GetMeetingSettings(), date).Select(slot => slot.Type).ToHashSet();
+            var user = GetUserById(userId);
+            if (!User.IsSupportedPosition(user.Position))
+                return new List<AttendanceRecord>();
+
+            EnsureUserDailyAttendance(user, date);
+            var settings = GetMeetingSettings();
+            var activeTypes = MeetingSchedule.ForDate(settings, date, user.Position).Select(slot => slot.Type).ToHashSet();
             return _context.Attendance.Find(a => a.UserId == userId && a.MeetingDate == FormatDate(date))
                 .ToList()
                 .Where(a => activeTypes.Contains(a.MeetingType))
@@ -788,12 +820,17 @@ namespace DMS.Services
             if (!MeetingSchedule.IsWorkingDay(date))
                 throw new InvalidOperationException("Attendance is not available on weekends because they are non-working days.");
 
-            EnsureDailyAttendance(date);
+            var user = GetUserById(userId);
+            if (!User.IsSupportedPosition(user.Position))
+                throw new InvalidOperationException("Your team has not been assigned yet. Please contact an administrator.");
+
+            EnsureUserDailyAttendance(user, date);
             var settings = GetMeetingSettings();
             var now = GetApplicationNow(settings);
-            if (date.Date != now.Date || !IsWithinAttendanceWindow(meetingType, settings, now))
+            if (date.Date != now.Date || !MeetingSchedule.ForDate(settings, date, user.Position).Any(slot => slot.Type == meetingType)
+                || !IsWithinAttendanceWindow(meetingType, settings, user.Position, now))
             {
-                var start = GetMeetingStart(meetingType, settings, now.Date);
+                var start = GetMeetingStart(meetingType, settings, user.Position, now.Date);
                 throw new InvalidOperationException(
                     $"Attendance is only available from {start:HH:mm} to {start.AddMinutes(15):HH:mm} (Sri Lanka time). Current time: {now:HH:mm} on {now:yyyy-MM-dd}; requested date: {date:yyyy-MM-dd}.");
             }
@@ -847,30 +884,35 @@ namespace DMS.Services
                 Builders<AttendanceRecord>.Filter.Eq(a => a.Id, attendanceId), update).ModifiedCount > 0;
         }
 
-        private void EnsureUserDailyAttendance(string userId, DateTime date)
+        private void EnsureUserDailyAttendance(User user, DateTime date)
         {
             var dateText = FormatDate(date);
             var settings = GetMeetingSettings();
             var now = GetApplicationNow(settings);
 
+            if (!User.IsSupportedPosition(user.Position))
+                return;
+
             // Only ensure records for the current user, not all users
-            foreach (var meetingType in MeetingSchedule.ForDate(settings, date).Select(slot => slot.Type))
+            foreach (var meetingType in MeetingSchedule.ForDate(settings, date, user.Position).Select(slot => slot.Type))
             {
                 var filter = Builders<AttendanceRecord>.Filter.And(
-                    Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, userId),
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, user.Id),
                     Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
                     Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType));
 
                 var record = new AttendanceRecord
                 {
-                    UserId = userId,
+                    UserId = user.Id,
                     MeetingDate = dateText,
-                    MeetingType = meetingType
+                    MeetingType = meetingType,
+                    Team = user.Position
                 };
                 _context.Attendance.UpdateOne(filter, Builders<AttendanceRecord>.Update
                     .SetOnInsert(a => a.UserId, record.UserId)
                     .SetOnInsert(a => a.MeetingDate, record.MeetingDate)
                     .SetOnInsert(a => a.MeetingType, record.MeetingType)
+                    .SetOnInsert(a => a.Team, record.Team)
                     .SetOnInsert(a => a.Status, record.Status)
                     .SetOnInsert(a => a.CreatedAt, record.CreatedAt)
                     .SetOnInsert(a => a.UpdatedAt, record.UpdatedAt),
@@ -881,13 +923,13 @@ namespace DMS.Services
                 return;
 
             // Auto-mark absent if attendance window is closed
-            foreach (var meetingType in MeetingSchedule.ForDate(settings, date).Select(slot => slot.Type))
+            foreach (var meetingType in MeetingSchedule.ForDate(settings, date, user.Position).Select(slot => slot.Type))
             {
-                if (!IsWindowClosed(meetingType, settings, now))
+                if (!IsWindowClosed(meetingType, settings, user.Position, now))
                     continue;
 
                 var filter = Builders<AttendanceRecord>.Filter.And(
-                    Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, userId),
+                    Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, user.Id),
                     Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
                     Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType),
                     Builders<AttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
@@ -904,28 +946,30 @@ namespace DMS.Services
             var settings = GetMeetingSettings();
             var now = GetApplicationNow(settings);
             var activeUsers = _context.Users.Find(u => u.IsActive).ToList();
-            var meetingTypes = MeetingSchedule.ForDate(settings, date).Select(slot => slot.Type).ToList();
 
             // Used by admin operations to ensure all users have attendance records
             var ensureOperations = activeUsers
-                .SelectMany(user => meetingTypes.Select(meetingType =>
+                .Where(user => User.IsSupportedPosition(user.Position))
+                .SelectMany(user => MeetingSchedule.ForDate(settings, date, user.Position).Select(slot =>
                 {
                     var filter = Builders<AttendanceRecord>.Filter.And(
                         Builders<AttendanceRecord>.Filter.Eq(a => a.UserId, user.Id),
                         Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
-                        Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType));
+                        Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, slot.Type));
 
                     var record = new AttendanceRecord
                     {
                         UserId = user.Id,
                         MeetingDate = dateText,
-                        MeetingType = meetingType
+                        MeetingType = slot.Type,
+                        Team = user.Position
                     };
 
                     return new UpdateOneModel<AttendanceRecord>(filter, Builders<AttendanceRecord>.Update
                         .SetOnInsert(a => a.UserId, record.UserId)
                         .SetOnInsert(a => a.MeetingDate, record.MeetingDate)
                         .SetOnInsert(a => a.MeetingType, record.MeetingType)
+                        .SetOnInsert(a => a.Team, record.Team)
                         .SetOnInsert(a => a.Status, record.Status)
                         .SetOnInsert(a => a.CreatedAt, record.CreatedAt)
                         .SetOnInsert(a => a.UpdatedAt, record.UpdatedAt))
@@ -943,19 +987,30 @@ namespace DMS.Services
             if (date.Date != now.Date)
                 return;
 
-            foreach (var meetingType in meetingTypes)
+            foreach (var team in User.SupportedPositions)
             {
-                if (!IsWindowClosed(meetingType, settings, now))
-                    continue;
+                foreach (var meetingType in MeetingSchedule.ForDate(settings, date, team).Select(slot => slot.Type))
+                {
+                    if (!IsWindowClosed(meetingType, settings, team, now))
+                        continue;
 
-                var filter = Builders<AttendanceRecord>.Filter.And(
-                    Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
-                    Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType),
-                    Builders<AttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
-                _context.Attendance.UpdateMany(filter, Builders<AttendanceRecord>.Update
-                    .Set(a => a.Status, AttendanceStatuses.Absent)
-                    .Set(a => a.MarkedBy, "System")
-                    .Set(a => a.UpdatedAt, DateTime.UtcNow));
+                    var teamUserIds = activeUsers
+                        .Where(user => string.Equals(user.Position, team, StringComparison.Ordinal))
+                        .Select(user => user.Id)
+                        .ToList();
+                    if (teamUserIds.Count == 0)
+                        continue;
+
+                    var filter = Builders<AttendanceRecord>.Filter.And(
+                        Builders<AttendanceRecord>.Filter.In(a => a.UserId, teamUserIds),
+                        Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
+                        Builders<AttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType),
+                        Builders<AttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
+                    _context.Attendance.UpdateMany(filter, Builders<AttendanceRecord>.Update
+                        .Set(a => a.Status, AttendanceStatuses.Absent)
+                        .Set(a => a.MarkedBy, "System")
+                        .Set(a => a.UpdatedAt, DateTime.UtcNow));
+                }
             }
         }
 
@@ -994,24 +1049,25 @@ namespace DMS.Services
             }
         }
 
-        private static bool IsWithinAttendanceWindow(string meetingType, MeetingSettings settings, DateTime now)
+        private static bool IsWithinAttendanceWindow(string meetingType, MeetingSettings settings, string position, DateTime now)
         {
-            var start = GetMeetingStart(meetingType, settings, now.Date);
+            var start = GetMeetingStart(meetingType, settings, position, now.Date);
             return now >= start && now <= start.AddMinutes(15);
         }
 
-        private static bool IsWindowClosed(string meetingType, MeetingSettings settings, DateTime now)
+        private static bool IsWindowClosed(string meetingType, MeetingSettings settings, string position, DateTime now)
         {
-            return now > GetMeetingStart(meetingType, settings, now.Date).AddMinutes(15);
+            return now > GetMeetingStart(meetingType, settings, position, now.Date).AddMinutes(15);
         }
 
-        private static DateTime GetMeetingStart(string meetingType, MeetingSettings settings, DateTime date)
+        private static DateTime GetMeetingStart(string meetingType, MeetingSettings settings, string position, DateTime date)
         {
+            var teamSettings = settings.GetTeamSettings(position);
             var time = meetingType switch
             {
-                MeetingTypes.Morning => settings.MorningTime,
+                MeetingTypes.Morning => teamSettings.MorningTime,
                 MeetingTypes.Weekly => settings.WeeklyTime,
-                _ => settings.EveningTime
+                _ => teamSettings.EveningTime
             };
             if (!TimeSpan.TryParseExact(time, @"hh\:mm", CultureInfo.InvariantCulture, out var parsedTime))
                 parsedTime = meetingType switch

@@ -12,7 +12,8 @@
                 <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="18">
                     <StackPanel>
                         <TextBlock Text="Meeting settings" Style="{StaticResource SectionHeadingStyle}"/>
-                        <Grid Margin="0,14,0,0">
+                        <TextBlock Text="Full Stack" FontWeight="SemiBold" Margin="0,14,0,4"/>
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="120"/>
                                 <ColumnDefinition Width="150"/>
@@ -21,17 +22,60 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Morning time" VerticalAlignment="Center"/>
+                            <TextBox x:Name="FullStackMorningTimeTextBox" Grid.Column="1" Margin="8,0,18,8" ToolTip="Use HH:mm, for example 10:00"/>
+                            <TextBox x:Name="FullStackMorningLinkTextBox" Grid.Column="2" Margin="0,0,0,8" ToolTip="Google Meet link"/>
+                            <TextBlock Text="Evening time" Grid.Row="1" VerticalAlignment="Center"/>
+                            <TextBox x:Name="FullStackEveningTimeTextBox" Grid.Row="1" Grid.Column="1" Margin="8,0,18,0" ToolTip="Use HH:mm, for example 17:00"/>
+                            <TextBox x:Name="FullStackEveningLinkTextBox" Grid.Row="1" Grid.Column="2" ToolTip="Google Meet link"/>
+                        </Grid>
+                        <TextBlock Text="QA" FontWeight="SemiBold" Margin="0,14,0,4"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <TextBlock Text="Morning time" VerticalAlignment="Center"/>
-                            <TextBox x:Name="MorningTimeTextBox" Grid.Column="1" Margin="8,0,18,8"/>
-                            <TextBox x:Name="MorningLinkTextBox" Grid.Column="2" Margin="0,0,0,8" ToolTip="Google Meet link"/>
-                            <TextBlock Text="Weekly time" Grid.Row="1" VerticalAlignment="Center"/>
-                            <TextBox x:Name="WeeklyTimeTextBox" Grid.Row="1" Grid.Column="1" Margin="8,0,18,8" ToolTip="Use HH:mm, for example 10:00"/>
-                            <TextBox x:Name="WeeklyLinkTextBox" Grid.Row="1" Grid.Column="2" Margin="0,0,0,8" ToolTip="Google Meet link"/>
-                            <TextBlock Text="Evening time" Grid.Row="2" VerticalAlignment="Center"/>
-                            <TextBox x:Name="EveningTimeTextBox" Grid.Row="2" Grid.Column="1" Margin="8,0,18,0"/>
-                            <TextBox x:Name="EveningLinkTextBox" Grid.Row="2" Grid.Column="2" ToolTip="Google Meet link"/>
+                            <TextBox x:Name="QaMorningTimeTextBox" Grid.Column="1" Margin="8,0,18,8" ToolTip="Use HH:mm, for example 10:00"/>
+                            <TextBox x:Name="QaMorningLinkTextBox" Grid.Column="2" Margin="0,0,0,8" ToolTip="Google Meet link"/>
+                            <TextBlock Text="Evening time" Grid.Row="1" VerticalAlignment="Center"/>
+                            <TextBox x:Name="QaEveningTimeTextBox" Grid.Row="1" Grid.Column="1" Margin="8,0,18,0" ToolTip="Use HH:mm, for example 17:00"/>
+                            <TextBox x:Name="QaEveningLinkTextBox" Grid.Row="1" Grid.Column="2" ToolTip="Google Meet link"/>
+                        </Grid>
+                        <TextBlock Text="UI/UX" FontWeight="SemiBold" Margin="0,14,0,4"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Morning time" VerticalAlignment="Center"/>
+                            <TextBox x:Name="UiUxMorningTimeTextBox" Grid.Column="1" Margin="8,0,18,8" ToolTip="Use HH:mm, for example 10:00"/>
+                            <TextBox x:Name="UiUxMorningLinkTextBox" Grid.Column="2" Margin="0,0,0,8" ToolTip="Google Meet link"/>
+                            <TextBlock Text="Evening time" Grid.Row="1" VerticalAlignment="Center"/>
+                            <TextBox x:Name="UiUxEveningTimeTextBox" Grid.Row="1" Grid.Column="1" Margin="8,0,18,0" ToolTip="Use HH:mm, for example 17:00"/>
+                            <TextBox x:Name="UiUxEveningLinkTextBox" Grid.Row="1" Grid.Column="2" ToolTip="Google Meet link"/>
+                        </Grid>
+                        <TextBlock Text="Shared weekly meeting" FontWeight="SemiBold" Margin="0,14,0,4"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Weekly time" VerticalAlignment="Center"/>
+                            <TextBox x:Name="WeeklyTimeTextBox" Grid.Column="1" Margin="8,0,18,0" ToolTip="Use HH:mm, for example 10:00"/>
+                            <TextBox x:Name="WeeklyLinkTextBox" Grid.Column="2" ToolTip="Google Meet link"/>
                         </Grid>
                         <Button Content="Save meeting settings" Click="SaveSettingsButton_Click"
                                 HorizontalAlignment="Left" Margin="0,14,0,0"/>
@@ -53,6 +97,7 @@
                     <DataGrid x:Name="AttendanceGrid" AutoGenerateColumns="False" CanUserAddRows="False"
                               IsReadOnly="False" Background="Transparent" BorderThickness="0">
                     <DataGrid.Columns>
+                        <DataGridTextColumn Header="Team" Binding="{Binding Team}" IsReadOnly="True" Width="100"/>
                         <DataGridTextColumn Header="Member" Binding="{Binding MemberName}" IsReadOnly="True" Width="170"/>
                         <DataGridTextColumn Header="Meeting" Binding="{Binding MeetingType}" IsReadOnly="True" Width="100"/>
                         <DataGridTextColumn Header="Marked by" Binding="{Binding MarkedByDisplay}" IsReadOnly="True" Width="120"/>

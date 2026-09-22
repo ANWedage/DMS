@@ -22,6 +22,7 @@ public sealed class AttendanceModel : PageModel
     public string? MeetingType { get; set; }
 
     public bool IsWeekend => !MeetingSchedule.IsWorkingDay(SelectedDate);
+    public bool IsUnassigned { get; private set; }
     public List<AttendanceSlotViewModel> Slots { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
@@ -61,10 +62,18 @@ public sealed class AttendanceModel : PageModel
         }
 
         var token = GetApiToken();
-        var settings = await _apiClient.GetMeetingSettingsAsync(token, cancellationToken);
+        var user = await _apiClient.GetCurrentUserAsync(token, cancellationToken);
+        IsUnassigned = !DMS.Models.User.IsSupportedPosition(user.Position);
+        if (IsUnassigned)
+        {
+            Slots = [];
+            return;
+        }
+
+        var settings = await _apiClient.GetMyMeetingSettingsAsync(token, cancellationToken);
         var attendance = await _apiClient.GetUserAttendanceAsync(token, SelectedDate, cancellationToken);
 
-        Slots = MeetingSchedule.ForDate(settings, SelectedDate)
+        Slots = MeetingSchedule.ForDate(settings, SelectedDate, user.Position)
             .Select(slot =>
             {
                 var record = attendance.FirstOrDefault(item => item.MeetingType == slot.Type);

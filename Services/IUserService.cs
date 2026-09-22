@@ -67,6 +67,7 @@ namespace DMS.Services
             IReadOnlyCollection<string> recipientIds, string title, string message);
 
         MeetingSettings GetMeetingSettings();
+        MeetingSettings GetMeetingSettingsForUser(string userId);
         void SaveMeetingSettings(MeetingSettings settings, string adminId, string adminName);
         List<AttendanceRecord> GetUserAttendance(string userId, DateTime date);
         List<AttendanceRecord> GetAllAttendance(DateTime date);

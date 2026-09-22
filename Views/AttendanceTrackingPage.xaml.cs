@@ -94,7 +94,7 @@ namespace DMS.Views
                             header.Cell().Element(HeaderCell).Text("Status");
                             header.Cell().Element(HeaderCell).Text("Marked by");
                             header.Cell().Element(HeaderCell).Text("Admin note");
-                            header.Cell().Element(HeaderCell).Text("Position");
+                            header.Cell().Element(HeaderCell).Text("Team");
                         });
 
                         foreach (var row in rows)
@@ -104,7 +104,7 @@ namespace DMS.Views
                             table.Cell().Element(StatusCell(row.Status)).Text(row.Status);
                             table.Cell().Element(BodyCell).Text(row.MarkedByDisplay);
                             table.Cell().Element(BodyCell).Text(row.AdminNote);
-                            table.Cell().Element(BodyCell).Text(row.Position);
+                            table.Cell().Element(BodyCell).Text(row.Team);
                         }
                     });
                     page.Footer().AlignCenter().Text(text =>
@@ -159,11 +159,20 @@ namespace DMS.Views
                 
                 // Populate settings textboxes after both tasks complete
                 var settings = settingsTask.Result;
-                MorningTimeTextBox.Text = settings.MorningTime;
-                EveningTimeTextBox.Text = settings.EveningTime;
+                settings.EnsureTeamSettings();
+                FullStackMorningTimeTextBox.Text = settings.FullStack!.MorningTime;
+                FullStackMorningLinkTextBox.Text = settings.FullStack.MorningMeetingLink;
+                FullStackEveningTimeTextBox.Text = settings.FullStack.EveningTime;
+                FullStackEveningLinkTextBox.Text = settings.FullStack.EveningMeetingLink;
+                QaMorningTimeTextBox.Text = settings.QA!.MorningTime;
+                QaMorningLinkTextBox.Text = settings.QA.MorningMeetingLink;
+                QaEveningTimeTextBox.Text = settings.QA.EveningTime;
+                QaEveningLinkTextBox.Text = settings.QA.EveningMeetingLink;
+                UiUxMorningTimeTextBox.Text = settings.UIUX!.MorningTime;
+                UiUxMorningLinkTextBox.Text = settings.UIUX.MorningMeetingLink;
+                UiUxEveningTimeTextBox.Text = settings.UIUX.EveningTime;
+                UiUxEveningLinkTextBox.Text = settings.UIUX.EveningMeetingLink;
                 WeeklyTimeTextBox.Text = settings.WeeklyTime;
-                MorningLinkTextBox.Text = settings.MorningMeetingLink;
-                EveningLinkTextBox.Text = settings.EveningMeetingLink;
                 WeeklyLinkTextBox.Text = settings.WeeklyMeetingLink;
                 UpdateLastSettingsText(settings);
             }
@@ -184,7 +193,6 @@ namespace DMS.Views
                 await Task.WhenAll(usersTask, attendanceTask, settingsTask);
 
                 var records = attendanceTask.Result;
-                var slots = MeetingSchedule.ForDate(settingsTask.Result, date);
                 var recordsByUserAndMeeting = records.ToDictionary(
                     item => (item.UserId, item.MeetingType));
                 _rows.Clear();
@@ -196,17 +204,42 @@ namespace DMS.Views
                     return;
                 }
 
-                foreach (var user in usersTask.Result)
+                foreach (var user in usersTask.Result
+                    .OrderBy(user => string.IsNullOrWhiteSpace(user.Position) ? 1 : 0)
+                    .ThenBy(user => user.Position)
+                    .ThenBy(user => user.Username ?? user.Email))
                 {
-                    for (var slotIndex = 0; slotIndex < slots.Count; slotIndex++)
+                    var userRecords = records.Where(record => record.UserId == user.Id).ToList();
+                    var historicalTeam = userRecords
+                        .Select(record => record.Team)
+                        .FirstOrDefault(User.IsSupportedPosition);
+                    var schedulePosition = historicalTeam ?? user.Position;
+                    var userSlots = MeetingSchedule.ForDate(settingsTask.Result, date, schedulePosition);
+                    if (userSlots.Count == 0)
                     {
-                        var slot = slots[slotIndex];
+                        _rows.Add(new AttendanceRow
+                        {
+                            MemberName = user.Username ?? user.Email,
+                            Team = "Unassigned",
+                            Position = "Unassigned",
+                            MeetingType = "No meetings configured",
+                            Status = "-",
+                            MarkedByDisplay = "-",
+                            AdminNote = "Assign Full Stack, QA, or UI/UX"
+                        });
+                        continue;
+                    }
+
+                    for (var slotIndex = 0; slotIndex < userSlots.Count; slotIndex++)
+                    {
+                        var slot = userSlots[slotIndex];
                         recordsByUserAndMeeting.TryGetValue((user.Id, slot.Type), out var record);
                         _rows.Add(new AttendanceRow
                         {
                             RecordId = record?.Id ?? string.Empty,
                             MemberName = slotIndex == 0 ? user.Username ?? user.Email : string.Empty,
-                            Position = user.Position,
+                            Team = record?.Team ?? schedulePosition,
+                            Position = record?.Team ?? schedulePosition,
                             MeetingType = slot.DisplayName,
                             Status = record?.Status ?? AttendanceStatuses.Pending,
                             MarkedByDisplay = record == null ? "-" : record.ChangedByAdminName ?? record.MarkedBy ?? "-",
@@ -238,16 +271,37 @@ namespace DMS.Views
                 var existingSettings = await Task.Run(_userService.GetMeetingSettings);
                 var settings = new MeetingSettings
                 {
-                    MorningTime = MorningTimeTextBox.Text,
-                    EveningTime = EveningTimeTextBox.Text,
                     WeeklyTime = WeeklyTimeTextBox.Text,
-                    MorningMeetingLink = MorningLinkTextBox.Text,
-                    EveningMeetingLink = EveningLinkTextBox.Text,
                     WeeklyMeetingLink = WeeklyLinkTextBox.Text,
                     DailyTaskFormLink = existingSettings.DailyTaskFormLink,
                     LeaveFormLink = existingSettings.LeaveFormLink,
-                    TimeZoneId = existingSettings.TimeZoneId
+                    TimeZoneId = existingSettings.TimeZoneId,
+                    FullStack = new TeamMeetingSettings
+                    {
+                        MorningTime = FullStackMorningTimeTextBox.Text,
+                        MorningMeetingLink = FullStackMorningLinkTextBox.Text,
+                        EveningTime = FullStackEveningTimeTextBox.Text,
+                        EveningMeetingLink = FullStackEveningLinkTextBox.Text
+                    },
+                    QA = new TeamMeetingSettings
+                    {
+                        MorningTime = QaMorningTimeTextBox.Text,
+                        MorningMeetingLink = QaMorningLinkTextBox.Text,
+                        EveningTime = QaEveningTimeTextBox.Text,
+                        EveningMeetingLink = QaEveningLinkTextBox.Text
+                    },
+                    UIUX = new TeamMeetingSettings
+                    {
+                        MorningTime = UiUxMorningTimeTextBox.Text,
+                        MorningMeetingLink = UiUxMorningLinkTextBox.Text,
+                        EveningTime = UiUxEveningTimeTextBox.Text,
+                        EveningMeetingLink = UiUxEveningLinkTextBox.Text
+                    }
                 };
+                settings.MorningTime = settings.FullStack.MorningTime;
+                settings.MorningMeetingLink = settings.FullStack.MorningMeetingLink;
+                settings.EveningTime = settings.FullStack.EveningTime;
+                settings.EveningMeetingLink = settings.FullStack.EveningMeetingLink;
                 await Task.Run(() => _userService.SaveMeetingSettings(
                     settings,
                     AppSession.CurrentUserId ?? string.Empty,
@@ -304,6 +358,7 @@ namespace DMS.Views
         {
             public string RecordId { get; init; } = string.Empty;
             public string MemberName { get; init; } = string.Empty;
+            public string Team { get; init; } = string.Empty;
             public string Position { get; init; } = string.Empty;
             public string MeetingType { get; init; } = string.Empty;
             public string MarkedByDisplay { get; init; } = string.Empty;

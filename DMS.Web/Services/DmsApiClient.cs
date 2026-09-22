@@ -44,6 +44,12 @@ public sealed class DmsApiClient
     public Task<MeetingSettings> GetMeetingSettingsAsync(string token, CancellationToken cancellationToken = default) =>
         GetAsync<MeetingSettings>("api/meeting-settings", token, cancellationToken);
 
+    public Task<MeetingSettings> GetMyMeetingSettingsAsync(string token, CancellationToken cancellationToken = default) =>
+        GetAsync<MeetingSettings>("api/meeting-settings/me", token, cancellationToken);
+
+    public Task<User> GetCurrentUserAsync(string token, CancellationToken cancellationToken = default) =>
+        GetAsync<User>("api/users/me", token, cancellationToken);
+
     public Task<List<AttendanceRecord>> GetUserAttendanceAsync(string token, DateTime date, CancellationToken cancellationToken = default) =>
         GetAsync<List<AttendanceRecord>>($"api/attendance?date={date:yyyy-MM-dd}", token, cancellationToken);
 

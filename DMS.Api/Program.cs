@@ -479,6 +479,22 @@ authenticated.MapPost("/admin/attendance/{attendanceId}/status", (string attenda
 authenticated.MapGet("/meeting-settings", (ClaimsPrincipal principal, IUserService users) =>
     Results.Ok(users.GetMeetingSettings()));
 
+authenticated.MapGet("/meeting-settings/me", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    if (principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId))
+        return Results.Forbid();
+
+    try
+    {
+        return Results.Ok(users.GetMeetingSettingsForUser(userId));
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+});
+
 authenticated.MapPut("/admin/meeting-settings", (MeetingSettings settings, ClaimsPrincipal principal, IUserService users) =>
 {
     if (!principal.IsInRole("Admin"))

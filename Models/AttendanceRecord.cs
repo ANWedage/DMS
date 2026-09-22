@@ -24,18 +24,23 @@ namespace DMS.Models
     public static class MeetingSchedule
     {
         public static IReadOnlyList<MeetingSlot> ForDate(MeetingSettings settings, DateTime date)
+            => ForDate(settings, date, "Full Stack");
+
+        public static IReadOnlyList<MeetingSlot> ForDate(MeetingSettings settings, DateTime date, string? position)
         {
-                if (!IsWorkingDay(date))
+            if (!IsWorkingDay(date) || !User.IsSupportedPosition(position))
                     return Array.Empty<MeetingSlot>();
+
+            var teamSettings = settings.GetTeamSettings(position);
 
             var firstMeeting = date.DayOfWeek == DayOfWeek.Friday
                 ? new MeetingSlot(MeetingTypes.Weekly, "Weekly Meeting", settings.WeeklyTime, settings.WeeklyMeetingLink)
-                : new MeetingSlot(MeetingTypes.Morning, "Morning Standup", settings.MorningTime, settings.MorningMeetingLink);
+                : new MeetingSlot(MeetingTypes.Morning, "Morning Standup", teamSettings.MorningTime, teamSettings.MorningMeetingLink);
 
             return new[]
             {
                 firstMeeting,
-                new MeetingSlot(MeetingTypes.Evening, "Evening Standup", settings.EveningTime, settings.EveningMeetingLink)
+                new MeetingSlot(MeetingTypes.Evening, "Evening Standup", teamSettings.EveningTime, teamSettings.EveningMeetingLink)
             };
         }
 
@@ -57,6 +62,10 @@ namespace DMS.Models
 
         [BsonElement("MeetingType")]
         public string MeetingType { get; set; } = string.Empty;
+
+        [BsonElement("Team")]
+        [BsonIgnoreIfNull]
+        public string? Team { get; set; }
 
         [BsonElement("Status")]
         public string Status { get; set; } = AttendanceStatuses.Pending;

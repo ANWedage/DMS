@@ -5,11 +5,11 @@ dotnet run --project ".\DMS.csproj"
 
 
 git add .
-git commit -m "version 2.1.4"
+git commit -m "version 2.1.7"
 git push origin main
 
-git tag v2.1.4
-git push origin v2.1.4
+git tag v2.1.7
+git push origin v2.1.7
 
 
 
@@ -17,7 +17,7 @@ git push origin v2.1.4
 
 
 
-$env:DMS_MONGO_CONNECTION_STRING = "mongodb+srv://adeepanethwedage10171_db_user:lP6fXLxsPISfav13@dms.42hrhxm.mongodb.net/?appName=dms"
+$env:DMS_MONGO_CONNECTION_STRING = "<staging-or-local-mongodb-connection-string>"
 
 .\scripts\create-admin.ps1
 
