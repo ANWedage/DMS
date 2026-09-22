@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -19,6 +20,7 @@ namespace DMS.Views
         public AttendanceTrackingPage(IUserService userService)
         {
             InitializeComponent();
+            InitializeTimePickers();
             _userService = userService;
             AttendanceDatePicker.SelectedDate = DateTime.Today;
             Loaded += AttendanceTrackingPage_Loaded;
@@ -38,6 +40,47 @@ namespace DMS.Views
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
             await LoadPageAsync();
+        }
+
+        private void InitializeTimePickers()
+        {
+            var hours = Enumerable.Range(0, 24).Select(value => value.ToString("D2")).ToList();
+            var minutes = Enumerable.Range(0, 60).Select(value => value.ToString("D2")).ToList();
+
+            foreach (var picker in new[]
+            {
+                FullStackMorningHourBox, FullStackEveningHourBox,
+                QaMorningHourBox, QaEveningHourBox,
+                UiUxMorningHourBox, UiUxEveningHourBox,
+                WeeklyHourBox
+            })
+                picker.ItemsSource = hours;
+
+            foreach (var picker in new[]
+            {
+                FullStackMorningMinuteBox, FullStackEveningMinuteBox,
+                QaMorningMinuteBox, QaEveningMinuteBox,
+                UiUxMorningMinuteBox, UiUxEveningMinuteBox,
+                WeeklyMinuteBox
+            })
+                picker.ItemsSource = minutes;
+
+        }
+
+        private static void SetTime(ComboBox hourPicker, ComboBox minutePicker, string value)
+        {
+            if (!TimeSpan.TryParseExact(value, @"hh\:mm", CultureInfo.InvariantCulture, out var time))
+                time = new TimeSpan(10, 0, 0);
+
+            hourPicker.SelectedItem = time.Hours.ToString("D2");
+            minutePicker.SelectedItem = time.Minutes.ToString("D2");
+        }
+
+        private static string GetTime(ComboBox hourPicker, ComboBox minutePicker)
+        {
+            var hour = hourPicker.SelectedItem?.ToString() ?? "10";
+            var minute = minutePicker.SelectedItem?.ToString() ?? "00";
+            return $"{hour}:{minute}";
         }
 
         private void GenerateReportButton_Click(object sender, RoutedEventArgs e)
@@ -160,19 +203,19 @@ namespace DMS.Views
                 // Populate settings textboxes after both tasks complete
                 var settings = settingsTask.Result;
                 settings.EnsureTeamSettings();
-                FullStackMorningTimeTextBox.Text = settings.FullStack!.MorningTime;
+                SetTime(FullStackMorningHourBox, FullStackMorningMinuteBox, settings.FullStack!.MorningTime);
                 FullStackMorningLinkTextBox.Text = settings.FullStack.MorningMeetingLink;
-                FullStackEveningTimeTextBox.Text = settings.FullStack.EveningTime;
+                SetTime(FullStackEveningHourBox, FullStackEveningMinuteBox, settings.FullStack.EveningTime);
                 FullStackEveningLinkTextBox.Text = settings.FullStack.EveningMeetingLink;
-                QaMorningTimeTextBox.Text = settings.QA!.MorningTime;
+                SetTime(QaMorningHourBox, QaMorningMinuteBox, settings.QA!.MorningTime);
                 QaMorningLinkTextBox.Text = settings.QA.MorningMeetingLink;
-                QaEveningTimeTextBox.Text = settings.QA.EveningTime;
+                SetTime(QaEveningHourBox, QaEveningMinuteBox, settings.QA.EveningTime);
                 QaEveningLinkTextBox.Text = settings.QA.EveningMeetingLink;
-                UiUxMorningTimeTextBox.Text = settings.UIUX!.MorningTime;
+                SetTime(UiUxMorningHourBox, UiUxMorningMinuteBox, settings.UIUX!.MorningTime);
                 UiUxMorningLinkTextBox.Text = settings.UIUX.MorningMeetingLink;
-                UiUxEveningTimeTextBox.Text = settings.UIUX.EveningTime;
+                SetTime(UiUxEveningHourBox, UiUxEveningMinuteBox, settings.UIUX.EveningTime);
                 UiUxEveningLinkTextBox.Text = settings.UIUX.EveningMeetingLink;
-                WeeklyTimeTextBox.Text = settings.WeeklyTime;
+                SetTime(WeeklyHourBox, WeeklyMinuteBox, settings.WeeklyTime);
                 WeeklyLinkTextBox.Text = settings.WeeklyMeetingLink;
                 UpdateLastSettingsText(settings);
             }
@@ -238,7 +281,7 @@ namespace DMS.Views
                         {
                             RecordId = record?.Id ?? string.Empty,
                             MemberName = slotIndex == 0 ? user.Username ?? user.Email : string.Empty,
-                            Team = record?.Team ?? schedulePosition,
+                            Team = slotIndex == 0 ? record?.Team ?? schedulePosition : string.Empty,
                             Position = record?.Team ?? schedulePosition,
                             MeetingType = slot.DisplayName,
                             Status = record?.Status ?? AttendanceStatuses.Pending,
@@ -271,30 +314,30 @@ namespace DMS.Views
                 var existingSettings = await Task.Run(_userService.GetMeetingSettings);
                 var settings = new MeetingSettings
                 {
-                    WeeklyTime = WeeklyTimeTextBox.Text,
+                    WeeklyTime = GetTime(WeeklyHourBox, WeeklyMinuteBox),
                     WeeklyMeetingLink = WeeklyLinkTextBox.Text,
                     DailyTaskFormLink = existingSettings.DailyTaskFormLink,
                     LeaveFormLink = existingSettings.LeaveFormLink,
                     TimeZoneId = existingSettings.TimeZoneId,
                     FullStack = new TeamMeetingSettings
                     {
-                        MorningTime = FullStackMorningTimeTextBox.Text,
+                        MorningTime = GetTime(FullStackMorningHourBox, FullStackMorningMinuteBox),
                         MorningMeetingLink = FullStackMorningLinkTextBox.Text,
-                        EveningTime = FullStackEveningTimeTextBox.Text,
+                        EveningTime = GetTime(FullStackEveningHourBox, FullStackEveningMinuteBox),
                         EveningMeetingLink = FullStackEveningLinkTextBox.Text
                     },
                     QA = new TeamMeetingSettings
                     {
-                        MorningTime = QaMorningTimeTextBox.Text,
+                        MorningTime = GetTime(QaMorningHourBox, QaMorningMinuteBox),
                         MorningMeetingLink = QaMorningLinkTextBox.Text,
-                        EveningTime = QaEveningTimeTextBox.Text,
+                        EveningTime = GetTime(QaEveningHourBox, QaEveningMinuteBox),
                         EveningMeetingLink = QaEveningLinkTextBox.Text
                     },
                     UIUX = new TeamMeetingSettings
                     {
-                        MorningTime = UiUxMorningTimeTextBox.Text,
+                        MorningTime = GetTime(UiUxMorningHourBox, UiUxMorningMinuteBox),
                         MorningMeetingLink = UiUxMorningLinkTextBox.Text,
-                        EveningTime = UiUxEveningTimeTextBox.Text,
+                        EveningTime = GetTime(UiUxEveningHourBox, UiUxEveningMinuteBox),
                         EveningMeetingLink = UiUxEveningLinkTextBox.Text
                     }
                 };
