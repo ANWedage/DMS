@@ -62,6 +62,11 @@ namespace DMS.Views
             MainContentFrame.Navigate(new AttendanceTrackingPage(_userService));
         }
 
+        private void AdminDailyWorkButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainContentFrame.Navigate(new AdminDailyWorkPage(_userService));
+        }
+
         private void FormsButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new AdminFormsPage(_userService));
@@ -83,6 +88,15 @@ namespace DMS.Views
         private async Task UpdateTaskReminderBannerAsync()
         {
             var now = await GetTaskReminderNowAsync();
+            try
+            {
+                await Task.Run(() => _userService.EnsureAdminAttendance(now.Date));
+            }
+            catch
+            {
+                // Attendance loading will surface database errors on the work page.
+            }
+
             var currentTime = now.TimeOfDay;
             var visibleWindow = IsTaskReminderTestMode()
                 || (currentTime >= TimeSpan.FromHours(16).Add(TimeSpan.FromMinutes(50))

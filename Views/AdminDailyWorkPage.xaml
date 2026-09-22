@@ -1,0 +1,99 @@
+<Page x:Class="DMS.Views.AdminDailyWorkPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="My Daily Work">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30">
+            <Grid Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="ADMIN WORKSPACE" Style="{StaticResource EyebrowStyle}"/>
+                    <TextBlock Text="My Daily Work" Style="{StaticResource HeadingStyle}" Margin="0,4,0,0"/>
+                    <TextBlock Text="Record your attendance and daily work from one place." Style="{StaticResource MutedStyle}" Margin="0,7,0,0"/>
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Work date" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                    <DatePicker x:Name="WorkDatePicker" Width="140" SelectedDateChanged="WorkDatePicker_SelectedDateChanged"/>
+                    <Button Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="10,0,0,0" Click="RefreshButton_Click" ToolTip="Refresh daily work"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="Attendance" Style="{StaticResource SectionHeadingStyle}"/>
+                        <TextBlock Text="Mark both meetings any time before 5:30 PM." Style="{StaticResource MutedStyle}" Margin="0,4,0,16" TextWrapping="Wrap"/>
+                        <ItemsControl x:Name="AttendanceList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#DDE3E5" BorderThickness="0,0,0,1" Padding="0,10">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding MeetingType}" FontWeight="SemiBold" FontSize="15"/>
+                                                <TextBlock Text="{Binding Status}" Foreground="#126E70" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                            <Button Content="Mark Present" Tag="{Binding MeetingType}" HorizontalAlignment="Right" Padding="14,7" Click="MarkAttendanceButton_Click">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Present">
+                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                <Setter Property="Content" Value="Present"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Absent">
+                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                <Setter Property="Content" Value="Absent"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock x:Name="AttendanceMessageText" Style="{StaticResource MutedStyle}" Margin="0,14,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="Daily Task" Style="{StaticResource SectionHeadingStyle}"/>
+                        <TextBlock Text="Submit one update for the selected work date." Style="{StaticResource MutedStyle}" Margin="0,4,0,16"/>
+                        <TextBlock Text="Status" FontWeight="SemiBold"/>
+                        <ComboBox x:Name="TaskStatusComboBox" Height="36" Margin="0,6,0,14">
+                            <ComboBoxItem Content="Not started"/>
+                            <ComboBoxItem Content="In progress" IsSelected="True"/>
+                            <ComboBoxItem Content="Blocked"/>
+                            <ComboBoxItem Content="Completed"/>
+                        </ComboBox>
+                        <TextBlock Text="Work completed" FontWeight="SemiBold"/>
+                        <TextBox x:Name="TaskDescriptionTextBox" MinHeight="125" Margin="0,6,0,14" Padding="10" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                        <TextBlock Text="Blocked reason (required when blocked)" FontWeight="SemiBold"/>
+                        <TextBox x:Name="BlockedReasonTextBox" MinHeight="60" Margin="0,6,0,14" Padding="10" AcceptsReturn="True" TextWrapping="Wrap"/>
+                        <Button x:Name="SubmitTaskButton" Content="Submit Daily Task" HorizontalAlignment="Left" Padding="16,9" Click="SubmitTaskButton_Click"/>
+                        <TextBlock x:Name="TaskMessageText" Style="{StaticResource MutedStyle}" Margin="0,12,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="20" Margin="0,20,0,0">
+                <StackPanel>
+                    <TextBlock Text="Download Reports" Style="{StaticResource SectionHeadingStyle}"/>
+                    <TextBlock Text="Generate the combined report for all administrators." Style="{StaticResource MutedStyle}" Margin="0,4,0,14"/>
+                    <TextBlock Text="All administrators" FontWeight="SemiBold" Margin="0,16,0,8"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Attendance and Task Submission Report PDF" Padding="14,8" Click="AllAdminCombinedReportButton_Click"/>
+                    </StackPanel>
+                    <TextBlock x:Name="ReportMessageText" Style="{StaticResource MutedStyle}" Margin="0,12,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

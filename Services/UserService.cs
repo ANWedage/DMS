@@ -12,6 +12,8 @@ namespace DMS.Services
     public class UserService : IUserService
     {
         private readonly MongoDbContext _context;
+        private static readonly string[] AdminAttendanceMeetingTypes = { MeetingTypes.Morning, MeetingTypes.Evening };
+        private static readonly TimeSpan AdminAttendanceCutoff = new(17, 30, 0);
 
         public UserService(MongoDbContext context)
         {
@@ -884,6 +886,112 @@ namespace DMS.Services
                 Builders<AttendanceRecord>.Filter.Eq(a => a.Id, attendanceId), update).ModifiedCount > 0;
         }
 
+        public List<AdminAttendanceRecord> GetAdminAttendance(string adminId, DateTime date)
+        {
+            ValidateAdminId(adminId);
+            if (!MeetingSchedule.IsWorkingDay(date))
+                return new List<AdminAttendanceRecord>();
+
+            var settings = GetMeetingSettings();
+            var now = GetApplicationNow(settings);
+            var dateText = FormatDate(date);
+            foreach (var meetingType in AdminAttendanceMeetingTypes)
+            {
+                var filter = Builders<AdminAttendanceRecord>.Filter.And(
+                    Builders<AdminAttendanceRecord>.Filter.Eq(a => a.AdminId, adminId),
+                    Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
+                    Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType));
+                _context.AdminAttendance.UpdateOne(
+                    filter,
+                    Builders<AdminAttendanceRecord>.Update
+                        .SetOnInsert(a => a.AdminId, adminId)
+                        .SetOnInsert(a => a.MeetingDate, dateText)
+                        .SetOnInsert(a => a.MeetingType, meetingType)
+                        .SetOnInsert(a => a.Status, AttendanceStatuses.Pending)
+                        .SetOnInsert(a => a.CreatedAt, DateTime.UtcNow)
+                        .Set(a => a.UpdatedAt, DateTime.UtcNow),
+                    new UpdateOptions { IsUpsert = true });
+            }
+
+            if (date.Date < now.Date || date.Date == now.Date && now.TimeOfDay >= AdminAttendanceCutoff)
+            {
+                var pendingFilter = Builders<AdminAttendanceRecord>.Filter.And(
+                    Builders<AdminAttendanceRecord>.Filter.Eq(a => a.AdminId, adminId),
+                    Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingDate, dateText),
+                    Builders<AdminAttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
+                _context.AdminAttendance.UpdateMany(
+                    pendingFilter,
+                    Builders<AdminAttendanceRecord>.Update
+                        .Set(a => a.Status, AttendanceStatuses.Absent)
+                        .Set(a => a.MarkedAt, DateTime.UtcNow)
+                        .Set(a => a.MarkedBy, "System")
+                        .Set(a => a.UpdatedAt, DateTime.UtcNow));
+            }
+
+            return _context.AdminAttendance.Find(a => a.AdminId == adminId && a.MeetingDate == dateText)
+                .ToList()
+                .OrderBy(record => Array.IndexOf(AdminAttendanceMeetingTypes, record.MeetingType))
+                .ToList();
+        }
+
+        public bool MarkAdminAttendancePresent(string adminId, string meetingType, DateTime date)
+        {
+            ValidateAdminId(adminId);
+            if (!AdminAttendanceMeetingTypes.Contains(meetingType) || !MeetingSchedule.IsWorkingDay(date))
+                throw new InvalidOperationException("The admin attendance request is invalid.");
+
+            var settings = GetMeetingSettings();
+            var now = GetApplicationNow(settings);
+            if (date.Date != now.Date || now.TimeOfDay >= AdminAttendanceCutoff)
+            {
+                throw new InvalidOperationException(
+                    $"Admin attendance can be marked only today before 17:30. Current time: {now:HH:mm}.");
+            }
+
+            GetAdminAttendance(adminId, date);
+            var filter = Builders<AdminAttendanceRecord>.Filter.And(
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.AdminId, adminId),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingDate, FormatDate(date)),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
+            var update = Builders<AdminAttendanceRecord>.Update
+                .Set(a => a.Status, AttendanceStatuses.Present)
+                .Set(a => a.MarkedAt, DateTime.UtcNow)
+                .Set(a => a.MarkedBy, "Admin")
+                .Set(a => a.UpdatedAt, DateTime.UtcNow);
+            if (_context.AdminAttendance.UpdateOne(filter, update).ModifiedCount == 0)
+                throw new InvalidOperationException("This admin attendance record is no longer pending.");
+            return true;
+        }
+
+        public void EnsureAdminAttendance(DateTime date)
+        {
+            if (!MeetingSchedule.IsWorkingDay(date))
+                return;
+
+            foreach (var admin in _context.Admins.Find(_ => true).ToList())
+                GetAdminAttendance(admin.Id, date);
+        }
+
+        public List<AdminAttendanceReportRow> GetAllAdminAttendance(DateTime date)
+        {
+            if (!MeetingSchedule.IsWorkingDay(date))
+                return new List<AdminAttendanceReportRow>();
+
+            var admins = _context.Admins.Find(_ => true).ToList();
+            return admins
+                .SelectMany(admin => GetAdminAttendance(admin.Id, date).Select(record => new AdminAttendanceReportRow
+                {
+                    AdminId = admin.Id,
+                    AdminName = string.IsNullOrWhiteSpace(admin.Name) ? admin.Username : admin.Name,
+                    MeetingType = record.MeetingType,
+                    Status = record.Status
+                }))
+                .OrderBy(row => row.AdminName)
+                .ThenBy(row => Array.IndexOf(AdminAttendanceMeetingTypes, row.MeetingType))
+                .ToList();
+        }
+
         private void EnsureUserDailyAttendance(User user, DateTime date)
         {
             var dateText = FormatDate(date);
@@ -1077,6 +1185,12 @@ namespace DMS.Services
                     _ => new TimeSpan(17, 0, 0)
                 };
             return date.Add(parsedTime);
+        }
+
+        private void ValidateAdminId(string adminId)
+        {
+            if (string.IsNullOrWhiteSpace(adminId) || !_context.Admins.Find(a => a.Id == adminId).Any())
+                throw new InvalidOperationException("The signed-in administrator could not be found.");
         }
 
         public List<TaskProject> GetProjects() => _context.Projects.Find(_ => true).SortByDescending(p => p.UpdatedAt).ToList();
@@ -1325,6 +1439,58 @@ namespace DMS.Services
                 Builders<DailyTaskUpdate>.Filter.Eq(u => u.UpdateDate, update.UpdateDate));
             _context.DailyTaskUpdates.ReplaceOne(filter, update, new ReplaceOptions { IsUpsert = true });
             return update;
+        }
+
+        public AdminDailyTaskUpdate? GetAdminDailyTask(string adminId, DateTime date)
+        {
+            ValidateAdminId(adminId);
+            var calendarDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Unspecified);
+            return _context.AdminDailyTaskUpdates.Find(u => u.AdminId == adminId && u.UpdateDate == calendarDate).FirstOrDefault();
+        }
+
+        public AdminDailyTaskUpdate SaveAdminDailyTask(AdminDailyTaskUpdate update)
+        {
+            ValidateAdminId(update.AdminId);
+            if (string.IsNullOrWhiteSpace(update.Description))
+                throw new InvalidOperationException("A daily work description is required.");
+            if (!new[] { TaskStatuses.NotStarted, TaskStatuses.InProgress, TaskStatuses.Blocked, TaskStatuses.Completed }.Contains(update.Status))
+                throw new InvalidOperationException("The selected task status is invalid.");
+            if (update.Status == TaskStatuses.Blocked && string.IsNullOrWhiteSpace(update.BlockedReason))
+                throw new InvalidOperationException("A blocked reason is required.");
+
+            update.UpdateDate = DateTime.SpecifyKind(update.UpdateDate.Date, DateTimeKind.Unspecified);
+            if (GetAdminDailyTask(update.AdminId, update.UpdateDate) != null)
+                throw new InvalidOperationException("You already submitted an admin daily task for this date.");
+
+            update.Description = update.Description.Trim();
+            update.BlockedReason = string.IsNullOrWhiteSpace(update.BlockedReason) ? null : update.BlockedReason.Trim();
+            update.UpdatedAt = DateTime.UtcNow;
+            _context.AdminDailyTaskUpdates.InsertOne(update);
+            return update;
+        }
+
+        public List<AdminDailyTaskReportRow> GetAllAdminDailyTasks(DateTime date)
+        {
+            var calendarDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Unspecified);
+            var tasks = _context.AdminDailyTaskUpdates.Find(u => u.UpdateDate == calendarDate)
+                .ToList()
+                .ToDictionary(task => task.AdminId, StringComparer.Ordinal);
+
+            return _context.Admins.Find(_ => true).ToList()
+                .Select(admin =>
+                {
+                    tasks.TryGetValue(admin.Id, out var task);
+                    return new AdminDailyTaskReportRow
+                    {
+                        AdminId = admin.Id,
+                        AdminName = string.IsNullOrWhiteSpace(admin.Name) ? admin.Username : admin.Name,
+                        Status = task?.Status ?? "Not submitted",
+                        Description = task?.Description ?? "No daily task submitted.",
+                        BlockedReason = task?.BlockedReason
+                    };
+                })
+                .OrderBy(row => row.AdminName)
+                .ToList();
         }
 
         public List<ProjectDailyTaskReportRow> GetProjectDailyTaskReport(string projectId, DateTime date)

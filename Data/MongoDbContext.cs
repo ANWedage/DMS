@@ -17,11 +17,13 @@ namespace DMS.Data
         public IMongoCollection<User> Users => _database.GetCollection<User>("Users");
         public IMongoCollection<AdminUser> Admins => _database.GetCollection<AdminUser>("Admins");
         public IMongoCollection<AttendanceRecord> Attendance => _database.GetCollection<AttendanceRecord>("Attendance");
+        public IMongoCollection<AdminAttendanceRecord> AdminAttendance => _database.GetCollection<AdminAttendanceRecord>("AdminAttendance");
         public IMongoCollection<MeetingSettings> MeetingSettings => _database.GetCollection<MeetingSettings>("MeetingSettings");
         public IMongoCollection<TaskProject> Projects => _database.GetCollection<TaskProject>("Projects");
         public IMongoCollection<TaskComponent> Components => _database.GetCollection<TaskComponent>("ProjectComponents");
         public IMongoCollection<ComponentAssignment> ComponentAssignments => _database.GetCollection<ComponentAssignment>("ComponentAssignments");
         public IMongoCollection<DailyTaskUpdate> DailyTaskUpdates => _database.GetCollection<DailyTaskUpdate>("DailyTaskUpdates");
+        public IMongoCollection<AdminDailyTaskUpdate> AdminDailyTaskUpdates => _database.GetCollection<AdminDailyTaskUpdate>("AdminDailyTaskUpdates");
         public IMongoCollection<Notification> Notifications => _database.GetCollection<Notification>("Notifications");
         public IMongoCollection<ChatMessage> ChatMessages => _database.GetCollection<ChatMessage>("ChatMessages");
         public IMongoCollection<ChatAttachment> ChatAttachments => _database.GetCollection<ChatAttachment>("ChatAttachments");
@@ -65,11 +67,21 @@ namespace DMS.Data
                     .Ascending(a => a.UserId)
                     .Ascending(a => a.MeetingType)));
 
+            AdminAttendance.Indexes.CreateOne(new CreateIndexModel<AdminAttendanceRecord>(
+                Builders<AdminAttendanceRecord>.IndexKeys
+                    .Ascending(a => a.AdminId)
+                    .Ascending(a => a.MeetingDate)
+                    .Ascending(a => a.MeetingType),
+                new CreateIndexOptions { Unique = true }));
+
             ComponentAssignments.Indexes.CreateOne(new CreateIndexModel<ComponentAssignment>(
                 Builders<ComponentAssignment>.IndexKeys.Ascending(a => a.ComponentId).Ascending(a => a.UserId),
                 new CreateIndexOptions { Unique = true }));
             DailyTaskUpdates.Indexes.CreateOne(new CreateIndexModel<DailyTaskUpdate>(
                 Builders<DailyTaskUpdate>.IndexKeys.Ascending(u => u.ComponentId).Ascending(u => u.UserId).Ascending(u => u.UpdateDate),
+                new CreateIndexOptions { Unique = true }));
+            AdminDailyTaskUpdates.Indexes.CreateOne(new CreateIndexModel<AdminDailyTaskUpdate>(
+                Builders<AdminDailyTaskUpdate>.IndexKeys.Ascending(u => u.AdminId).Ascending(u => u.UpdateDate),
                 new CreateIndexOptions { Unique = true }));
 
             Notifications.Indexes.CreateOne(new CreateIndexModel<Notification>(

@@ -175,6 +175,39 @@ authenticated.MapPost("/attendance/present", (ClaimsPrincipal principal, Attenda
     }
 });
 
+authenticated.MapGet("/admin/my-attendance", (DateTime? date, ClaimsPrincipal principal, IUserService users) =>
+{
+    var adminId = GetSubject(principal);
+    return !principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(adminId)
+        ? Results.Forbid()
+        : Results.Ok(users.GetAdminAttendance(adminId, date?.Date ?? DateTime.Today));
+});
+
+authenticated.MapPost("/admin/my-attendance/present", (AttendanceRequest request, ClaimsPrincipal principal, IUserService users) =>
+{
+    var adminId = GetSubject(principal);
+    if (!principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(adminId)) return Results.Forbid();
+    try
+    {
+        users.MarkAdminAttendancePresent(adminId, request.MeetingType, request.Date.ToDateTime(TimeOnly.MinValue));
+        return Results.NoContent();
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
+authenticated.MapPost("/admin/my-attendance/ensure", (DateTime? date, ClaimsPrincipal principal, IUserService users) =>
+{
+    var adminId = GetSubject(principal);
+    if (!principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(adminId)) return Results.Forbid();
+    users.EnsureAdminAttendance(date?.Date ?? DateTime.Today);
+    return Results.NoContent();
+});
+
+authenticated.MapGet("/admin/reports/attendance", (DateTime? date, ClaimsPrincipal principal, IUserService users) =>
+    principal.IsInRole("Admin")
+        ? Results.Ok(users.GetAllAdminAttendance(date?.Date ?? DateTime.Today))
+        : Results.Forbid());
+
 authenticated.MapGet("/admin/users", (ClaimsPrincipal principal, IUserService users) =>
     principal.IsInRole("Admin") ? Results.Ok(users.GetAllUsers()) : Results.Forbid());
 
@@ -657,6 +690,33 @@ authenticated.MapPost("/self-study/updates", (DailyTaskUpdate update, ClaimsPrin
     }
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
+
+authenticated.MapGet("/admin/my-daily-task", (DateTime? date, ClaimsPrincipal principal, IUserService users) =>
+{
+    var adminId = GetSubject(principal);
+    return !principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(adminId)
+        ? Results.Forbid()
+        : users.GetAdminDailyTask(adminId, date?.Date ?? DateTime.Today) is { } task
+            ? Results.Ok(task)
+            : Results.NotFound();
+});
+
+authenticated.MapPost("/admin/my-daily-task", (AdminDailyTaskUpdate update, ClaimsPrincipal principal, IUserService users) =>
+{
+    var adminId = GetSubject(principal);
+    if (!principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(adminId)) return Results.Forbid();
+    try
+    {
+        update.AdminId = adminId;
+        return Results.Ok(users.SaveAdminDailyTask(update));
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
+authenticated.MapGet("/admin/reports/daily-tasks", (DateTime? date, ClaimsPrincipal principal, IUserService users) =>
+    principal.IsInRole("Admin")
+        ? Results.Ok(users.GetAllAdminDailyTasks(date?.Date ?? DateTime.Today))
+        : Results.Forbid());
 
 app.Run();
 

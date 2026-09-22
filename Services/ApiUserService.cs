@@ -275,6 +275,32 @@ public sealed class ApiUserService : IUserService, IDisposable
         return response.IsSuccessStatusCode;
     }
 
+    public List<AdminAttendanceRecord> GetAdminAttendance(string adminId, DateTime date)
+    {
+        EnsureCurrentAdmin(adminId);
+        return Read<List<AdminAttendanceRecord>>(Send(HttpMethod.Get, $"api/admin/my-attendance?date={date:yyyy-MM-dd}"));
+    }
+
+    public bool MarkAdminAttendancePresent(string adminId, string meetingType, DateTime date)
+    {
+        EnsureCurrentAdmin(adminId);
+        using var response = Send(HttpMethod.Post, "api/admin/my-attendance/present", new
+        {
+            meetingType,
+            date = date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
+        });
+        return response.IsSuccessStatusCode;
+    }
+
+    public void EnsureAdminAttendance(DateTime date)
+    {
+        EnsureCurrentAdmin(AppSession.CurrentUserId ?? string.Empty);
+        using var response = Send(HttpMethod.Post, $"api/admin/my-attendance/ensure?date={date:yyyy-MM-dd}");
+    }
+
+    public List<AdminAttendanceReportRow> GetAllAdminAttendance(DateTime date) =>
+        Read<List<AdminAttendanceReportRow>>(Send(HttpMethod.Get, $"api/admin/reports/attendance?date={date:yyyy-MM-dd}"));
+
     public bool CanAccessUser(string targetUserId) =>
         !AppSession.IsAdmin && string.Equals(AppSession.CurrentUserId, targetUserId, StringComparison.Ordinal);
 
@@ -472,6 +498,27 @@ public sealed class ApiUserService : IUserService, IDisposable
 
         return Read<DailyTaskUpdate>(Send(HttpMethod.Post, $"api/tasks/{Uri.EscapeDataString(update.ComponentId)}/updates", update));
     }
+
+    public AdminDailyTaskUpdate? GetAdminDailyTask(string adminId, DateTime date)
+    {
+        EnsureCurrentAdmin(adminId);
+        using var response = Send(HttpMethod.Get, $"api/admin/my-daily-task?date={date:yyyy-MM-dd}", allowErrorResponse: true);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return null;
+        if (!response.IsSuccessStatusCode)
+            throw new InvalidOperationException("The admin daily task could not be loaded.");
+        return response.Content.ReadFromJsonAsync<AdminDailyTaskUpdate?>(_jsonOptions).GetAwaiter().GetResult();
+    }
+
+    public AdminDailyTaskUpdate SaveAdminDailyTask(AdminDailyTaskUpdate update)
+    {
+        EnsureCurrentAdmin(update.AdminId);
+        update.UpdateDate = DateTime.SpecifyKind(update.UpdateDate.Date, DateTimeKind.Unspecified);
+        return Read<AdminDailyTaskUpdate>(Send(HttpMethod.Post, "api/admin/my-daily-task", update));
+    }
+
+    public List<AdminDailyTaskReportRow> GetAllAdminDailyTasks(DateTime date) =>
+        Read<List<AdminDailyTaskReportRow>>(Send(HttpMethod.Get, $"api/admin/reports/daily-tasks?date={date:yyyy-MM-dd}"));
 
     public List<ProjectDailyTaskReportRow> GetProjectDailyTaskReport(string projectId, DateTime date) =>
         Read<List<ProjectDailyTaskReportRow>>(Send(HttpMethod.Get,

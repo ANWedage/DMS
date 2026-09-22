@@ -23,6 +23,7 @@ public sealed class DailyTaskReminderWorker : BackgroundService
                 var users = scope.ServiceProvider.GetRequiredService<IUserService>();
                 var settings = users.GetMeetingSettings();
                 var now = GetApplicationNow(settings);
+                users.EnsureAdminAttendance(now.Date);
                 if (now.Hour == 16 && now.Minute >= 50 && now.Minute < 51 && _lastReminderDate != DateOnly.FromDateTime(now))
                 {
                     users.EnsureDailyTaskReminder(now.Date);

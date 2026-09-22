@@ -73,6 +73,10 @@ namespace DMS.Services
         List<AttendanceRecord> GetAllAttendance(DateTime date);
         bool MarkAttendancePresent(string userId, string meetingType, DateTime date);
         bool UpdateAttendanceStatus(string attendanceId, string status, string adminId, string adminName, string? note);
+        List<AdminAttendanceRecord> GetAdminAttendance(string adminId, DateTime date);
+        bool MarkAdminAttendancePresent(string adminId, string meetingType, DateTime date);
+        void EnsureAdminAttendance(DateTime date);
+        List<AdminAttendanceReportRow> GetAllAdminAttendance(DateTime date);
 
         /// <summary>Returns true only when the active session belongs to the target user.</summary>
         bool CanAccessUser(string targetUserId);
@@ -109,5 +113,8 @@ namespace DMS.Services
         List<DailyTaskUpdate> GetSelfStudyUpdates(string userId, bool isAdmin);
         DailyTaskUpdate SaveDailyTaskUpdate(DailyTaskUpdate update);
         List<ProjectDailyTaskReportRow> GetProjectDailyTaskReport(string projectId, DateTime date);
+        AdminDailyTaskUpdate? GetAdminDailyTask(string adminId, DateTime date);
+        AdminDailyTaskUpdate SaveAdminDailyTask(AdminDailyTaskUpdate update);
+        List<AdminDailyTaskReportRow> GetAllAdminDailyTasks(DateTime date);
     }
 }
