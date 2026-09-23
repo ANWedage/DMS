@@ -112,8 +112,14 @@
                                                 <Style TargetType="Border">
                                                     <Setter Property="Background" Value="#FAD7D7"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding HasSubmittedDailyTask}" Value="True">
+                                                        <DataTrigger Binding="{Binding DailyTaskDisplayStatus}" Value="Submitted">
                                                             <Setter Property="Background" Value="#D9F5E5"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding DailyTaskDisplayStatus}" Value="Leave">
+                                                            <Setter Property="Background" Value="#EDE9FE"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding DailyTaskDisplayStatus}" Value="Half day">
+                                                            <Setter Property="Background" Value="#FEF3C7"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -123,9 +129,15 @@
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Foreground" Value="#A12622"/>
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HasSubmittedDailyTask}" Value="True">
+                                                                <DataTrigger Binding="{Binding DailyTaskDisplayStatus}" Value="Submitted">
                                                                 <Setter Property="Foreground" Value="#137A45"/>
                                                             </DataTrigger>
+                                                                <DataTrigger Binding="{Binding DailyTaskDisplayStatus}" Value="Leave">
+                                                                    <Setter Property="Foreground" Value="#6D28D9"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding DailyTaskDisplayStatus}" Value="Half day">
+                                                                    <Setter Property="Foreground" Value="#92400E"/>
+                                                                </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </TextBlock.Style>
@@ -138,38 +150,6 @@
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding DeactivatedByAdminName}" Foreground="#7A1F1F"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
-                            <GridViewColumn Header="Status" Width="150">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <ComboBox Width="120"
-                                                  Height="30"
-                                                  HorizontalAlignment="Left"
-                                                  Tag="{Binding Id}"
-                                                  SelectedValue="{Binding Status, Mode=OneWay}"
-                                                  SelectionChanged="StatusComboBox_SelectionChanged"
-                                                  FontWeight="SemiBold"
-                                                  BorderThickness="1"
-                                                  BorderBrush="#B7D6DD">
-                                            <ComboBox.Style>
-                                                <Style TargetType="ComboBox">
-                                                    <Setter Property="Background" Value="#1FAE67"/>
-                                                    <Setter Property="Foreground" Value="#0F172A"/>
-                                                    <Setter Property="TextElement.Foreground" Value="#0F172A"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                                            <Setter Property="Background" Value="#D85A5A"/>
-                                                            <Setter Property="Foreground" Value="#0F172A"/>
-                                                            <Setter Property="TextElement.Foreground" Value="#0F172A"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </ComboBox.Style>
-                                            <sys:String>Active</sys:String>
-                                            <sys:String>Inactive</sys:String>
-                                        </ComboBox>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
@@ -271,6 +251,50 @@
                                                 </ComboBox.Style>
                                             </ComboBox>
                                         </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Leaving date" Width="145">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <DatePicker Width="125"
+                                                    Height="30"
+                                                    Tag="{Binding Id}"
+                                                    SelectedDate="{Binding LeavingDate, Mode=OneWay}"
+                                                    SelectedDateChanged="LeavingDatePicker_SelectedDateChanged"
+                                                    ToolTip="Set or clear the internship finish date"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Status" Width="150">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ComboBox Width="120"
+                                                  Height="30"
+                                                  HorizontalAlignment="Left"
+                                                  Tag="{Binding Id}"
+                                                  SelectedValue="{Binding Status, Mode=OneWay}"
+                                                  SelectionChanged="StatusComboBox_SelectionChanged"
+                                                  FontWeight="SemiBold"
+                                                  BorderThickness="1"
+                                                  BorderBrush="#B7D6DD">
+                                            <ComboBox.Style>
+                                                <Style TargetType="ComboBox">
+                                                    <Setter Property="Background" Value="#1FAE67"/>
+                                                    <Setter Property="Foreground" Value="#0F172A"/>
+                                                    <Setter Property="TextElement.Foreground" Value="#0F172A"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                            <Setter Property="Background" Value="#D85A5A"/>
+                                                            <Setter Property="Foreground" Value="#0F172A"/>
+                                                            <Setter Property="TextElement.Foreground" Value="#0F172A"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ComboBox.Style>
+                                            <sys:String>Active</sys:String>
+                                            <sys:String>Inactive</sys:String>
+                                        </ComboBox>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>

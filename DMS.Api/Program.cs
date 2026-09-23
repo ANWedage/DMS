@@ -472,6 +472,16 @@ authenticated.MapPost("/admin/users/{userId}/position", (string userId, UserPosi
         : Results.NotFound();
 });
 
+authenticated.MapPost("/admin/users/{userId}/leaving-date", (string userId, UserLeavingDateRequest request, ClaimsPrincipal principal, IUserService users) =>
+{
+    if (!principal.IsInRole("Admin"))
+        return Results.Forbid();
+
+    return users.SetUserLeavingDate(userId, request.LeavingDate)
+        ? Results.NoContent()
+        : Results.NotFound();
+});
+
 authenticated.MapDelete("/admin/users/{userId}", (string userId, ClaimsPrincipal principal, IUserService users) =>
 {
     if (!principal.IsInRole("Admin"))

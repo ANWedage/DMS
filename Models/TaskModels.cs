@@ -123,4 +123,5 @@ public sealed class DeveloperDailyTaskStatus
 {
     public string UserId { get; init; } = string.Empty;
     public bool HasSubmittedUpdate { get; init; }
+    public string DisplayStatus { get; init; } = "Not submitted";
 }

@@ -448,6 +448,18 @@ namespace DMS.Services
             return result.ModifiedCount > 0;
         }
 
+        public bool SetUserLeavingDate(string userId, DateTime? leavingDate)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return false;
+
+            var result = _context.Users.UpdateOne(
+                u => u.Id == userId,
+                Builders<User>.Update.Set(u => u.LeavingDate, leavingDate?.Date));
+
+            return result.ModifiedCount > 0;
+        }
+
         public bool DeleteUserAccount(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -555,17 +567,44 @@ namespace DMS.Services
         public List<DeveloperDailyTaskStatus> GetDeveloperDailyTaskStatus(DateTime date)
         {
             var calendarDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Unspecified);
-            var filter = Builders<DailyTaskUpdate>.Filter.Eq(update => update.UpdateDate, calendarDate);
-            return _context.DailyTaskUpdates
-                .Distinct(update => update.UserId, filter)
+            var taskFilter = Builders<DailyTaskUpdate>.Filter.Eq(update => update.UpdateDate, calendarDate);
+            var submittedUserIds = _context.DailyTaskUpdates
+                .Distinct(update => update.UserId, taskFilter)
                 .ToList()
+                .ToHashSet(StringComparer.Ordinal);
+
+            var attendanceFilter = Builders<AttendanceRecord>.Filter.Eq(record => record.MeetingDate, FormatDate(date));
+            var attendanceByUser = _context.Attendance
+                .Find(attendanceFilter)
+                .ToList()
+                .Where(record => !string.IsNullOrWhiteSpace(record.UserId))
+                .GroupBy(record => record.UserId, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.Select(record => record.Status).ToList(), StringComparer.Ordinal);
+
+            var userIds = submittedUserIds
+                .Concat(attendanceByUser.Keys)
                 .Where(userId => !string.IsNullOrWhiteSpace(userId))
-                .Select(userId => new DeveloperDailyTaskStatus
+                .Distinct(StringComparer.Ordinal);
+
+            return userIds.Select(userId =>
+            {
+                var hasSubmittedUpdate = submittedUserIds.Contains(userId);
+                var statuses = attendanceByUser.GetValueOrDefault(userId) ?? new List<string>();
+                var leaveCount = statuses.Count(status => status == AttendanceStatuses.Leave);
+                var presentCount = statuses.Count(status => status == AttendanceStatuses.Present);
+                var displayStatus = leaveCount >= 2
+                    ? "Leave"
+                    : presentCount == 1 && leaveCount == 1
+                        ? hasSubmittedUpdate ? "Submitted" : "Half day"
+                        : hasSubmittedUpdate ? "Submitted" : "Not submitted";
+
+                return new DeveloperDailyTaskStatus
                 {
                     UserId = userId,
-                    HasSubmittedUpdate = true
-                })
-                .ToList();
+                    HasSubmittedUpdate = hasSubmittedUpdate,
+                    DisplayStatus = displayStatus
+                };
+            }).ToList();
         }
 
         public long GetActiveUserCount()

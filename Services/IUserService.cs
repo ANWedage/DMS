@@ -35,6 +35,9 @@ namespace DMS.Services
         /// <summary>Updates the developer role/position for a user account.</summary>
         bool SetUserPosition(string userId, string? position);
 
+        /// <summary>Updates the date an internship ends for a user account.</summary>
+        bool SetUserLeavingDate(string userId, DateTime? leavingDate);
+
         /// <summary>Deletes a user account and its attendance records.</summary>
         bool DeleteUserAccount(string userId);
 

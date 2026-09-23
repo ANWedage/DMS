@@ -3,7 +3,7 @@
 #define AppExeName "DMS.exe"
 
 #ifndef AppVersion
-  #define AppVersion "2.1.11"
+  #define AppVersion "2.1.12"
 #endif
 
 #ifndef PublishDirectory

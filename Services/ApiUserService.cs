@@ -88,6 +88,13 @@ public sealed class ApiUserService : IUserService, IDisposable
         return response.IsSuccessStatusCode;
     }
 
+    public bool SetUserLeavingDate(string userId, DateTime? leavingDate)
+    {
+        using var response = Send(HttpMethod.Post, $"api/admin/users/{Uri.EscapeDataString(userId)}/leaving-date",
+            new { leavingDate = leavingDate?.Date }, allowErrorResponse: true);
+        return response.IsSuccessStatusCode;
+    }
+
     public bool DeleteUserAccount(string userId)
     {
         using var response = Send(HttpMethod.Post, $"api/admin/users/{Uri.EscapeDataString(userId)}/delete", allowErrorResponse: true);

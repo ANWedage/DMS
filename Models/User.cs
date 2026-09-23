@@ -20,6 +20,10 @@ namespace DMS.Models
         [BsonElement("ContactNumber")]
         public string ContactNumber { get; set; } = string.Empty;
 
+        [BsonElement("LeavingDate")]
+        [BsonIgnoreIfNull]
+        public DateTime? LeavingDate { get; set; }
+
         private string _position = string.Empty;
         [BsonElement("Position")]
         public string Position
@@ -82,7 +86,11 @@ namespace DMS.Models
 
         [BsonIgnore]
         [JsonIgnore]
-        public string DailyTaskSubmissionStatus => HasSubmittedDailyTask ? "Submitted" : "Not submitted";
+        public string DailyTaskDisplayStatus { get; set; } = "Not submitted";
+
+        [BsonIgnore]
+        [JsonIgnore]
+        public string DailyTaskSubmissionStatus => DailyTaskDisplayStatus;
 
         private string? _deactivatedByAdminName;
         [BsonElement("DeactivatedByAdminName")]

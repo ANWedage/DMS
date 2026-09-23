@@ -48,13 +48,21 @@ namespace DMS.Views
                     return (users, statuses);
                 });
 
-                var submittedUserIds = result.statuses
-                    .Where(status => status.HasSubmittedUpdate)
-                    .Select(status => status.UserId)
-                    .ToHashSet(StringComparer.Ordinal);
+                var dailyTaskStatuses = result.statuses.ToDictionary(status => status.UserId, StringComparer.Ordinal);
 
                 foreach (var user in result.users)
-                    user.HasSubmittedDailyTask = submittedUserIds.Contains(user.Id);
+                {
+                    if (dailyTaskStatuses.TryGetValue(user.Id, out var dailyTaskStatus))
+                    {
+                        user.HasSubmittedDailyTask = dailyTaskStatus.HasSubmittedUpdate;
+                        user.DailyTaskDisplayStatus = dailyTaskStatus.DisplayStatus;
+                    }
+                    else
+                    {
+                        user.HasSubmittedDailyTask = false;
+                        user.DailyTaskDisplayStatus = "Not submitted";
+                    }
+                }
 
                 _allUsers = result.users
                     .OrderBy(u => string.IsNullOrWhiteSpace(u.Username) ? u.Email : u.Username)
@@ -201,6 +209,49 @@ namespace DMS.Views
             {
                 MessageBox.Show($"Unable to save the developer position: {ex.Message}", "Developer position", MessageBoxButton.OK, MessageBoxImage.Error);
                 comboBox.SelectedValue = user.Position;
+            }
+        }
+
+        private void LeavingDatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is not DatePicker datePicker || datePicker.Tag is not string userId)
+                return;
+
+            var user = _allUsers.FirstOrDefault(u => u.Id == userId);
+            if (user is null || user.LeavingDate?.Date == datePicker.SelectedDate?.Date)
+                return;
+
+            var displayName = user.Username ?? user.Email;
+            var newDate = datePicker.SelectedDate?.Date;
+            var dateDescription = newDate?.ToString("d") ?? "no leaving date";
+            var result = MessageBox.Show(
+                $"Are you sure you want to set {displayName}'s leaving date to {dateDescription}?",
+                "Confirm leaving date change",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                datePicker.SelectedDate = user.LeavingDate;
+                return;
+            }
+
+            try
+            {
+                var updated = _userService.SetUserLeavingDate(userId, newDate);
+                if (!updated)
+                {
+                    MessageBox.Show("Unable to save the developer leaving date.", "Leaving date", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    datePicker.SelectedDate = user.LeavingDate;
+                    return;
+                }
+
+                user.LeavingDate = newDate;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to save the developer leaving date: {ex.Message}", "Leaving date", MessageBoxButton.OK, MessageBoxImage.Error);
+                datePicker.SelectedDate = user.LeavingDate;
             }
         }
 
