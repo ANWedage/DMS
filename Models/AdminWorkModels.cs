@@ -3,6 +3,11 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace DMS.Models;
 
+public static class AdminDailyTaskStatuses
+{
+    public const string NotRequiredFullDayLeave = "Not required - Full-day leave";
+}
+
 public sealed class AdminAttendanceRecord
 {
     [BsonId]

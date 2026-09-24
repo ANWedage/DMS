@@ -299,6 +299,28 @@ public sealed class ApiUserService : IUserService, IDisposable
         return response.IsSuccessStatusCode;
     }
 
+    public bool MarkAdminAttendanceLeave(string adminId, string meetingType, DateTime date)
+    {
+        EnsureCurrentAdmin(adminId);
+        using var response = Send(HttpMethod.Post, "api/admin/my-attendance/leave", new
+        {
+            meetingType,
+            date = date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
+        });
+        return response.IsSuccessStatusCode;
+    }
+
+    public bool MarkAdminAttendanceFullDayLeave(string adminId, DateTime date)
+    {
+        EnsureCurrentAdmin(adminId);
+        using var response = Send(HttpMethod.Post, "api/admin/my-attendance/full-day-leave", new
+        {
+            meetingType = string.Empty,
+            date = date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
+        });
+        return response.IsSuccessStatusCode;
+    }
+
     public void EnsureAdminAttendance(DateTime date)
     {
         EnsureCurrentAdmin(AppSession.CurrentUserId ?? string.Empty);

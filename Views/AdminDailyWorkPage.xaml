@@ -49,6 +49,10 @@
                                                                 <Setter Property="IsEnabled" Value="False"/>
                                                                 <Setter Property="Content" Value="Absent"/>
                                                             </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Leave">
+                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                <Setter Property="Content" Value="Leave"/>
+                                                            </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Button.Style>
@@ -58,6 +62,13 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                        <TextBlock x:Name="AttendanceSummaryText" Style="{StaticResource MutedStyle}" Margin="0,14,0,0" TextWrapping="Wrap"/>
+                        <TextBlock Text="Additional attendance options" FontWeight="SemiBold" Margin="0,16,0,8"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="MorningHalfDayButton" Content="Morning Half Day" Tag="Morning" Padding="12,7" Click="MarkLeaveButton_Click"/>
+                            <Button x:Name="EveningHalfDayButton" Content="Evening Half Day" Tag="Evening" Padding="12,7" Margin="8,0,0,0" Click="MarkLeaveButton_Click"/>
+                            <Button x:Name="FullDayLeaveButton" Content="Full-Day Leave" Padding="12,7" Margin="8,0,0,0" Click="MarkFullDayLeaveButton_Click"/>
+                        </StackPanel>
                         <TextBlock x:Name="AttendanceMessageText" Style="{StaticResource MutedStyle}" Margin="0,14,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>

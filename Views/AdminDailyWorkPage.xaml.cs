@@ -52,6 +52,7 @@ public partial class AdminDailyWorkPage : Page
             _attendance = result.Attendance;
             _dailyTask = result.Task;
             AttendanceList.ItemsSource = _attendance;
+            UpdateAttendanceSummary();
             PopulateTaskForm();
         }
         catch (Exception ex)
@@ -69,14 +70,28 @@ public partial class AdminDailyWorkPage : Page
     private void PopulateTaskForm()
     {
         var submitted = _dailyTask != null;
+        TaskDescriptionTextBox.Text = _dailyTask?.Description ?? string.Empty;
+        BlockedReasonTextBox.Text = _dailyTask?.BlockedReason ?? string.Empty;
+
+        var fullDayLeave = _attendance.Count > 0
+            && _attendance.All(record => record.Status == AttendanceStatuses.Leave);
+        if (fullDayLeave)
+        {
+            TaskStatusComboBox.SelectedValue = null;
+            TaskDescriptionTextBox.IsReadOnly = true;
+            BlockedReasonTextBox.IsReadOnly = true;
+            TaskStatusComboBox.IsEnabled = false;
+            SubmitTaskButton.IsEnabled = false;
+            TaskMessageText.Text = AdminDailyTaskStatuses.NotRequiredFullDayLeave;
+            return;
+        }
+
         TaskStatusComboBox.SelectedValue = null;
         foreach (var item in TaskStatusComboBox.Items.OfType<ComboBoxItem>())
             item.IsSelected = string.Equals(item.Content?.ToString(), _dailyTask?.Status, StringComparison.OrdinalIgnoreCase);
         if (!submitted)
             TaskStatusComboBox.SelectedIndex = 1;
 
-        TaskDescriptionTextBox.Text = _dailyTask?.Description ?? string.Empty;
-        BlockedReasonTextBox.Text = _dailyTask?.BlockedReason ?? string.Empty;
         TaskDescriptionTextBox.IsReadOnly = submitted;
         BlockedReasonTextBox.IsReadOnly = submitted;
         TaskStatusComboBox.IsEnabled = !submitted;
@@ -99,6 +114,73 @@ public partial class AdminDailyWorkPage : Page
             await LoadPageAsync();
         }
         catch (Exception ex) { AttendanceMessageText.Text = ex.Message; }
+    }
+
+    private async void MarkLeaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string meetingType })
+            return;
+        if (MessageBox.Show($"Mark your {meetingType} meeting as leave? You must still mark the other meeting present if attended.",
+                "Confirm half-day leave", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            var date = SelectedDate;
+            await Task.Run(() => _userService.MarkAdminAttendanceLeave(AdminId, meetingType, date));
+            AttendanceMessageText.Text = $"{meetingType} half-day leave marked. Mark the attended meeting present manually.";
+            await LoadPageAsync();
+        }
+        catch (Exception ex) { AttendanceMessageText.Text = ex.Message; }
+    }
+
+    private async void MarkFullDayLeaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show("Mark both meetings as full-day leave?", "Confirm full-day leave",
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            var date = SelectedDate;
+            await Task.Run(() => _userService.MarkAdminAttendanceFullDayLeave(AdminId, date));
+            AttendanceMessageText.Text = "Full-day leave marked.";
+            await LoadPageAsync();
+        }
+        catch (Exception ex) { AttendanceMessageText.Text = ex.Message; }
+    }
+
+    private void UpdateAttendanceSummary()
+    {
+        var statuses = _attendance.ToDictionary(record => record.MeetingType, record => record.Status);
+        var morning = statuses.GetValueOrDefault(MeetingTypes.Morning, AttendanceStatuses.Pending);
+        var evening = statuses.GetValueOrDefault(MeetingTypes.Evening, AttendanceStatuses.Pending);
+        var summary = GetAttendanceSummary(morning, evening);
+        AttendanceSummaryText.Text = $"Summary: {summary} (Morning: {morning}; Evening: {evening})";
+
+        var canEditToday = SelectedDate.Date == DateTime.Today;
+        var morningPending = morning == AttendanceStatuses.Pending;
+        var eveningPending = evening == AttendanceStatuses.Pending;
+        MorningHalfDayButton.IsEnabled = canEditToday && morningPending;
+        EveningHalfDayButton.IsEnabled = canEditToday && eveningPending;
+        FullDayLeaveButton.IsEnabled = canEditToday && morningPending && eveningPending;
+        FullDayLeaveButton.ToolTip = FullDayLeaveButton.IsEnabled
+            ? "Mark both pending meetings as leave"
+            : "Full-day leave is available only while both meetings are pending";
+    }
+
+    private static string GetAttendanceSummary(string morning, string evening)
+    {
+        if (morning == AttendanceStatuses.Absent || evening == AttendanceStatuses.Absent)
+            return AttendanceStatuses.Absent;
+        if (morning == AttendanceStatuses.Leave && evening == AttendanceStatuses.Leave)
+            return AttendanceStatuses.Leave;
+        if ((morning == AttendanceStatuses.Present && evening == AttendanceStatuses.Leave)
+            || (morning == AttendanceStatuses.Leave && evening == AttendanceStatuses.Present))
+            return "Half day";
+        if (morning == AttendanceStatuses.Present && evening == AttendanceStatuses.Present)
+            return AttendanceStatuses.Present;
+        return AttendanceStatuses.Pending;
     }
 
     private async void SubmitTaskButton_Click(object sender, RoutedEventArgs e)
@@ -165,6 +247,22 @@ public partial class AdminDailyWorkPage : Page
             QuestPDF.Settings.License = LicenseType.Community;
             var attendanceRows = attendanceTask.Result;
             var dailyTaskRows = dailyTaskTask.Result;
+            var attendanceSummaries = attendanceRows
+                .GroupBy(row => new { row.AdminId, row.AdminName })
+                .Select(group =>
+                {
+                    var statuses = group.ToDictionary(row => row.MeetingType, row => row.Status);
+                    var morning = statuses.GetValueOrDefault(MeetingTypes.Morning, AttendanceStatuses.Pending);
+                    var evening = statuses.GetValueOrDefault(MeetingTypes.Evening, AttendanceStatuses.Pending);
+                    return new
+                    {
+                        group.Key.AdminName,
+                        Morning = morning,
+                        Evening = evening,
+                        Summary = GetAttendanceSummary(morning, evening)
+                    };
+                })
+                .ToList();
             Document.Create(document => document.Page(page =>
             {
                 page.Size(PageSizes.A4.Landscape());
@@ -185,21 +283,24 @@ public partial class AdminDailyWorkPage : Page
                             columns.RelativeColumn(3);
                             columns.RelativeColumn(1.5f);
                             columns.RelativeColumn(1.5f);
+                            columns.RelativeColumn(1.7f);
                         });
                         table.Header(header =>
                         {
                             header.Cell().Element(HeaderCell).Text("Administrator");
-                            header.Cell().Element(HeaderCell).Text("Meeting");
-                            header.Cell().Element(HeaderCell).Text("Status");
+                            header.Cell().Element(HeaderCell).Text("Morning");
+                            header.Cell().Element(HeaderCell).Text("Evening");
+                            header.Cell().Element(HeaderCell).Text("Summary");
                         });
-                        foreach (var row in attendanceRows)
+                        foreach (var row in attendanceSummaries)
                         {
                             table.Cell().Element(BodyCell).Text(row.AdminName);
-                            table.Cell().Element(BodyCell).Text(row.MeetingType);
-                            table.Cell().Element(StatusCell(row.Status)).Text(row.Status);
+                            table.Cell().Element(StatusCell(row.Morning)).Text(row.Morning);
+                            table.Cell().Element(StatusCell(row.Evening)).Text(row.Evening);
+                            table.Cell().Element(StatusCell(row.Summary)).Text(row.Summary);
                         }
-                        if (attendanceRows.Count == 0)
-                            table.Cell().ColumnSpan(3).Element(BodyCell).Text("No attendance records.");
+                        if (attendanceSummaries.Count == 0)
+                            table.Cell().ColumnSpan(4).Element(BodyCell).Text("No attendance records.");
                     });
 
                     column.Item().PaddingTop(20).Text("Daily Task Submissions").FontSize(15).Bold();
@@ -262,6 +363,8 @@ public partial class AdminDailyWorkPage : Page
         {
             AttendanceStatuses.Present or TaskStatuses.Completed => Colors.Green.Lighten3,
             AttendanceStatuses.Absent => Colors.Red.Lighten3,
+            AttendanceStatuses.Leave => Colors.Purple.Lighten3,
+            "Half day" => Colors.Blue.Lighten3,
             TaskStatuses.Blocked => Colors.Orange.Lighten3,
             "Not submitted" => Colors.Grey.Lighten3,
             _ => Colors.Grey.Lighten4

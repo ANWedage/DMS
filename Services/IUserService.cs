@@ -78,6 +78,8 @@ namespace DMS.Services
         bool UpdateAttendanceStatus(string attendanceId, string status, string adminId, string adminName, string? note);
         List<AdminAttendanceRecord> GetAdminAttendance(string adminId, DateTime date);
         bool MarkAdminAttendancePresent(string adminId, string meetingType, DateTime date);
+        bool MarkAdminAttendanceLeave(string adminId, string meetingType, DateTime date);
+        bool MarkAdminAttendanceFullDayLeave(string adminId, DateTime date);
         void EnsureAdminAttendance(DateTime date);
         List<AdminAttendanceReportRow> GetAllAdminAttendance(DateTime date);
 

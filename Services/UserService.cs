@@ -988,6 +988,7 @@ namespace DMS.Services
             }
 
             GetAdminAttendance(adminId, date);
+
             var filter = Builders<AdminAttendanceRecord>.Filter.And(
                 Builders<AdminAttendanceRecord>.Filter.Eq(a => a.AdminId, adminId),
                 Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingDate, FormatDate(date)),
@@ -1002,6 +1003,68 @@ namespace DMS.Services
                 throw new InvalidOperationException("This admin attendance record is no longer pending.");
             return true;
         }
+
+        public bool MarkAdminAttendanceLeave(string adminId, string meetingType, DateTime date)
+        {
+            ValidateAdminId(adminId);
+            ValidateAdminLeaveRequest(meetingType, date);
+            GetAdminAttendance(adminId, date);
+
+            var filter = Builders<AdminAttendanceRecord>.Filter.And(
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.AdminId, adminId),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingDate, FormatDate(date)),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
+            var update = BuildAdminAttendanceStatusUpdate(AttendanceStatuses.Leave);
+            if (_context.AdminAttendance.UpdateOne(filter, update).ModifiedCount == 0)
+                throw new InvalidOperationException("This admin attendance record is no longer pending.");
+            return true;
+        }
+
+        public bool MarkAdminAttendanceFullDayLeave(string adminId, DateTime date)
+        {
+            ValidateAdminId(adminId);
+            if (!MeetingSchedule.IsWorkingDay(date))
+                throw new InvalidOperationException("The admin attendance request is invalid.");
+
+            var settings = GetMeetingSettings();
+            var now = GetApplicationNow(settings);
+            if (date.Date != now.Date || now.TimeOfDay >= AdminAttendanceCutoff)
+                throw new InvalidOperationException($"Admin attendance can be marked only today before 17:30. Current time: {now:HH:mm}.");
+
+            var existingRecords = GetAdminAttendance(adminId, date);
+            if (existingRecords.Count != AdminAttendanceMeetingTypes.Length
+                || existingRecords.Any(record => record.Status != AttendanceStatuses.Pending))
+                throw new InvalidOperationException("Full-day leave can only be marked while both attendance records are pending.");
+
+            var filter = Builders<AdminAttendanceRecord>.Filter.And(
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.AdminId, adminId),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingDate, FormatDate(date)),
+                Builders<AdminAttendanceRecord>.Filter.In(a => a.MeetingType, AdminAttendanceMeetingTypes),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
+            var result = _context.AdminAttendance.UpdateMany(filter, BuildAdminAttendanceStatusUpdate(AttendanceStatuses.Leave));
+            if (result.ModifiedCount != AdminAttendanceMeetingTypes.Length)
+                throw new InvalidOperationException("Full-day leave can only be marked while both attendance records are pending.");
+            return true;
+        }
+
+        private void ValidateAdminLeaveRequest(string meetingType, DateTime date)
+        {
+            if (!AdminAttendanceMeetingTypes.Contains(meetingType) || !MeetingSchedule.IsWorkingDay(date))
+                throw new InvalidOperationException("The admin attendance request is invalid.");
+
+            var settings = GetMeetingSettings();
+            var now = GetApplicationNow(settings);
+            if (date.Date != now.Date || now.TimeOfDay >= AdminAttendanceCutoff)
+                throw new InvalidOperationException($"Admin attendance can be marked only today before 17:30. Current time: {now:HH:mm}.");
+        }
+
+        private static UpdateDefinition<AdminAttendanceRecord> BuildAdminAttendanceStatusUpdate(string status) =>
+            Builders<AdminAttendanceRecord>.Update
+                .Set(a => a.Status, status)
+                .Set(a => a.MarkedAt, DateTime.UtcNow)
+                .Set(a => a.MarkedBy, "Admin")
+                .Set(a => a.UpdatedAt, DateTime.UtcNow);
 
         public void EnsureAdminAttendance(DateTime date)
         {
@@ -1498,6 +1561,10 @@ namespace DMS.Services
                 throw new InvalidOperationException("A blocked reason is required.");
 
             update.UpdateDate = DateTime.SpecifyKind(update.UpdateDate.Date, DateTimeKind.Unspecified);
+            var attendance = GetAdminAttendance(update.AdminId, update.UpdateDate);
+            if (attendance.Count > 0 && attendance.All(record => record.Status == AttendanceStatuses.Leave))
+                throw new InvalidOperationException(AdminDailyTaskStatuses.NotRequiredFullDayLeave);
+
             if (GetAdminDailyTask(update.AdminId, update.UpdateDate) != null)
                 throw new InvalidOperationException("You already submitted an admin daily task for this date.");
 
@@ -1519,13 +1586,20 @@ namespace DMS.Services
                 .Select(admin =>
                 {
                     tasks.TryGetValue(admin.Id, out var task);
+                    var attendance = GetAdminAttendance(admin.Id, date);
+                    var fullDayLeave = attendance.Count > 0
+                        && attendance.All(record => record.Status == AttendanceStatuses.Leave);
                     return new AdminDailyTaskReportRow
                     {
                         AdminId = admin.Id,
                         AdminName = string.IsNullOrWhiteSpace(admin.Name) ? admin.Username : admin.Name,
-                        Status = task?.Status ?? "Not submitted",
-                        Description = task?.Description ?? "No daily task submitted.",
-                        BlockedReason = task?.BlockedReason
+                        Status = fullDayLeave
+                            ? AdminDailyTaskStatuses.NotRequiredFullDayLeave
+                            : task?.Status ?? "Not submitted",
+                        Description = fullDayLeave
+                            ? AdminDailyTaskStatuses.NotRequiredFullDayLeave
+                            : task?.Description ?? "No daily task submitted.",
+                        BlockedReason = fullDayLeave ? null : task?.BlockedReason
                     };
                 })
                 .OrderBy(row => row.AdminName)

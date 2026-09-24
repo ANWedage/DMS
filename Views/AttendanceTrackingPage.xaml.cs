@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -205,23 +206,64 @@ namespace DMS.Views
                 settings.EnsureTeamSettings();
                 SetTime(FullStackMorningHourBox, FullStackMorningMinuteBox, settings.FullStack!.MorningTime);
                 FullStackMorningLinkTextBox.Text = settings.FullStack.MorningMeetingLink;
+                FullStackMorningJoinButton.IsEnabled = !string.IsNullOrWhiteSpace(settings.FullStack.MorningMeetingLink);
                 SetTime(FullStackEveningHourBox, FullStackEveningMinuteBox, settings.FullStack.EveningTime);
                 FullStackEveningLinkTextBox.Text = settings.FullStack.EveningMeetingLink;
+                FullStackEveningJoinButton.IsEnabled = !string.IsNullOrWhiteSpace(settings.FullStack.EveningMeetingLink);
                 SetTime(QaMorningHourBox, QaMorningMinuteBox, settings.QA!.MorningTime);
                 QaMorningLinkTextBox.Text = settings.QA.MorningMeetingLink;
+                QaMorningJoinButton.IsEnabled = !string.IsNullOrWhiteSpace(settings.QA.MorningMeetingLink);
                 SetTime(QaEveningHourBox, QaEveningMinuteBox, settings.QA.EveningTime);
                 QaEveningLinkTextBox.Text = settings.QA.EveningMeetingLink;
+                QaEveningJoinButton.IsEnabled = !string.IsNullOrWhiteSpace(settings.QA.EveningMeetingLink);
                 SetTime(UiUxMorningHourBox, UiUxMorningMinuteBox, settings.UIUX!.MorningTime);
                 UiUxMorningLinkTextBox.Text = settings.UIUX.MorningMeetingLink;
+                UiUxMorningJoinButton.IsEnabled = !string.IsNullOrWhiteSpace(settings.UIUX.MorningMeetingLink);
                 SetTime(UiUxEveningHourBox, UiUxEveningMinuteBox, settings.UIUX.EveningTime);
                 UiUxEveningLinkTextBox.Text = settings.UIUX.EveningMeetingLink;
+                UiUxEveningJoinButton.IsEnabled = !string.IsNullOrWhiteSpace(settings.UIUX.EveningMeetingLink);
                 SetTime(WeeklyHourBox, WeeklyMinuteBox, settings.WeeklyTime);
                 WeeklyLinkTextBox.Text = settings.WeeklyMeetingLink;
+                WeeklyJoinButton.IsEnabled = !string.IsNullOrWhiteSpace(settings.WeeklyMeetingLink);
                 UpdateLastSettingsText(settings);
             }
             catch (Exception ex)
             {
                 SettingsMessageText.Text = $"Unable to load meeting settings: {ex.Message}";
+            }
+        }
+
+        private void JoinMeetingButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button { Tag: string meetingKey })
+                return;
+
+            var link = meetingKey switch
+            {
+                "FullStackMorning" => FullStackMorningLinkTextBox.Text,
+                "FullStackEvening" => FullStackEveningLinkTextBox.Text,
+                "QaMorning" => QaMorningLinkTextBox.Text,
+                "QaEvening" => QaEveningLinkTextBox.Text,
+                "UiUxMorning" => UiUxMorningLinkTextBox.Text,
+                "UiUxEvening" => UiUxEveningLinkTextBox.Text,
+                "Weekly" => WeeklyLinkTextBox.Text,
+                _ => string.Empty
+            };
+
+            if (string.IsNullOrWhiteSpace(link))
+            {
+                SettingsMessageText.Text = "Enter and save a Google Meet link before joining.";
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(link.Trim()) { UseShellExecute = true });
+                SettingsMessageText.Text = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                SettingsMessageText.Text = $"Unable to open the Google Meet link: {ex.Message}";
             }
         }
 

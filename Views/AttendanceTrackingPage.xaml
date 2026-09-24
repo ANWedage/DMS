@@ -18,6 +18,7 @@
                                 <ColumnDefinition Width="120"/>
                                 <ColumnDefinition Width="150"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="110"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -29,14 +30,16 @@
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
                                 <ComboBox x:Name="FullStackMorningMinuteBox" Width="58" ToolTip="Minute"/>
                             </StackPanel>
-                            <TextBox x:Name="FullStackMorningLinkTextBox" Grid.Column="2" Margin="0,0,0,8" ToolTip="Google Meet link"/>
+                            <TextBox x:Name="FullStackMorningLinkTextBox" Grid.Column="2" Margin="0,0,8,8" ToolTip="Google Meet link"/>
+                            <Button x:Name="FullStackMorningJoinButton" Grid.Column="3" Content="Join Meet" Tag="FullStackMorning" Click="JoinMeetingButton_Click" Margin="0,0,0,8" IsEnabled="False"/>
                             <TextBlock Text="Evening time" Grid.Row="1" VerticalAlignment="Center"/>
                             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,0">
                                 <ComboBox x:Name="FullStackEveningHourBox" Width="58" ToolTip="Hour"/>
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
                                 <ComboBox x:Name="FullStackEveningMinuteBox" Width="58" ToolTip="Minute"/>
                             </StackPanel>
-                            <TextBox x:Name="FullStackEveningLinkTextBox" Grid.Row="1" Grid.Column="2" ToolTip="Google Meet link"/>
+                            <TextBox x:Name="FullStackEveningLinkTextBox" Grid.Row="1" Grid.Column="2" Margin="0,0,8,0" ToolTip="Google Meet link"/>
+                            <Button x:Name="FullStackEveningJoinButton" Grid.Row="1" Grid.Column="3" Content="Join Meet" Tag="FullStackEvening" Click="JoinMeetingButton_Click" IsEnabled="False"/>
                         </Grid>
                         <TextBlock Text="QA" FontWeight="SemiBold" Margin="0,14,0,4"/>
                         <Grid>
@@ -44,6 +47,7 @@
                                 <ColumnDefinition Width="120"/>
                                 <ColumnDefinition Width="150"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="110"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -55,14 +59,16 @@
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
                                 <ComboBox x:Name="QaMorningMinuteBox" Width="58" ToolTip="Minute"/>
                             </StackPanel>
-                            <TextBox x:Name="QaMorningLinkTextBox" Grid.Column="2" Margin="0,0,0,8" ToolTip="Google Meet link"/>
+                            <TextBox x:Name="QaMorningLinkTextBox" Grid.Column="2" Margin="0,0,8,8" ToolTip="Google Meet link"/>
+                            <Button x:Name="QaMorningJoinButton" Grid.Column="3" Content="Join Meet" Tag="QaMorning" Click="JoinMeetingButton_Click" Margin="0,0,0,8" IsEnabled="False"/>
                             <TextBlock Text="Evening time" Grid.Row="1" VerticalAlignment="Center"/>
                             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,0">
                                 <ComboBox x:Name="QaEveningHourBox" Width="58" ToolTip="Hour"/>
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
                                 <ComboBox x:Name="QaEveningMinuteBox" Width="58" ToolTip="Minute"/>
                             </StackPanel>
-                            <TextBox x:Name="QaEveningLinkTextBox" Grid.Row="1" Grid.Column="2" ToolTip="Google Meet link"/>
+                            <TextBox x:Name="QaEveningLinkTextBox" Grid.Row="1" Grid.Column="2" Margin="0,0,8,0" ToolTip="Google Meet link"/>
+                            <Button x:Name="QaEveningJoinButton" Grid.Row="1" Grid.Column="3" Content="Join Meet" Tag="QaEvening" Click="JoinMeetingButton_Click" IsEnabled="False"/>
                         </Grid>
                         <TextBlock Text="UI/UX" FontWeight="SemiBold" Margin="0,14,0,4"/>
                         <Grid>
@@ -70,6 +76,7 @@
                                 <ColumnDefinition Width="120"/>
                                 <ColumnDefinition Width="150"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="110"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -81,14 +88,16 @@
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
                                 <ComboBox x:Name="UiUxMorningMinuteBox" Width="58" ToolTip="Minute"/>
                             </StackPanel>
-                            <TextBox x:Name="UiUxMorningLinkTextBox" Grid.Column="2" Margin="0,0,0,8" ToolTip="Google Meet link"/>
+                            <TextBox x:Name="UiUxMorningLinkTextBox" Grid.Column="2" Margin="0,0,8,8" ToolTip="Google Meet link"/>
+                            <Button x:Name="UiUxMorningJoinButton" Grid.Column="3" Content="Join Meet" Tag="UiUxMorning" Click="JoinMeetingButton_Click" Margin="0,0,0,8" IsEnabled="False"/>
                             <TextBlock Text="Evening time" Grid.Row="1" VerticalAlignment="Center"/>
                             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,0">
                                 <ComboBox x:Name="UiUxEveningHourBox" Width="58" ToolTip="Hour"/>
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
                                 <ComboBox x:Name="UiUxEveningMinuteBox" Width="58" ToolTip="Minute"/>
                             </StackPanel>
-                            <TextBox x:Name="UiUxEveningLinkTextBox" Grid.Row="1" Grid.Column="2" ToolTip="Google Meet link"/>
+                            <TextBox x:Name="UiUxEveningLinkTextBox" Grid.Row="1" Grid.Column="2" Margin="0,0,8,0" ToolTip="Google Meet link"/>
+                            <Button x:Name="UiUxEveningJoinButton" Grid.Row="1" Grid.Column="3" Content="Join Meet" Tag="UiUxEvening" Click="JoinMeetingButton_Click" IsEnabled="False"/>
                         </Grid>
                         <TextBlock Text="Shared weekly meeting" FontWeight="SemiBold" Margin="0,14,0,4"/>
                         <Grid>
@@ -96,6 +105,7 @@
                                 <ColumnDefinition Width="120"/>
                                 <ColumnDefinition Width="150"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="110"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Weekly time" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,0">
@@ -103,7 +113,8 @@
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
                                 <ComboBox x:Name="WeeklyMinuteBox" Width="58" ToolTip="Minute"/>
                             </StackPanel>
-                            <TextBox x:Name="WeeklyLinkTextBox" Grid.Column="2" ToolTip="Google Meet link"/>
+                            <TextBox x:Name="WeeklyLinkTextBox" Grid.Column="2" Margin="0,0,8,0" ToolTip="Google Meet link"/>
+                            <Button x:Name="WeeklyJoinButton" Grid.Column="3" Content="Join Meet" Tag="Weekly" Click="JoinMeetingButton_Click" IsEnabled="False"/>
                         </Grid>
                         <Button Content="Save meeting settings" Click="SaveSettingsButton_Click"
                                 HorizontalAlignment="Left" Margin="0,14,0,0"/>
