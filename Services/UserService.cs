@@ -579,20 +579,27 @@ namespace DMS.Services
                 .ToList()
                 .Where(record => !string.IsNullOrWhiteSpace(record.UserId))
                 .GroupBy(record => record.UserId, StringComparer.Ordinal)
-                .ToDictionary(group => group.Key, group => group.Select(record => record.Status).ToList(), StringComparer.Ordinal);
+                .ToDictionary(group => group.Key, group => group.ToList(), StringComparer.Ordinal);
 
+            var settings = GetMeetingSettings();
             var userIds = submittedUserIds
                 .Concat(attendanceByUser.Keys)
                 .Where(userId => !string.IsNullOrWhiteSpace(userId))
-                .Distinct(StringComparer.Ordinal);
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            var usersById = _context.Users.Find(u => userIds.Contains(u.Id)).ToList()
+                .ToDictionary(u => u.Id, StringComparer.Ordinal);
 
             return userIds.Select(userId =>
             {
                 var hasSubmittedUpdate = submittedUserIds.Contains(userId);
-                var statuses = attendanceByUser.GetValueOrDefault(userId) ?? new List<string>();
+                var attendanceRecords = attendanceByUser.GetValueOrDefault(userId) ?? new List<AttendanceRecord>();
+                var statuses = attendanceRecords.Select(record => record.Status).ToList();
                 var leaveCount = statuses.Count(status => status == AttendanceStatuses.Leave);
                 var presentCount = statuses.Count(status => status == AttendanceStatuses.Present);
-                var displayStatus = IsUserFullDayLeave(userId, date)
+                var isFullDayLeave = usersById.TryGetValue(userId, out var user)
+                    && IsFullDayLeaveForUser(user, date, settings, attendanceRecords);
+                var displayStatus = isFullDayLeave
                     ? "Leave"
                     : presentCount == 1 && leaveCount == 1
                         ? hasSubmittedUpdate ? "Submitted" : "Half day"
@@ -870,6 +877,14 @@ namespace DMS.Services
 
         private bool IsUserFullDayLeave(User user, DateTime date, MeetingSettings settings)
         {
+            var attendance = _context.Attendance
+                .Find(record => record.UserId == user.Id && record.MeetingDate == FormatDate(date))
+                .ToList();
+            return IsFullDayLeaveForUser(user, date, settings, attendance);
+        }
+
+        private static bool IsFullDayLeaveForUser(User user, DateTime date, MeetingSettings settings, IEnumerable<AttendanceRecord> attendance)
+        {
             if (!MeetingSchedule.IsWorkingDay(date) || !User.IsSupportedPosition(user.Position))
                 return false;
 
@@ -879,9 +894,6 @@ namespace DMS.Services
             if (scheduledMeetingTypes.Count == 0)
                 return false;
 
-            var attendance = _context.Attendance
-                .Find(record => record.UserId == user.Id && record.MeetingDate == FormatDate(date))
-                .ToList();
             var scheduledAttendance = attendance
                 .Where(record => scheduledMeetingTypes.Contains(record.MeetingType))
                 .ToList();
@@ -1665,6 +1677,13 @@ namespace DMS.Services
             var fullDayLeaveByUser = new Dictionary<string, bool>(StringComparer.Ordinal);
             var rows = new List<ProjectDailyTaskReportRow>();
 
+            var attendanceByUser = _context.Attendance
+                .Find(record => record.MeetingDate == FormatDate(calendarDate))
+                .ToList()
+                .Where(record => !string.IsNullOrWhiteSpace(record.UserId))
+                .GroupBy(record => record.UserId, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.ToList(), StringComparer.Ordinal);
+
             foreach (var component in components)
             {
                 var assignments = _context.ComponentAssignments.Find(a => a.ComponentId == component.Id && a.IsActive).ToList();
@@ -1675,7 +1694,8 @@ namespace DMS.Services
                     if (!fullDayLeaveByUser.TryGetValue(assignment.UserId, out var fullDayLeave))
                     {
                         fullDayLeave = users.TryGetValue(assignment.UserId, out var assignedUser)
-                            && IsUserFullDayLeave(assignedUser, calendarDate, settings);
+                            && IsFullDayLeaveForUser(assignedUser, calendarDate, settings,
+                                attendanceByUser.GetValueOrDefault(assignment.UserId) ?? Enumerable.Empty<AttendanceRecord>());
                         fullDayLeaveByUser[assignment.UserId] = fullDayLeave;
                     }
                     rows.Add(new ProjectDailyTaskReportRow

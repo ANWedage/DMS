@@ -25,7 +25,7 @@ public sealed class ApiUserService : IUserService, IDisposable
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri(configuredUrl.TrimEnd('/') + "/"),
-            Timeout = TimeSpan.FromSeconds(15)
+            Timeout = TimeSpan.FromSeconds(60)
         };
     }
 

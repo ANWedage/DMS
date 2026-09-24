@@ -19,7 +19,7 @@ public sealed class DmsApiClient
         _httpClient = httpClient;
         _configuration = configuration;
         _httpClient.BaseAddress = new Uri(GetBaseUrl());
-        _httpClient.Timeout = TimeSpan.FromSeconds(15);
+        _httpClient.Timeout = TimeSpan.FromSeconds(60);
     }
 
     public async Task<ApiLoginResult> LoginAsync(string username, string password, CancellationToken cancellationToken = default)
