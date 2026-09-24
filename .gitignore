@@ -1,11 +1,8 @@
-.env
-.env.*
 
 # Visual Studio / .NET build output
 bin/
 obj/
 .vs/
-.vscode/
 
 # User-specific files
 *.user
@@ -21,3 +18,5 @@ release/
 publish/
 
 commands.txt
+config.bat
+node_modules
