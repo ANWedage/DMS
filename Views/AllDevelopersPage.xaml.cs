@@ -38,6 +38,7 @@ namespace DMS.Views
             }
 
             _isLoading = true;
+            SetLoadingState(true);
             try
             {
                 var selectedDate = DailyTaskDatePicker.SelectedDate?.Date ?? DateTime.Today;
@@ -80,12 +81,22 @@ namespace DMS.Views
             finally
             {
                 _isLoading = false;
+                SetLoadingState(false);
                 if (_reloadRequested)
                 {
                     _reloadRequested = false;
                     _ = ReloadDevelopersAsync();
                 }
             }
+        }
+
+        private void SetLoadingState(bool isLoading)
+        {
+            LoadingOverlay.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
+            RefreshButton.IsEnabled = !isLoading;
+            DailyTaskDatePicker.IsEnabled = !isLoading;
+            SearchTextBox.IsEnabled = !isLoading;
+            ClearSearchButton.IsEnabled = !isLoading;
         }
 
         public Task RefreshAsync() => ReloadDevelopersAsync();
