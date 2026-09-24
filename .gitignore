@@ -19,3 +19,5 @@ TestResults/
 # Local release artifacts
 release/
 publish/
+
+commands.txt
