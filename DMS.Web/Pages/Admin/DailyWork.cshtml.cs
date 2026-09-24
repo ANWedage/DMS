@@ -58,6 +58,12 @@ public sealed class DailyWorkModel : PageModel
     public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
     {
         SelectedDate = SelectedDate.Date;
+        if (!string.Equals(Action, "submit-task", StringComparison.Ordinal))
+        {
+            ModelState.Remove(nameof(Description));
+            ModelState.Remove(nameof(Status));
+            ModelState.Remove(nameof(BlockedReason));
+        }
 
         try
         {
