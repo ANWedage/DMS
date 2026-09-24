@@ -28,6 +28,16 @@
         </div>
     </section>
 }
+else if (Model.IsFullDayLeave)
+{
+    <section class="submitted-panel">
+        <div class="status-icon" aria-hidden="true">&#8212;</div>
+        <div>
+            <strong>Full-day leave</strong>
+            <p>Daily task submission is not required because both meetings are marked leave.</p>
+        </div>
+    </section>
+}
 else
 {
     <form method="post" class="update-form">

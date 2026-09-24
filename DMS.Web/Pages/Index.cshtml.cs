@@ -17,6 +17,7 @@ public sealed class IndexModel : PageModel
 
     public IReadOnlyList<AssignedTask> AssignedTasks { get; private set; } = [];
     public DailyTaskUpdate? TodayUpdate { get; private set; }
+    public bool IsFullDayLeave { get; private set; }
     public bool SubmittedToday => TodayUpdate is not null;
     public string DisplayName => User.Identity?.Name ?? "Developer";
 
@@ -41,6 +42,12 @@ public sealed class IndexModel : PageModel
         {
             var token = GetApiToken();
             await LoadAsync(cancellationToken);
+            if (IsFullDayLeave)
+            {
+                ModelState.AddModelError(string.Empty, "Daily task submission is not required today because both meetings are marked leave.");
+                return Page();
+            }
+
             if (SubmittedToday)
             {
                 ModelState.AddModelError(string.Empty, "You have already submitted today's update.");
@@ -94,9 +101,11 @@ public sealed class IndexModel : PageModel
         var token = GetApiToken();
         var tasksTask = _apiClient.GetMyTasksAsync(token, cancellationToken);
         var historyTask = _apiClient.GetDailyHistoryAsync(token, cancellationToken);
-        await Task.WhenAll(tasksTask, historyTask);
+        var leaveTask = _apiClient.IsFullDayLeaveAsync(token, DateTime.Today, cancellationToken);
+        await Task.WhenAll(tasksTask, historyTask, leaveTask);
         AssignedTasks = await tasksTask;
         TodayUpdate = (await historyTask).FirstOrDefault(update => update.UpdateDate.Date == DateTime.Today);
+        IsFullDayLeave = await leaveTask;
     }
 
     private string GetApiToken() =>

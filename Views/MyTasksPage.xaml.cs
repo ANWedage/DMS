@@ -13,6 +13,7 @@ public partial class MyTasksPage : Page
     private AssignedTask? _selectedTask;
     private string _taskSearchText = string.Empty;
     private string _taskFilter = "All tasks";
+    private bool _isFullDayLeave;
 
     public MyTasksPage(IUserService userService, string userId)
     {
@@ -32,6 +33,9 @@ public partial class MyTasksPage : Page
         try
         {
             ClearUpdateInputs();
+            _isFullDayLeave = await Task.Run(() => _userService.IsUserFullDayLeave(_userId, DateTime.Today));
+            SaveUpdateButton.IsEnabled = !_isFullDayLeave;
+            MessageText.Text = _isFullDayLeave ? "Daily task submission is not required today because both meetings are marked leave." : string.Empty;
             _tasks = await Task.Run(() => _userService.GetMyTasks(_userId));
             ApplyTaskView();
             UpdateTaskSummary();
@@ -161,6 +165,12 @@ public partial class MyTasksPage : Page
 
     private async void SaveUpdateButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_isFullDayLeave)
+        {
+            MessageText.Text = "Daily task submission is not required today because both meetings are marked leave.";
+            return;
+        }
+
         var selectedUpdateType = (UpdateTypeComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? DailyUpdateTypes.AssignedTask;
         var status = (TaskStatusComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? TaskStatuses.InProgress;
         var description = DailyDescriptionTextBox.Text.Trim();

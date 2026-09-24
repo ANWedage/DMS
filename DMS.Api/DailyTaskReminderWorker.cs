@@ -7,6 +7,7 @@ public sealed class DailyTaskReminderWorker : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private DateOnly? _lastReminderDate;
+    private DateOnly? _lastCleanupDate;
 
     public DailyTaskReminderWorker(IServiceScopeFactory scopeFactory)
     {
@@ -24,6 +25,12 @@ public sealed class DailyTaskReminderWorker : BackgroundService
                 var settings = users.GetMeetingSettings();
                 var now = GetApplicationNow(settings);
                 users.EnsureAdminAttendance(now.Date);
+                var applicationDate = DateOnly.FromDateTime(now);
+                if (_lastCleanupDate != applicationDate)
+                {
+                    users.DeleteOldDeveloperData(now.Date.AddDays(-2));
+                    _lastCleanupDate = applicationDate;
+                }
                 if (now.Hour == 16 && now.Minute >= 50 && now.Minute < 51 && _lastReminderDate != DateOnly.FromDateTime(now))
                 {
                     users.EnsureDailyTaskReminder(now.Date);

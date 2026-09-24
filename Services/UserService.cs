@@ -592,7 +592,7 @@ namespace DMS.Services
                 var statuses = attendanceByUser.GetValueOrDefault(userId) ?? new List<string>();
                 var leaveCount = statuses.Count(status => status == AttendanceStatuses.Leave);
                 var presentCount = statuses.Count(status => status == AttendanceStatuses.Present);
-                var displayStatus = leaveCount >= 2
+                var displayStatus = IsUserFullDayLeave(userId, date)
                     ? "Leave"
                     : presentCount == 1 && leaveCount == 1
                         ? hasSubmittedUpdate ? "Submitted" : "Half day"
@@ -610,6 +610,16 @@ namespace DMS.Services
         public long GetActiveUserCount()
         {
             return _context.Users.CountDocuments(u => u.IsActive);
+        }
+
+        public long DeleteOldDeveloperData(DateTime keepFromDate)
+        {
+            var date = DateTime.SpecifyKind(keepFromDate.Date, DateTimeKind.Unspecified);
+            var attendanceDeleted = _context.Attendance.DeleteMany(
+                Builders<AttendanceRecord>.Filter.Lt(record => record.MeetingDate, FormatDate(date))).DeletedCount;
+            var taskUpdatesDeleted = _context.DailyTaskUpdates.DeleteMany(
+                update => update.UpdateDate < date).DeletedCount;
+            return attendanceDeleted + taskUpdatesDeleted;
         }
 
         public List<AdminAccountInfo> GetAllAdmins() => _context.Admins.Find(_ => true).ToList()
@@ -843,6 +853,41 @@ namespace DMS.Services
                 .Where(a => activeTypes.Contains(a.MeetingType))
                 .OrderBy(a => activeTypes.ToList().IndexOf(a.MeetingType))
                 .ToList();
+        }
+
+        public bool IsUserFullDayLeave(string userId, DateTime date)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || !MeetingSchedule.IsWorkingDay(date))
+                return false;
+
+            var user = GetUserById(userId);
+            if (!User.IsSupportedPosition(user.Position))
+                return false;
+
+            var settings = GetMeetingSettings();
+            return IsUserFullDayLeave(user, date, settings);
+        }
+
+        private bool IsUserFullDayLeave(User user, DateTime date, MeetingSettings settings)
+        {
+            if (!MeetingSchedule.IsWorkingDay(date) || !User.IsSupportedPosition(user.Position))
+                return false;
+
+            var scheduledMeetingTypes = MeetingSchedule.ForDate(settings, date, user.Position)
+                .Select(slot => slot.Type)
+                .ToHashSet(StringComparer.Ordinal);
+            if (scheduledMeetingTypes.Count == 0)
+                return false;
+
+            var attendance = _context.Attendance
+                .Find(record => record.UserId == user.Id && record.MeetingDate == FormatDate(date))
+                .ToList();
+            var scheduledAttendance = attendance
+                .Where(record => scheduledMeetingTypes.Contains(record.MeetingType))
+                .ToList();
+
+            return scheduledAttendance.Count == scheduledMeetingTypes.Count
+                && scheduledAttendance.All(record => record.Status == AttendanceStatuses.Leave);
         }
 
         public List<AttendanceRecord> GetAllAttendance(DateTime date)
@@ -1521,6 +1566,9 @@ namespace DMS.Services
             }
 
             update.UpdateDate = DateTime.SpecifyKind(update.UpdateDate.Date, DateTimeKind.Unspecified);
+            if (IsUserFullDayLeave(update.UserId, update.UpdateDate))
+                throw new InvalidOperationException("Daily task submission is not required on a full-day leave date.");
+
             update.Description = update.Description.Trim();
             update.SelfStudyTopic = isSelfStudy ? update.SelfStudyTopic?.Trim() : null;
             update.BlockedReason = string.IsNullOrWhiteSpace(update.BlockedReason) ? null : update.BlockedReason.Trim();
@@ -1613,6 +1661,8 @@ namespace DMS.Services
                 ?? throw new InvalidOperationException("The project could not be found.");
             var components = _context.Components.Find(c => c.ProjectId == projectId).ToList();
             var users = _context.Users.Find(_ => true).ToList().ToDictionary(u => u.Id);
+            var settings = GetMeetingSettings();
+            var fullDayLeaveByUser = new Dictionary<string, bool>(StringComparer.Ordinal);
             var rows = new List<ProjectDailyTaskReportRow>();
 
             foreach (var component in components)
@@ -1622,6 +1672,12 @@ namespace DMS.Services
                 {
                     var update = _context.DailyTaskUpdates.Find(u => u.ComponentId == component.Id
                         && u.UserId == assignment.UserId && u.UpdateDate == calendarDate).FirstOrDefault();
+                    if (!fullDayLeaveByUser.TryGetValue(assignment.UserId, out var fullDayLeave))
+                    {
+                        fullDayLeave = users.TryGetValue(assignment.UserId, out var assignedUser)
+                            && IsUserFullDayLeave(assignedUser, calendarDate, settings);
+                        fullDayLeaveByUser[assignment.UserId] = fullDayLeave;
+                    }
                     rows.Add(new ProjectDailyTaskReportRow
                     {
                         ProjectId = project.Id,
@@ -1632,8 +1688,8 @@ namespace DMS.Services
                         UserId = assignment.UserId,
                         UserName = users.TryGetValue(assignment.UserId, out var user) ? user.Username ?? user.Email : "Unknown member",
                         Position = users.TryGetValue(assignment.UserId, out user) ? user.Position : string.Empty,
-                        Status = update?.Status ?? "Not submitted",
-                        DailyWork = update?.Description ?? "No update submitted",
+                        Status = fullDayLeave ? AttendanceStatuses.Leave : update?.Status ?? "Not submitted",
+                        DailyWork = fullDayLeave ? AttendanceStatuses.Leave : update?.Description ?? "No update submitted",
                         UpdateDate = calendarDate,
                         HasSubmittedUpdate = update != null
                     });

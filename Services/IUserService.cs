@@ -59,6 +59,7 @@ namespace DMS.Services
 
         /// <summary>Returns the number of currently active user accounts.</summary>
         long GetActiveUserCount();
+        long DeleteOldDeveloperData(DateTime keepFromDate);
 
         List<Notification> GetNotifications(string recipientId, string recipientRole);
         List<Notification> GetSentNotifications(string senderId, string senderRole);
@@ -73,6 +74,7 @@ namespace DMS.Services
         MeetingSettings GetMeetingSettingsForUser(string userId);
         void SaveMeetingSettings(MeetingSettings settings, string adminId, string adminName);
         List<AttendanceRecord> GetUserAttendance(string userId, DateTime date);
+        bool IsUserFullDayLeave(string userId, DateTime date);
         List<AttendanceRecord> GetAllAttendance(DateTime date);
         bool MarkAttendancePresent(string userId, string meetingType, DateTime date);
         bool UpdateAttendanceStatus(string attendanceId, string status, string adminId, string adminName, string? note);

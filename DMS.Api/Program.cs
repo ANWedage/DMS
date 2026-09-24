@@ -158,6 +158,15 @@ authenticated.MapGet("/attendance", (ClaimsPrincipal principal, DateTime? date, 
     return Results.Ok(users.GetUserAttendance(userId, date?.Date ?? DateTime.Today));
 });
 
+authenticated.MapGet("/attendance/full-day-leave", (ClaimsPrincipal principal, DateTime? date, IUserService users) =>
+{
+    var userId = GetSubject(principal);
+    if (principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(userId))
+        return Results.Forbid();
+
+    return Results.Ok(users.IsUserFullDayLeave(userId, date?.Date ?? DateTime.Today));
+});
+
 authenticated.MapPost("/attendance/present", (ClaimsPrincipal principal, AttendanceRequest request, IUserService users) =>
 {
     var userId = GetSubject(principal);

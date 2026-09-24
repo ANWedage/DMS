@@ -182,6 +182,9 @@ public sealed class ApiUserService : IUserService, IDisposable
 
     public long GetActiveUserCount() => Read<long>(Send(HttpMethod.Get, "api/admin/users/active-count"));
 
+    public long DeleteOldDeveloperData(DateTime keepFromDate) =>
+        throw new NotSupportedException("Developer data retention is managed by the API background worker.");
+
     public List<AdminAccountInfo> GetAllAdmins() => Read<List<AdminAccountInfo>>(Send(HttpMethod.Get, "api/admin/notification-recipients/admins"));
 
     public List<Notification> GetNotifications(string recipientId, string recipientRole)
@@ -252,6 +255,12 @@ public sealed class ApiUserService : IUserService, IDisposable
     {
         EnsureCurrentUser(userId);
         return Read<List<AttendanceRecord>>(Send(HttpMethod.Get, $"api/attendance?date={date:yyyy-MM-dd}"));
+    }
+
+    public bool IsUserFullDayLeave(string userId, DateTime date)
+    {
+        EnsureCurrentUser(userId);
+        return Read<bool>(Send(HttpMethod.Get, $"api/attendance/full-day-leave?date={date:yyyy-MM-dd}"));
     }
 
     public List<AttendanceRecord> GetAllAttendance(DateTime date) =>

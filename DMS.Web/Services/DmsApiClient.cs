@@ -53,6 +53,9 @@ public sealed class DmsApiClient
     public Task<List<AttendanceRecord>> GetUserAttendanceAsync(string token, DateTime date, CancellationToken cancellationToken = default) =>
         GetAsync<List<AttendanceRecord>>($"api/attendance?date={date:yyyy-MM-dd}", token, cancellationToken);
 
+    public Task<bool> IsFullDayLeaveAsync(string token, DateTime date, CancellationToken cancellationToken = default) =>
+        GetAsync<bool>($"api/attendance/full-day-leave?date={date:yyyy-MM-dd}", token, cancellationToken);
+
     public async Task MarkAttendancePresentAsync(string token, string meetingType, DateTime date, CancellationToken cancellationToken = default)
     {
         using var request = CreateRequest(HttpMethod.Post, "api/attendance/present", token);
