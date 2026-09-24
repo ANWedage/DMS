@@ -37,7 +37,7 @@ public sealed class DailyWorkModel : PageModel
 
     public List<AdminAttendanceRecord> Attendance { get; private set; } = [];
     public AdminDailyTaskUpdate? DailyTask { get; private set; }
-    private MeetingSettings MeetingSettings { get; set; } = new();
+    public MeetingSettings MeetingSettings { get; private set; } = new();
     public bool IsWeekend => !MeetingSchedule.IsWorkingDay(SelectedDate);
     public bool IsFullDayLeave => Attendance.Count > 0
         && Attendance.All(record => record.Status == AttendanceStatuses.Leave);
@@ -154,6 +154,7 @@ public sealed class DailyWorkModel : PageModel
     {
         var token = GetApiToken();
         MeetingSettings = await _apiClient.GetMeetingSettingsAsync(token, cancellationToken);
+        MeetingSettings.EnsureTeamSettings();
         if (HttpContext.Request.Method == HttpMethods.Get
             && !HttpContext.Request.Query.ContainsKey(nameof(SelectedDate)))
             SelectedDate = ApplicationNow.Date;

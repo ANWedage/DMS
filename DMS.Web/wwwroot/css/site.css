@@ -96,6 +96,13 @@ legend { margin-bottom: 10px; }
 .admin-task-form { display: grid; gap: 9px; }
 .admin-task-form button { margin-top: 5px; }
 .compact-panel { box-shadow: none; padding: 14px; }
+.meeting-links-panel { margin-bottom: 16px; }
+.team-meeting-list { display: grid; gap: 10px; }
+.team-meeting-row { display: grid; grid-template-columns: minmax(90px, .7fr) 2fr; align-items: center; gap: 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.team-meeting-row strong { color: var(--teal-dark); font: 700 .9rem 'Trebuchet MS', sans-serif; }
+.meeting-link-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.meeting-link-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.meeting-link-item > span { color: var(--muted); font: .8rem 'Trebuchet MS', sans-serif; }
 .attendance-list { display: grid; gap: 12px; }
 .attendance-card { display: grid; gap: 14px; padding: 16px; border: 1px solid rgba(216,225,223,.9); border-radius: 16px; background: rgba(255,255,255,.92); box-shadow: 0 10px 24px rgba(18,59,66,.08); }
 .attendance-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -130,4 +137,6 @@ legend { margin-bottom: 10px; }
     .admin-work-grid { grid-template-columns: 1fr; }
     .admin-work-heading .date-form { margin-top: 16px; }
     .admin-attendance-row { align-items: flex-start; }
+    .team-meeting-row { grid-template-columns: 1fr; gap: 10px; }
+    .meeting-link-item { align-items: flex-start; flex-direction: column; }
 }

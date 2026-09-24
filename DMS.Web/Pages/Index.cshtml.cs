@@ -100,7 +100,7 @@ public sealed class IndexModel : PageModel
     private async Task LoadAsync(CancellationToken cancellationToken)
     {
         var token = GetApiToken();
-        var settings = await _apiClient.GetMeetingSettingsAsync(token, cancellationToken);
+        var settings = await _apiClient.GetMyMeetingSettingsAsync(token, cancellationToken);
         ApplicationDate = GetApplicationNow(settings).Date;
         var tasksTask = _apiClient.GetMyTasksAsync(token, cancellationToken);
         var historyTask = _apiClient.GetDailyHistoryAsync(token, cancellationToken);

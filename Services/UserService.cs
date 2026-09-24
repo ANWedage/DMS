@@ -793,6 +793,15 @@ namespace DMS.Services
             settings.EveningTime = teamSettings.EveningTime;
             settings.MorningMeetingLink = teamSettings.MorningMeetingLink;
             settings.EveningMeetingLink = teamSettings.EveningMeetingLink;
+            settings.FullStack = string.Equals(user.Position, "Full Stack", StringComparison.OrdinalIgnoreCase)
+                ? teamSettings
+                : null;
+            settings.QA = string.Equals(user.Position, "QA", StringComparison.OrdinalIgnoreCase)
+                ? teamSettings
+                : null;
+            settings.UIUX = string.Equals(user.Position, "UI/UX", StringComparison.OrdinalIgnoreCase)
+                ? teamSettings
+                : null;
             return settings;
         }
 

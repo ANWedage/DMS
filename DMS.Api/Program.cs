@@ -554,7 +554,9 @@ authenticated.MapPost("/admin/attendance/{attendanceId}/status", (string attenda
 });
 
 authenticated.MapGet("/meeting-settings", (ClaimsPrincipal principal, IUserService users) =>
-    Results.Ok(users.GetMeetingSettings()));
+    principal.IsInRole("Admin")
+        ? Results.Ok(users.GetMeetingSettings())
+        : Results.Forbid());
 
 authenticated.MapGet("/meeting-settings/me", (ClaimsPrincipal principal, IUserService users) =>
 {

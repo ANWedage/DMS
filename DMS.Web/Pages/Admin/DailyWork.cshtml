@@ -44,6 +44,50 @@
     <div class="alert error" role="alert" asp-validation-summary="All"></div>
 }
 
+<section class="work-panel meeting-links-panel">
+    <div class="panel-heading">
+        <div>
+            <h2>Team Meetings</h2>
+            <p>Join the relevant morning or evening meeting.</p>
+        </div>
+    </div>
+
+    <div class="team-meeting-list">
+        @foreach (var team in new[]
+        {
+            (Name: "Full Stack", Settings: Model.MeetingSettings.FullStack!),
+            (Name: "QA", Settings: Model.MeetingSettings.QA!),
+            (Name: "UI/UX", Settings: Model.MeetingSettings.UIUX!)
+        })
+        {
+            <div class="team-meeting-row">
+                <strong>@team.Name</strong>
+                <div class="meeting-link-actions">
+                    @foreach (var meeting in new[]
+                    {
+                        (Name: "Morning", Link: team.Settings.MorningMeetingLink),
+                        (Name: "Evening", Link: team.Settings.EveningMeetingLink)
+                    })
+                    {
+                        <div class="meeting-link-item">
+                            <span>@meeting.Name</span>
+                            @if (Uri.TryCreate(meeting.Link, UriKind.Absolute, out var meetingUri)
+                                && (meetingUri.Scheme == Uri.UriSchemeHttps || meetingUri.Scheme == Uri.UriSchemeHttp))
+                            {
+                                <a class="small-link" href="@meetingUri" target="_blank" rel="noopener noreferrer">Join meeting</a>
+                            }
+                            else
+                            {
+                                <button class="small-link" type="button" disabled title="The meeting link has not been configured">Join meeting</button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
 @if (Model.IsWeekend)
 {
     <section class="submitted-panel">
