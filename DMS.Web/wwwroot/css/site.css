@@ -91,8 +91,10 @@ legend { margin-bottom: 10px; }
 .admin-attendance-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
 .admin-attendance-row strong, .attendance-options > span { color: var(--teal-dark); font: 700 .9rem 'Trebuchet MS', sans-serif; }
 .attendance-summary { margin: 0; color: var(--muted); font: .8rem/1.45 'Trebuchet MS', sans-serif; }
-.attendance-options { display: grid; gap: 10px; }
-.attendance-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.attendance-options { display: grid; gap: 12px; }
+.attendance-options .attendance-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+.attendance-options .attendance-actions form { display: flex; }
+.attendance-options .attendance-actions .small-link { width: 100%; min-height: 42px; padding: 0 14px; border-radius: 999px; background: #eaf2f0; color: var(--teal-dark); }
 .admin-task-form { display: grid; gap: 9px; }
 .admin-task-form button { margin-top: 5px; }
 .compact-panel { box-shadow: none; padding: 14px; }
