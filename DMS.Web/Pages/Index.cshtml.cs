@@ -19,6 +19,7 @@ public sealed class IndexModel : PageModel
     public DailyTaskUpdate? TodayUpdate { get; private set; }
     public bool IsFullDayLeave { get; private set; }
     public bool SubmittedToday => TodayUpdate is not null;
+    public DateTime ApplicationDate { get; private set; } = DateTime.Today;
     public string DisplayName => User.Identity?.Name ?? "Developer";
 
     [BindProperty]
@@ -78,7 +79,7 @@ public sealed class IndexModel : PageModel
             {
                 UpdateType = Form.UpdateType,
                 ComponentId = Form.ComponentId ?? string.Empty,
-                UpdateDate = DateTime.SpecifyKind(DateTime.Today, DateTimeKind.Unspecified),
+                UpdateDate = DateTime.SpecifyKind(ApplicationDate, DateTimeKind.Unspecified),
                 Description = Form.Description.Trim(),
                 SelfStudyTopic = string.IsNullOrWhiteSpace(Form.SelfStudyTopic) ? null : Form.SelfStudyTopic.Trim(),
                 Status = Form.Status,
@@ -99,13 +100,38 @@ public sealed class IndexModel : PageModel
     private async Task LoadAsync(CancellationToken cancellationToken)
     {
         var token = GetApiToken();
+        var settings = await _apiClient.GetMeetingSettingsAsync(token, cancellationToken);
+        ApplicationDate = GetApplicationNow(settings).Date;
         var tasksTask = _apiClient.GetMyTasksAsync(token, cancellationToken);
         var historyTask = _apiClient.GetDailyHistoryAsync(token, cancellationToken);
-        var leaveTask = _apiClient.IsFullDayLeaveAsync(token, DateTime.Today, cancellationToken);
+        var leaveTask = _apiClient.IsFullDayLeaveAsync(token, ApplicationDate, cancellationToken);
         await Task.WhenAll(tasksTask, historyTask, leaveTask);
         AssignedTasks = await tasksTask;
-        TodayUpdate = (await historyTask).FirstOrDefault(update => update.UpdateDate.Date == DateTime.Today);
+        TodayUpdate = (await historyTask).FirstOrDefault(update => update.UpdateDate.Date == ApplicationDate);
         IsFullDayLeave = await leaveTask;
+    }
+
+    private static DateTime GetApplicationNow(MeetingSettings settings)
+    {
+        var configuredTimeZone = settings.TimeZoneId?.Trim();
+        if (string.IsNullOrWhiteSpace(configuredTimeZone)
+            || string.Equals(configuredTimeZone, "Sri Lanka Standard Time", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(configuredTimeZone, "Asia/Colombo", StringComparison.OrdinalIgnoreCase))
+            return DateTime.UtcNow.AddHours(5.5);
+
+        try
+        {
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById(configuredTimeZone);
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return DateTime.UtcNow.AddHours(5.5);
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return DateTime.UtcNow.AddHours(5.5);
+        }
     }
 
     private string GetApiToken() =>

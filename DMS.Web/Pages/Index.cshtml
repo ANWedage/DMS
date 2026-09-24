@@ -10,7 +10,7 @@
         <h1>Hello, @Model.DisplayName.</h1>
         <p class="lead">Record one update for today. Assigned work and self-study are both supported.</p>
     </div>
-    <div class="date-chip">@DateTime.Today.ToString("ddd, dd MMM")</div>
+    <div class="date-chip">@Model.ApplicationDate.ToString("ddd, dd MMM")</div>
 </section>
 
 @if (TempData["SuccessMessage"] is string successMessage)

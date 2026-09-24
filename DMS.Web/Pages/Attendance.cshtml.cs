@@ -55,13 +55,18 @@ public sealed class AttendanceModel : PageModel
 
     private async Task LoadAsync(CancellationToken cancellationToken)
     {
+        var token = GetApiToken();
+        var settings = await _apiClient.GetMyMeetingSettingsAsync(token, cancellationToken);
+        if (HttpContext.Request.Method == HttpMethods.Get
+            && !HttpContext.Request.Query.ContainsKey(nameof(SelectedDate)))
+            SelectedDate = GetApplicationNow(settings).Date;
+
         if (!MeetingSchedule.IsWorkingDay(SelectedDate))
         {
             Slots = [];
             return;
         }
 
-        var token = GetApiToken();
         var user = await _apiClient.GetCurrentUserAsync(token, cancellationToken);
         IsUnassigned = !DMS.Models.User.IsSupportedPosition(user.Position);
         if (IsUnassigned)
@@ -70,7 +75,6 @@ public sealed class AttendanceModel : PageModel
             return;
         }
 
-        var settings = await _apiClient.GetMyMeetingSettingsAsync(token, cancellationToken);
         var attendance = await _apiClient.GetUserAttendanceAsync(token, SelectedDate, cancellationToken);
 
         Slots = MeetingSchedule.ForDate(settings, SelectedDate, user.Position)
