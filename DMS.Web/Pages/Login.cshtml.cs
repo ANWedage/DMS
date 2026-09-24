@@ -30,11 +30,6 @@ public sealed class LoginModel : PageModel
         try
         {
             var login = await _apiClient.LoginAsync(Username.Trim(), Password, cancellationToken);
-            if (!string.Equals(login.Role, "User", StringComparison.OrdinalIgnoreCase))
-            {
-                ModelState.AddModelError(string.Empty, "The mobile daily update page is available for developer accounts only.");
-                return Page();
-            }
 
             var claims = new List<Claim>
             {
@@ -45,7 +40,9 @@ public sealed class LoginModel : PageModel
             };
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-            return RedirectToPage("/Home");
+            return string.Equals(login.Role, "Admin", StringComparison.OrdinalIgnoreCase)
+                ? RedirectToPage("/Admin/DailyWork")
+                : RedirectToPage("/Home");
         }
         catch (Exception ex)
         {

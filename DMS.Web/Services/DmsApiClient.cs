@@ -64,6 +64,52 @@ public sealed class DmsApiClient
         await EnsureSuccessAsync(response, cancellationToken);
     }
 
+    public Task<List<AdminAttendanceRecord>> GetAdminAttendanceAsync(string token, DateTime date, CancellationToken cancellationToken = default) =>
+        GetAsync<List<AdminAttendanceRecord>>($"api/admin/my-attendance?date={date:yyyy-MM-dd}", token, cancellationToken);
+
+    public async Task MarkAdminAttendancePresentAsync(string token, string meetingType, DateTime date, CancellationToken cancellationToken = default)
+    {
+        using var request = CreateRequest(HttpMethod.Post, "api/admin/my-attendance/present", token);
+        request.Content = JsonContent.Create(new { meetingType, date = date.ToString("yyyy-MM-dd") }, options: _jsonOptions);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
+    public async Task MarkAdminAttendanceLeaveAsync(string token, string meetingType, DateTime date, CancellationToken cancellationToken = default)
+    {
+        using var request = CreateRequest(HttpMethod.Post, "api/admin/my-attendance/leave", token);
+        request.Content = JsonContent.Create(new { meetingType, date = date.ToString("yyyy-MM-dd") }, options: _jsonOptions);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
+    public async Task MarkAdminFullDayLeaveAsync(string token, DateTime date, CancellationToken cancellationToken = default)
+    {
+        using var request = CreateRequest(HttpMethod.Post, "api/admin/my-attendance/full-day-leave", token);
+        request.Content = JsonContent.Create(new { meetingType = string.Empty, date = date.ToString("yyyy-MM-dd") }, options: _jsonOptions);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
+    public async Task<AdminDailyTaskUpdate?> GetAdminDailyTaskAsync(string token, DateTime date, CancellationToken cancellationToken = default)
+    {
+        using var request = CreateRequest(HttpMethod.Get, $"api/admin/my-daily-task?date={date:yyyy-MM-dd}", token);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        await EnsureSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<AdminDailyTaskUpdate>(_jsonOptions, cancellationToken);
+    }
+
+    public async Task SubmitAdminDailyTaskAsync(string token, AdminDailyTaskUpdate update, CancellationToken cancellationToken = default)
+    {
+        using var request = CreateRequest(HttpMethod.Post, "api/admin/my-daily-task", token);
+        request.Content = JsonContent.Create(update, options: _jsonOptions);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
     public async Task SubmitAsync(string token, DailyTaskUpdate update, CancellationToken cancellationToken = default)
     {
         var path = string.Equals(update.UpdateType, DailyUpdateTypes.SelfStudy, StringComparison.OrdinalIgnoreCase)

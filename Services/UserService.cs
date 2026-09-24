@@ -1613,7 +1613,10 @@ namespace DMS.Services
         public AdminDailyTaskUpdate SaveAdminDailyTask(AdminDailyTaskUpdate update)
         {
             ValidateAdminId(update.AdminId);
-            if (string.IsNullOrWhiteSpace(update.Description))
+            var description = update.Description?.Trim() ?? string.Empty;
+            if (description.Length < 3 || description.Length > 4000)
+                throw new InvalidOperationException("Daily work description must contain between 3 and 4000 characters.");
+            if (string.IsNullOrWhiteSpace(description))
                 throw new InvalidOperationException("A daily work description is required.");
             if (!new[] { TaskStatuses.NotStarted, TaskStatuses.InProgress, TaskStatuses.Blocked, TaskStatuses.Completed }.Contains(update.Status))
                 throw new InvalidOperationException("The selected task status is invalid.");
@@ -1628,7 +1631,7 @@ namespace DMS.Services
             if (GetAdminDailyTask(update.AdminId, update.UpdateDate) != null)
                 throw new InvalidOperationException("You already submitted an admin daily task for this date.");
 
-            update.Description = update.Description.Trim();
+            update.Description = description;
             update.BlockedReason = string.IsNullOrWhiteSpace(update.BlockedReason) ? null : update.BlockedReason.Trim();
             update.UpdatedAt = DateTime.UtcNow;
             _context.AdminDailyTaskUpdates.InsertOne(update);

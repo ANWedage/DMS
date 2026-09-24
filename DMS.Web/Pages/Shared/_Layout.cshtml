@@ -15,7 +15,7 @@
         <header class="topbar @(isLoginPage ? "login-topbar" : string.Empty)">
             @if (!isLoginPage)
             {
-                <a class="brand" asp-page="/Home" aria-label="DMS daily update home">
+                <a class="brand" asp-page="@(User.IsInRole("Admin") ? "/Admin/DailyWork" : "/Home")" aria-label="DMS daily update home">
                     <img class="brand-logo" src="~/assets/dms-logo.png" alt="DMS" />
                 </a>
             }

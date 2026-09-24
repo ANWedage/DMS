@@ -1,0 +1,173 @@
+@page
+@model DMS.Web.Pages.Admin.DailyWorkModel
+@using DMS.Models
+@{
+    ViewData["Title"] = "My Daily Work";
+    var attendanceByType = Model.Attendance.ToDictionary(record => record.MeetingType, record => record);
+    var morning = attendanceByType.GetValueOrDefault(MeetingTypes.Morning);
+    var evening = attendanceByType.GetValueOrDefault(MeetingTypes.Evening);
+    var canMarkMorning = Model.CanEditAttendance && morning?.Status == AttendanceStatuses.Pending;
+    var canMarkEvening = Model.CanEditAttendance && evening?.Status == AttendanceStatuses.Pending;
+    var canMarkFullDay = canMarkMorning && canMarkEvening;
+    var summary = Model.Attendance.Count == 0
+        ? AttendanceStatuses.Pending
+        : morning?.Status == AttendanceStatuses.Absent || evening?.Status == AttendanceStatuses.Absent
+            ? AttendanceStatuses.Absent
+            : Model.IsFullDayLeave
+                ? AttendanceStatuses.Leave
+                : morning?.Status == AttendanceStatuses.Present && evening?.Status == AttendanceStatuses.Present
+                    ? AttendanceStatuses.Present
+                    : morning?.Status == AttendanceStatuses.Leave || evening?.Status == AttendanceStatuses.Leave
+                        ? "Half day"
+                        : AttendanceStatuses.Pending;
+}
+
+<section class="page-heading admin-work-heading">
+    <div>
+        <div class="eyebrow">Admin workspace</div>
+        <h1>My Daily Work</h1>
+        <p class="lead">Record your attendance and daily work from one place.</p>
+    </div>
+    <form method="get" class="date-form">
+        <label asp-for="SelectedDate" class="sr-only">Work date</label>
+        <input asp-for="SelectedDate" type="date" onchange="this.form.submit()" />
+        <button class="material-button" type="submit" title="Refresh daily work" aria-label="Refresh daily work">&#x21bb;</button>
+    </form>
+</section>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert success" role="status">@successMessage</div>
+}
+@if (Model.ModelState.ErrorCount > 0)
+{
+    <div class="alert error" role="alert" asp-validation-summary="All"></div>
+}
+
+@if (Model.IsWeekend)
+{
+    <section class="submitted-panel">
+        <div class="status-icon" aria-hidden="true">i</div>
+        <div>
+            <strong>Non-working day</strong>
+            <p>Admin attendance and daily tasks are not required on weekends.</p>
+        </div>
+    </section>
+}
+else
+{
+    <div class="admin-work-grid">
+        <section class="work-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Attendance</h2>
+                    <p>Mark both meetings before the daily cutoff.</p>
+                </div>
+                <span class="status-label neutral">@summary</span>
+            </div>
+
+            <div class="admin-attendance-list">
+                @foreach (var record in Model.Attendance)
+                {
+                    var canMark = Model.CanEditAttendance && record.Status == AttendanceStatuses.Pending;
+                    <div class="admin-attendance-row">
+                        <div>
+                            <strong>@record.MeetingType</strong>
+                            <span class="attendance-meta">@record.Status</span>
+                        </div>
+                        <form method="post">
+                            <input type="hidden" asp-for="SelectedDate" />
+                            <input type="hidden" name="Action" value="present" />
+                            <input type="hidden" name="MeetingType" value="@record.MeetingType" />
+                            <button class="primary-button small-button" type="submit" disabled="@(!canMark)"
+                                    onclick="return confirm('Mark your @record.MeetingType attendance as present?');">
+                                @(record.Status == AttendanceStatuses.Pending ? "Mark present" : record.Status)
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+
+            <p class="attendance-summary">Summary: @summary (Morning: @(morning?.Status ?? AttendanceStatuses.Pending); Evening: @(evening?.Status ?? AttendanceStatuses.Pending))</p>
+
+            <div class="attendance-options">
+                <span>Additional attendance options</span>
+                <div class="attendance-actions">
+                    <form method="post">
+                        <input type="hidden" asp-for="SelectedDate" />
+                        <input type="hidden" name="Action" value="leave" />
+                        <input type="hidden" name="MeetingType" value="@MeetingTypes.Morning" />
+                        <button class="small-link" type="submit" disabled="@(!canMarkMorning)"
+                                onclick="return confirm('Mark your morning meeting as half-day leave?');">Morning half day</button>
+                    </form>
+                    <form method="post">
+                        <input type="hidden" asp-for="SelectedDate" />
+                        <input type="hidden" name="Action" value="leave" />
+                        <input type="hidden" name="MeetingType" value="@MeetingTypes.Evening" />
+                        <button class="small-link" type="submit" disabled="@(!canMarkEvening)"
+                                onclick="return confirm('Mark your evening meeting as half-day leave?');">Evening half day</button>
+                    </form>
+                    <form method="post">
+                        <input type="hidden" asp-for="SelectedDate" />
+                        <input type="hidden" name="Action" value="full-day-leave" />
+                        <button class="small-link" type="submit" disabled="@(!canMarkFullDay)"
+                                onclick="return confirm('Mark both meetings as full-day leave?');">Full-day leave</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="work-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Daily Task</h2>
+                    <p>Submit one update for the selected work date.</p>
+                </div>
+            </div>
+
+            @if (Model.IsFullDayLeave)
+            {
+                <div class="submitted-panel compact-panel">
+                    <div class="status-icon" aria-hidden="true">i</div>
+                    <div>
+                        <strong>Task not required</strong>
+                        <p>Daily task submission is not required for full-day leave.</p>
+                    </div>
+                </div>
+            }
+            else if (Model.HasSubmittedTask)
+            {
+                <div class="submitted-panel compact-panel">
+                    <div class="status-icon" aria-hidden="true">&#x2713;</div>
+                    <div>
+                        <strong>Daily task already submitted</strong>
+                        <p>@Model.DailyTask!.Description</p>
+                        <span class="status-label neutral">@Model.DailyTask.Status</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <form method="post" class="admin-task-form">
+                    <input type="hidden" asp-for="SelectedDate" />
+                    <input type="hidden" name="Action" value="submit-task" />
+                    <label asp-for="Status">Status</label>
+                    <select asp-for="Status">
+                        <option value="Not started">Not started</option>
+                        <option value="In progress">In progress</option>
+                        <option value="Blocked">Blocked</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                    <label asp-for="Description">Work completed</label>
+                    <textarea asp-for="Description" rows="6"></textarea>
+                    <span asp-validation-for="Description" class="field-error"></span>
+                    <label asp-for="BlockedReason">Blocked reason</label>
+                    <textarea asp-for="BlockedReason" rows="3"></textarea>
+                    <span asp-validation-for="BlockedReason" class="field-error"></span>
+                    <button class="primary-button" type="submit"
+                            onclick="return confirm('Submit this admin daily task?');">Submit daily task</button>
+                </form>
+            }
+        </section>
+    </div>
+}

@@ -8,6 +8,7 @@ using DMS.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.SignalR;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -754,6 +755,10 @@ authenticated.MapPost("/admin/my-daily-task", (AdminDailyTaskUpdate update, Clai
         return Results.Ok(users.SaveAdminDailyTask(update));
     }
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+    catch (MongoWriteException ex) when (ex.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+    {
+        return Results.Conflict(new { error = "You already submitted an admin daily task for this date." });
+    }
 });
 
 authenticated.MapGet("/admin/reports/daily-tasks", (DateTime? date, ClaimsPrincipal principal, IUserService users) =>
