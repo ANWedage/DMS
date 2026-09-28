@@ -358,7 +358,6 @@ namespace DMS.Views
                 {
                     WeeklyTime = GetTime(WeeklyHourBox, WeeklyMinuteBox),
                     WeeklyMeetingLink = WeeklyLinkTextBox.Text,
-                    DailyTaskFormLink = existingSettings.DailyTaskFormLink,
                     LeaveFormLink = existingSettings.LeaveFormLink,
                     TimeZoneId = existingSettings.TimeZoneId,
                     FullStack = new TeamMeetingSettings

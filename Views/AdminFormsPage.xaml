@@ -5,15 +5,13 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Background="#E8EDEF" Margin="30">
             <TextBlock Text="Google Forms" Style="{StaticResource HeadingStyle}"/>
-            <TextBlock Text="Configure the forms opened from the member workspace." Style="{StaticResource MutedStyle}" Margin="0,8,0,24"/>
+            <TextBlock Text="Configure the leave form opened from the member workspace." Style="{StaticResource MutedStyle}" Margin="0,8,0,24"/>
             <Border Background="White" CornerRadius="10" Padding="22">
                 <StackPanel>
-                    <TextBlock Text="Daily task form URL" Style="{StaticResource LabelStyle}"/>
-                    <TextBox x:Name="DailyTaskFormLinkBox"/>
-                    <TextBlock Text="Leave form URL" Style="{StaticResource LabelStyle}" Margin="0,12,0,0"/>
+                    <TextBlock Text="Leave form URL" Style="{StaticResource LabelStyle}"/>
                     <TextBox x:Name="LeaveFormLinkBox"/>
                     <TextBlock x:Name="FormsMessageText" Style="{StaticResource ErrorStyle}" Margin="0,8,0,0" TextWrapping="Wrap"/>
-                    <Button Content="Save form links" HorizontalAlignment="Left" Margin="0,10,0,0" Click="SaveFormLinksButton_Click"/>
+                    <Button Content="Save leave form link" HorizontalAlignment="Left" Margin="0,10,0,0" Click="SaveFormLinksButton_Click"/>
                 </StackPanel>
             </Border>
         </StackPanel>

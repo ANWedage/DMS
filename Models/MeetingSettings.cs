@@ -59,6 +59,7 @@ namespace DMS.Models
         [BsonElement("WeeklyMeetingLink")]
         public string WeeklyMeetingLink { get; set; } = string.Empty;
 
+        // Kept for deserializing existing settings documents; the retired form is no longer exposed or written.
         [BsonElement("DailyTaskFormLink")]
         public string DailyTaskFormLink { get; set; } = string.Empty;
 

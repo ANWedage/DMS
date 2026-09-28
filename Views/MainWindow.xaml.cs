@@ -66,11 +66,6 @@ namespace DMS.Views
             MainContentFrame.Navigate(new MyTasksPage(_userService, _currentUserId));
         }
 
-        private async void DailyTaskFormButton_Click(object sender, RoutedEventArgs e)
-        {
-            await OpenConfiguredFormAsync(settings => settings.DailyTaskFormLink, "daily task");
-        }
-
         private async void LeaveFormButton_Click(object sender, RoutedEventArgs e)
         {
             await OpenConfiguredFormAsync(settings => settings.LeaveFormLink, "leave");
@@ -80,7 +75,7 @@ namespace DMS.Views
         {
             try
             {
-                var settings = await Task.Run(_userService.GetMeetingSettings);
+                var settings = await Task.Run(() => _userService.GetMeetingSettingsForUser(_currentUserId));
                 var link = linkSelector(settings);
                 if (!Uri.TryCreate(link, UriKind.Absolute, out var uri)
                     || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
