@@ -8,9 +8,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DMS</RootNamespace>
     <AssemblyName>DMS</AssemblyName>
-    <Version>2.1.22</Version>
-    <AssemblyVersion>2.1.22</AssemblyVersion>
-    <FileVersion>2.1.22</FileVersion>
+    <Version>2.1.23</Version>
+    <AssemblyVersion>2.1.23</AssemblyVersion>
+    <FileVersion>2.1.23</FileVersion>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <ApplicationIcon>Assets\dms-logo.ico</ApplicationIcon>

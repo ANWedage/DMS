@@ -457,8 +457,11 @@ authenticated.MapPost("/notifications/read-all", (ClaimsPrincipal principal, IUs
 {
     var recipientId = GetSubject(principal);
     var role = principal.IsInRole("Admin") ? "Admin" : "User";
-    return string.IsNullOrWhiteSpace(recipientId) ? Results.Forbid()
-        : Results.NoContent();
+    if (string.IsNullOrWhiteSpace(recipientId))
+        return Results.Forbid();
+
+    users.MarkAllNotificationsRead(recipientId, role);
+    return Results.NoContent();
 });
 
 authenticated.MapPost("/admin/notifications", async (NotificationRequest request, ClaimsPrincipal principal, IUserService users, IHubContext<ChatHub> hub) =>

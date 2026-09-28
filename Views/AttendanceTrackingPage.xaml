@@ -24,7 +24,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="Morning time" VerticalAlignment="Center"/>
+                            <TextBlock Text="Morning time (A.M)" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,8">
                                 <ComboBox x:Name="FullStackMorningHourBox" Width="58" ToolTip="Hour"/>
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
@@ -32,7 +32,7 @@
                             </StackPanel>
                             <TextBox x:Name="FullStackMorningLinkTextBox" Grid.Column="2" Margin="0,0,8,8" ToolTip="Google Meet link"/>
                             <Button x:Name="FullStackMorningJoinButton" Grid.Column="3" Content="Join Meet" Tag="FullStackMorning" Click="JoinMeetingButton_Click" Margin="0,0,0,8" IsEnabled="False"/>
-                            <TextBlock Text="Evening time" Grid.Row="1" VerticalAlignment="Center"/>
+                            <TextBlock Text="Evening time (P.M)" Grid.Row="1" VerticalAlignment="Center"/>
                             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,0">
                                 <ComboBox x:Name="FullStackEveningHourBox" Width="58" ToolTip="Hour"/>
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
@@ -53,7 +53,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="Morning time" VerticalAlignment="Center"/>
+                            <TextBlock Text="Morning time (A.M.)" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,8">
                                 <ComboBox x:Name="QaMorningHourBox" Width="58" ToolTip="Hour"/>
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
@@ -61,7 +61,7 @@
                             </StackPanel>
                             <TextBox x:Name="QaMorningLinkTextBox" Grid.Column="2" Margin="0,0,8,8" ToolTip="Google Meet link"/>
                             <Button x:Name="QaMorningJoinButton" Grid.Column="3" Content="Join Meet" Tag="QaMorning" Click="JoinMeetingButton_Click" Margin="0,0,0,8" IsEnabled="False"/>
-                            <TextBlock Text="Evening time" Grid.Row="1" VerticalAlignment="Center"/>
+                            <TextBlock Text="Evening time (P.M.)" Grid.Row="1" VerticalAlignment="Center"/>
                             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,0">
                                 <ComboBox x:Name="QaEveningHourBox" Width="58" ToolTip="Hour"/>
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
@@ -82,7 +82,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="Morning time" VerticalAlignment="Center"/>
+                            <TextBlock Text="Morning time (A.M.)" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,8">
                                 <ComboBox x:Name="UiUxMorningHourBox" Width="58" ToolTip="Hour"/>
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
@@ -90,7 +90,7 @@
                             </StackPanel>
                             <TextBox x:Name="UiUxMorningLinkTextBox" Grid.Column="2" Margin="0,0,8,8" ToolTip="Google Meet link"/>
                             <Button x:Name="UiUxMorningJoinButton" Grid.Column="3" Content="Join Meet" Tag="UiUxMorning" Click="JoinMeetingButton_Click" Margin="0,0,0,8" IsEnabled="False"/>
-                            <TextBlock Text="Evening time" Grid.Row="1" VerticalAlignment="Center"/>
+                            <TextBlock Text="Evening time (P.M.)" Grid.Row="1" VerticalAlignment="Center"/>
                             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,0">
                                 <ComboBox x:Name="UiUxEveningHourBox" Width="58" ToolTip="Hour"/>
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>
@@ -107,7 +107,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="110"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Weekly time" VerticalAlignment="Center"/>
+                            <TextBlock Text="Weekly time (A.M.)" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,18,0">
                                 <ComboBox x:Name="WeeklyHourBox" Width="58" ToolTip="Hour"/>
                                 <TextBlock Text=":" VerticalAlignment="Center" Margin="4,0"/>

@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Diagnostics;
-using System.Windows.Navigation;
 using DMS.Helpers;
 using DMS.Models;
 using DMS.Services;
@@ -154,10 +153,9 @@ namespace DMS.Views
             MainContentFrame.Navigate(new UserSettingsPage(_userService, OnProfileChanged));
         }
 
-        private void WebsiteHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        private void VisitUsButton_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
-            e.Handled = true;
+            Process.Start(new ProcessStartInfo("https://www.wexorasolutions.com") { UseShellExecute = true });
         }
 
         private void OnProfileChanged()
