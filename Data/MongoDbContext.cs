@@ -25,6 +25,7 @@ namespace DMS.Data
         public IMongoCollection<DailyTaskUpdate> DailyTaskUpdates => _database.GetCollection<DailyTaskUpdate>("DailyTaskUpdates");
         public IMongoCollection<AdminDailyTaskUpdate> AdminDailyTaskUpdates => _database.GetCollection<AdminDailyTaskUpdate>("AdminDailyTaskUpdates");
         public IMongoCollection<Notification> Notifications => _database.GetCollection<Notification>("Notifications");
+        public IMongoCollection<DailyTaskReminderPreference> DailyTaskReminderPreferences => _database.GetCollection<DailyTaskReminderPreference>("DailyTaskReminderPreferences");
         public IMongoCollection<ChatMessage> ChatMessages => _database.GetCollection<ChatMessage>("ChatMessages");
         public IMongoCollection<ChatAttachment> ChatAttachments => _database.GetCollection<ChatAttachment>("ChatAttachments");
         public GridFSBucket ChatAttachmentsBucket => new(_database, new GridFSBucketOptions
@@ -94,6 +95,11 @@ namespace DMS.Data
                     Unique = true,
                     PartialFilterExpression = Builders<Notification>.Filter.Exists(n => n.ReminderKey, true)
                 }));
+            DailyTaskReminderPreferences.Indexes.CreateOne(new CreateIndexModel<DailyTaskReminderPreference>(
+                Builders<DailyTaskReminderPreference>.IndexKeys
+                    .Ascending(preference => preference.RecipientId)
+                    .Ascending(preference => preference.RecipientRole),
+                new CreateIndexOptions { Unique = true }));
 
             ChatMessages.Indexes.CreateMany(new[]
             {

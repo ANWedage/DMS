@@ -18,7 +18,8 @@ namespace DMS.Views
         private IDisposable? _chatMessageSubscription;
         private IDisposable? _notificationSubscription;
         private readonly DispatcherTimer _taskReminderTimer = new() { Interval = TimeSpan.FromMinutes(1) };
-        private string? _taskReminderTimeZoneId = "Sri Lanka Standard Time";
+        private string? _taskReminderTimeZoneId;
+        private bool _taskReminderStateErrorShown;
 
         public MainWindow(User currentUser, IUserService userService)
         {
@@ -114,6 +115,32 @@ namespace DMS.Views
             if (!visibleWindow)
             {
                 UserTaskReminderBanner.Visibility = Visibility.Collapsed;
+                DesktopTaskReminderNotification.Close();
+                return;
+            }
+
+            bool isStopped;
+            try
+            {
+                isStopped = await Task.Run(() => _userService.IsDailyTaskReminderStoppedToday(
+                    _currentUserId, "User"));
+                _taskReminderStateErrorShown = false;
+            }
+            catch (Exception ex)
+            {
+                if (!_taskReminderStateErrorShown)
+                {
+                    MessageBox.Show($"Unable to check the daily task reminder setting: {ex.Message}",
+                        "Reminder status unavailable", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    _taskReminderStateErrorShown = true;
+                }
+                isStopped = false;
+            }
+
+            if (isStopped)
+            {
+                UserTaskReminderBanner.Visibility = Visibility.Collapsed;
+                DesktopTaskReminderNotification.Close();
                 return;
             }
 
@@ -125,12 +152,32 @@ namespace DMS.Views
             }
         }
 
+        private async void StopTaskReminderButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var now = await GetTaskReminderNowAsync();
+                await Task.Run(() => _userService.StopDailyTaskReminderToday(_currentUserId, "User"));
+                UserTaskReminderBanner.Visibility = Visibility.Collapsed;
+                DesktopTaskReminderNotification.Close();
+                await UpdateNotificationCountAsync();
+                MessageBox.Show("Daily task reminders are stopped for you today.",
+                    "Reminder stopped", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to stop daily task reminders: {ex.Message}",
+                    "Reminder error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private async Task<DateTime> GetTaskReminderNowAsync()
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(_taskReminderTimeZoneId))
-                    _taskReminderTimeZoneId = (await Task.Run(_userService.GetMeetingSettings)).TimeZoneId;
+                    _taskReminderTimeZoneId = (await Task.Run(
+                        () => _userService.GetMeetingSettingsForUser(_currentUserId))).TimeZoneId;
                 return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
                     TimeZoneInfo.FindSystemTimeZoneById(_taskReminderTimeZoneId));
             }

@@ -223,6 +223,18 @@ public sealed class ApiUserService : IUserService, IDisposable
     public void EnsureDailyTaskReminder(DateTime localDate) =>
         throw new NotSupportedException("Daily task reminders are scheduled by the API.");
 
+    public bool IsDailyTaskReminderStoppedToday(string recipientId, string recipientRole)
+    {
+        EnsureCurrentRecipient(recipientId, recipientRole);
+        return Read<bool>(Send(HttpMethod.Get, "api/notifications/daily-task-reminder/stopped"));
+    }
+
+    public void StopDailyTaskReminderToday(string recipientId, string recipientRole)
+    {
+        EnsureCurrentRecipient(recipientId, recipientRole);
+        using var response = Send(HttpMethod.Post, "api/notifications/daily-task-reminder/stop");
+    }
+
     public int SendNotification(string senderId, string senderName, string recipientRole, bool sendToAll,
         IReadOnlyCollection<string> recipientIds, string title, string message)
     {

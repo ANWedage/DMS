@@ -702,6 +702,9 @@ namespace DMS.Services
 
             foreach (var recipient in recipients)
             {
+                if (IsDailyTaskReminderStoppedForDate(recipient.Id, recipient.Role, localDate))
+                    continue;
+
                 var filter = Builders<Notification>.Filter.And(
                     Builders<Notification>.Filter.Eq(n => n.RecipientId, recipient.Id),
                     Builders<Notification>.Filter.Eq(n => n.ReminderKey, reminderKey));
@@ -721,6 +724,50 @@ namespace DMS.Services
                     new UpdateOptions { IsUpsert = true });
 
             }
+        }
+
+        public bool IsDailyTaskReminderStoppedToday(string recipientId, string recipientRole)
+        {
+            ValidateRecipient(recipientId, recipientRole);
+            return IsDailyTaskReminderStoppedForDate(
+                recipientId, recipientRole, GetApplicationNow(GetMeetingSettings()).Date);
+        }
+
+        private bool IsDailyTaskReminderStoppedForDate(string recipientId, string recipientRole, DateTime localDate)
+        {
+            var dateText = localDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            return _context.DailyTaskReminderPreferences
+                .Find(preference => preference.RecipientId == recipientId
+                    && preference.RecipientRole == recipientRole
+                    && preference.StoppedDate == dateText)
+                .Any();
+        }
+
+        public void StopDailyTaskReminderToday(string recipientId, string recipientRole)
+        {
+            ValidateRecipient(recipientId, recipientRole);
+            var localDate = GetApplicationNow(GetMeetingSettings()).Date;
+            var dateText = localDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            var preferenceFilter = Builders<DailyTaskReminderPreference>.Filter.And(
+                Builders<DailyTaskReminderPreference>.Filter.Eq(preference => preference.RecipientId, recipientId),
+                Builders<DailyTaskReminderPreference>.Filter.Eq(preference => preference.RecipientRole, recipientRole));
+            _context.DailyTaskReminderPreferences.UpdateOne(
+                preferenceFilter,
+                Builders<DailyTaskReminderPreference>.Update
+                    .SetOnInsert(preference => preference.RecipientId, recipientId)
+                    .SetOnInsert(preference => preference.RecipientRole, recipientRole)
+                    .Set(preference => preference.StoppedDate, dateText),
+                new UpdateOptions { IsUpsert = true });
+
+            var reminderKey = $"daily-task-reminder:{dateText}";
+            _context.Notifications.UpdateOne(
+                notification => notification.RecipientId == recipientId
+                    && notification.RecipientRole == recipientRole
+                    && notification.ReminderKey == reminderKey
+                    && !notification.IsRead,
+                Builders<Notification>.Update
+                    .Set(notification => notification.IsRead, true)
+                    .Set(notification => notification.ReadAt, DateTime.UtcNow));
         }
 
         public int SendNotification(string senderId, string senderName, string recipientRole, bool sendToAll,

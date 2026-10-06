@@ -67,6 +67,8 @@ namespace DMS.Services
         bool MarkNotificationRead(string notificationId, string recipientId, string recipientRole);
         bool MarkAllNotificationsRead(string recipientId, string recipientRole);
         void EnsureDailyTaskReminder(DateTime localDate);
+        bool IsDailyTaskReminderStoppedToday(string recipientId, string recipientRole);
+        void StopDailyTaskReminderToday(string recipientId, string recipientRole);
         int SendNotification(string senderId, string senderName, string recipientRole, bool sendToAll,
             IReadOnlyCollection<string> recipientIds, string title, string message);
 

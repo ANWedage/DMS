@@ -476,6 +476,33 @@ authenticated.MapPost("/notifications/read-all", (ClaimsPrincipal principal, IUs
     return Results.NoContent();
 });
 
+authenticated.MapGet("/notifications/daily-task-reminder/stopped", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var recipientId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    return string.IsNullOrWhiteSpace(recipientId)
+        ? Results.Forbid()
+        : Results.Ok(users.IsDailyTaskReminderStoppedToday(recipientId, role));
+});
+
+authenticated.MapPost("/notifications/daily-task-reminder/stop", (ClaimsPrincipal principal, IUserService users) =>
+{
+    var recipientId = GetSubject(principal);
+    var role = principal.IsInRole("Admin") ? "Admin" : "User";
+    if (string.IsNullOrWhiteSpace(recipientId))
+        return Results.Forbid();
+
+    try
+    {
+        users.StopDailyTaskReminderToday(recipientId, role);
+        return Results.NoContent();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+});
+
 authenticated.MapPost("/admin/notifications", async (NotificationRequest request, ClaimsPrincipal principal, IUserService users, IHubContext<ChatHub> hub) =>
 {
     if (!principal.IsInRole("Admin")) return Results.Forbid();

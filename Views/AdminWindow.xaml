@@ -116,6 +116,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="68"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <Border Grid.Column="0" Background="#D64545" CornerRadius="10,0,0,10">
@@ -127,6 +128,9 @@
                         <TextBlock Text="Daily task reminder" Foreground="#6D2B1B" FontWeight="Bold" FontSize="18"/>
                         <TextBlock Text="Complete and submit your task update before the workday ends." Foreground="#6D2B1B" Margin="0,4,0,0" FontSize="14" TextWrapping="Wrap"/>
                     </StackPanel>
+                    <Button x:Name="StopAdminTaskReminderButton" Grid.Column="2" Content="Stop for today"
+                            Margin="8,0,16,0" Padding="12,8" VerticalAlignment="Center"
+                            Click="StopTaskReminderButton_Click" ToolTip="Stop your daily task reminders for the rest of today"/>
                 </Grid>
             </Border>
 
