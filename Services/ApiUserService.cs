@@ -308,6 +308,48 @@ public sealed class ApiUserService : IUserService, IDisposable
         return response.IsSuccessStatusCode;
     }
 
+    public bool MarkAdminAttendanceAbsentInformed(string adminId, string meetingType, DateTime date)
+    {
+        EnsureCurrentAdmin(adminId);
+        using var response = Send(HttpMethod.Post, "api/admin/my-attendance/absent-informed", new
+        {
+            meetingType,
+            date = date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
+        }, allowErrorResponse: true);
+        if (!response.IsSuccessStatusCode)
+        {
+            var responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var apiMessage = responseBody;
+            if (!string.IsNullOrWhiteSpace(responseBody))
+            {
+                try
+                {
+                    using var document = JsonDocument.Parse(responseBody);
+                    if (document.RootElement.TryGetProperty("error", out var errorElement)
+                        && errorElement.ValueKind == JsonValueKind.String)
+                    {
+                        apiMessage = errorElement.GetString() ?? responseBody;
+                    }
+                }
+                catch (JsonException)
+                {
+                    // Keep a plain-text response body as the error detail.
+                }
+            }
+
+            var message = $"The API could not mark attendance as absent (informed): "
+                + $"{(int)response.StatusCode} {response.ReasonPhrase}.";
+            if (!string.IsNullOrWhiteSpace(apiMessage))
+                message += $" {apiMessage}";
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                message += " The API service may need to be updated or restarted to include this attendance endpoint.";
+
+            throw new InvalidOperationException(message);
+        }
+
+        return true;
+    }
+
     public bool MarkAdminAttendanceLeave(string adminId, string meetingType, DateTime date)
     {
         EnsureCurrentAdmin(adminId);

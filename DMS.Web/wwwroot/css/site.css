@@ -90,6 +90,8 @@ legend { margin-bottom: 10px; }
 .admin-attendance-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
 .admin-attendance-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
 .admin-attendance-row strong, .attendance-options > span { color: var(--teal-dark); font: 700 .9rem 'Trebuchet MS', sans-serif; }
+.admin-attendance-actions { flex-wrap: wrap; }
+.admin-attendance-actions form { margin: 0; }
 .attendance-summary { margin: 0; color: var(--muted); font: .8rem/1.45 'Trebuchet MS', sans-serif; }
 .attendance-options { display: grid; gap: 12px; }
 .attendance-options .attendance-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: stretch; }

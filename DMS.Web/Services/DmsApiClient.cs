@@ -75,6 +75,14 @@ public sealed class DmsApiClient
         await EnsureSuccessAsync(response, cancellationToken);
     }
 
+    public async Task MarkAdminAttendanceAbsentInformedAsync(string token, string meetingType, DateTime date, CancellationToken cancellationToken = default)
+    {
+        using var request = CreateRequest(HttpMethod.Post, "api/admin/my-attendance/absent-informed", token);
+        request.Content = JsonContent.Create(new { meetingType, date = date.ToString("yyyy-MM-dd") }, options: _jsonOptions);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
     public async Task MarkAdminAttendanceLeaveAsync(string token, string meetingType, DateTime date, CancellationToken cancellationToken = default)
     {
         using var request = CreateRequest(HttpMethod.Post, "api/admin/my-attendance/leave", token);

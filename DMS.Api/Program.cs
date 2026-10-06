@@ -205,6 +205,18 @@ authenticated.MapPost("/admin/my-attendance/present", (AttendanceRequest request
     catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
 
+authenticated.MapPost("/admin/my-attendance/absent-informed", (AttendanceRequest request, ClaimsPrincipal principal, IUserService users) =>
+{
+    var adminId = GetSubject(principal);
+    if (!principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(adminId)) return Results.Forbid();
+    try
+    {
+        users.MarkAdminAttendanceAbsentInformed(adminId, request.MeetingType, request.Date.ToDateTime(TimeOnly.MinValue));
+        return Results.NoContent();
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
+});
+
 authenticated.MapPost("/admin/my-attendance/leave", (AttendanceRequest request, ClaimsPrincipal principal, IUserService users) =>
 {
     var adminId = GetSubject(principal);

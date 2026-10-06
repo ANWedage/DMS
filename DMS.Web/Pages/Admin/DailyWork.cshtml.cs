@@ -76,6 +76,12 @@ public sealed class DailyWorkModel : PageModel
                     TempData["SuccessMessage"] = $"{MeetingType} attendance marked present.";
                     break;
 
+                case "absent-informed":
+                    await _apiClient.MarkAdminAttendanceAbsentInformedAsync(
+                        token, MeetingType ?? string.Empty, SelectedDate, cancellationToken);
+                    TempData["SuccessMessage"] = $"{MeetingType} attendance marked absent (informed).";
+                    break;
+
                 case "leave":
                     await _apiClient.MarkAdminAttendanceLeaveAsync(
                         token, MeetingType ?? string.Empty, SelectedDate, cancellationToken);

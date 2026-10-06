@@ -13,6 +13,8 @@
         ? AttendanceStatuses.Pending
         : morning?.Status == AttendanceStatuses.Absent || evening?.Status == AttendanceStatuses.Absent
             ? AttendanceStatuses.Absent
+            : morning?.Status == AttendanceStatuses.AbsentInformed || evening?.Status == AttendanceStatuses.AbsentInformed
+                ? AttendanceStatuses.AbsentInformed
             : Model.IsFullDayLeave
                 ? AttendanceStatuses.Leave
                 : morning?.Status == AttendanceStatuses.Present && evening?.Status == AttendanceStatuses.Present
@@ -119,15 +121,26 @@ else
                             <strong>@record.MeetingType</strong>
                             <span class="attendance-meta">@record.Status</span>
                         </div>
-                        <form method="post">
-                            <input type="hidden" asp-for="SelectedDate" />
-                            <input type="hidden" name="Action" value="present" />
-                            <input type="hidden" name="MeetingType" value="@record.MeetingType" />
-                            <button class="primary-button small-button" type="submit" disabled="@(!canMark)"
-                                    onclick="return confirm('Mark your @record.MeetingType attendance as present?');">
-                                @(record.Status == AttendanceStatuses.Pending ? "Mark present" : record.Status)
-                            </button>
-                        </form>
+                        <div class="attendance-actions admin-attendance-actions">
+                            <form method="post">
+                                <input type="hidden" asp-for="SelectedDate" />
+                                <input type="hidden" name="Action" value="absent-informed" />
+                                <input type="hidden" name="MeetingType" value="@record.MeetingType" />
+                                <button class="small-link small-button" type="submit" disabled="@(!canMark)"
+                                        onclick="return confirm('Mark your @record.MeetingType attendance as absent (informed)?');">
+                                    Absent (informed)
+                                </button>
+                            </form>
+                            <form method="post">
+                                <input type="hidden" asp-for="SelectedDate" />
+                                <input type="hidden" name="Action" value="present" />
+                                <input type="hidden" name="MeetingType" value="@record.MeetingType" />
+                                <button class="primary-button small-button" type="submit" disabled="@(!canMark)"
+                                        onclick="return confirm('Mark your @record.MeetingType attendance as present?');">
+                                    @(record.Status == AttendanceStatuses.Pending ? "Mark present" : record.Status)
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 }
             </div>

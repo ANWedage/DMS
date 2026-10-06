@@ -37,8 +37,29 @@
                                                 <TextBlock Text="{Binding MeetingType}" FontWeight="SemiBold" FontSize="15"/>
                                                 <TextBlock Text="{Binding Status}" Foreground="#126E70" Margin="0,4,0,0"/>
                                             </StackPanel>
-                                            <Button Content="Mark Present" Tag="{Binding MeetingType}" HorizontalAlignment="Right" Padding="14,7" Click="MarkAttendanceButton_Click">
-                                                <Button.Style>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <Button Content="Absent (informed)" Tag="{Binding MeetingType}" Padding="12,7" Click="MarkAbsentInformedButton_Click">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Present">
+                                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Absent">
+                                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Absent (informed)">
+                                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Leave">
+                                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                                <Button Content="Mark Present" Tag="{Binding MeetingType}" Margin="8,0,0,0" Padding="14,7" Click="MarkAttendanceButton_Click">
+                                                    <Button.Style>
                                                     <Style TargetType="Button">
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Status}" Value="Present">
@@ -53,10 +74,15 @@
                                                                 <Setter Property="IsEnabled" Value="False"/>
                                                                 <Setter Property="Content" Value="Leave"/>
                                                             </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Absent (informed)">
+                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                <Setter Property="Content" Value="Absent (informed)"/>
+                                                            </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </Button.Style>
-                                            </Button>
+                                                    </Button.Style>
+                                                </Button>
+                                            </StackPanel>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>

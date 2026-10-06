@@ -1069,6 +1069,33 @@ namespace DMS.Services
             return true;
         }
 
+        public bool MarkAdminAttendanceAbsentInformed(string adminId, string meetingType, DateTime date)
+        {
+            ValidateAdminId(adminId);
+            if (!AdminAttendanceMeetingTypes.Contains(meetingType) || !MeetingSchedule.IsWorkingDay(date))
+                throw new InvalidOperationException("The admin attendance request is invalid.");
+
+            var settings = GetMeetingSettings();
+            var now = GetApplicationNow(settings);
+            if (date.Date != now.Date || now.TimeOfDay >= AdminAttendanceCutoff)
+            {
+                throw new InvalidOperationException(
+                    $"Admin attendance can be marked only today before 17:30. Current time: {now:HH:mm}.");
+            }
+
+            GetAdminAttendance(adminId, date);
+
+            var filter = Builders<AdminAttendanceRecord>.Filter.And(
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.AdminId, adminId),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingDate, FormatDate(date)),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.MeetingType, meetingType),
+                Builders<AdminAttendanceRecord>.Filter.Eq(a => a.Status, AttendanceStatuses.Pending));
+            var update = BuildAdminAttendanceStatusUpdate(AttendanceStatuses.AbsentInformed);
+            if (_context.AdminAttendance.UpdateOne(filter, update).ModifiedCount == 0)
+                throw new InvalidOperationException("This admin attendance record is no longer pending.");
+            return true;
+        }
+
         public bool MarkAdminAttendanceLeave(string adminId, string meetingType, DateTime date)
         {
             ValidateAdminId(adminId);

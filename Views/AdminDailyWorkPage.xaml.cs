@@ -116,6 +116,24 @@ public partial class AdminDailyWorkPage : Page
         catch (Exception ex) { AttendanceMessageText.Text = ex.Message; }
     }
 
+    private async void MarkAbsentInformedButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string meetingType)
+            return;
+        if (MessageBox.Show($"Mark your {meetingType} attendance as absent (informed)?", "Confirm attendance",
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            var date = SelectedDate;
+            await Task.Run(() => _userService.MarkAdminAttendanceAbsentInformed(AdminId, meetingType, date));
+            AttendanceMessageText.Text = $"{meetingType} attendance marked absent (informed).";
+            await LoadPageAsync();
+        }
+        catch (Exception ex) { AttendanceMessageText.Text = ex.Message; }
+    }
+
     private async void MarkLeaveButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string meetingType })
@@ -173,6 +191,8 @@ public partial class AdminDailyWorkPage : Page
     {
         if (morning == AttendanceStatuses.Absent || evening == AttendanceStatuses.Absent)
             return AttendanceStatuses.Absent;
+        if (morning == AttendanceStatuses.AbsentInformed || evening == AttendanceStatuses.AbsentInformed)
+            return AttendanceStatuses.AbsentInformed;
         if (morning == AttendanceStatuses.Leave && evening == AttendanceStatuses.Leave)
             return AttendanceStatuses.Leave;
         if ((morning == AttendanceStatuses.Present && evening == AttendanceStatuses.Leave)
@@ -363,6 +383,7 @@ public partial class AdminDailyWorkPage : Page
         {
             AttendanceStatuses.Present or TaskStatuses.Completed => Colors.Green.Lighten3,
             AttendanceStatuses.Absent => Colors.Red.Lighten3,
+            AttendanceStatuses.AbsentInformed => Colors.Orange.Lighten3,
             AttendanceStatuses.Leave => Colors.Purple.Lighten3,
             "Half day" => Colors.Blue.Lighten3,
             TaskStatuses.Blocked => Colors.Orange.Lighten3,
