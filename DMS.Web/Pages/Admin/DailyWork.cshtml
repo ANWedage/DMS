@@ -9,17 +9,17 @@
     var canMarkMorning = Model.CanEditAttendance && morning?.Status == AttendanceStatuses.Pending;
     var canMarkEvening = Model.CanEditAttendance && evening?.Status == AttendanceStatuses.Pending;
     var canMarkFullDay = canMarkMorning && canMarkEvening;
+    var morningSummaryStatus = morning?.Status == AttendanceStatuses.AbsentInformed ? AttendanceStatuses.Present : morning?.Status;
+    var eveningSummaryStatus = evening?.Status == AttendanceStatuses.AbsentInformed ? AttendanceStatuses.Present : evening?.Status;
     var summary = Model.Attendance.Count == 0
         ? AttendanceStatuses.Pending
-        : morning?.Status == AttendanceStatuses.Absent || evening?.Status == AttendanceStatuses.Absent
+        : morningSummaryStatus == AttendanceStatuses.Absent || eveningSummaryStatus == AttendanceStatuses.Absent
             ? AttendanceStatuses.Absent
-            : morning?.Status == AttendanceStatuses.AbsentInformed || evening?.Status == AttendanceStatuses.AbsentInformed
-                ? AttendanceStatuses.AbsentInformed
             : Model.IsFullDayLeave
                 ? AttendanceStatuses.Leave
-                : morning?.Status == AttendanceStatuses.Present && evening?.Status == AttendanceStatuses.Present
+                : morningSummaryStatus == AttendanceStatuses.Present && eveningSummaryStatus == AttendanceStatuses.Present
                     ? AttendanceStatuses.Present
-                    : morning?.Status == AttendanceStatuses.Leave || evening?.Status == AttendanceStatuses.Leave
+                    : morningSummaryStatus == AttendanceStatuses.Leave || eveningSummaryStatus == AttendanceStatuses.Leave
                         ? "Half day"
                         : AttendanceStatuses.Pending;
 }

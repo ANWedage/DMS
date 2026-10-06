@@ -189,10 +189,13 @@ public partial class AdminDailyWorkPage : Page
 
     private static string GetAttendanceSummary(string morning, string evening)
     {
+        if (morning == AttendanceStatuses.AbsentInformed)
+            morning = AttendanceStatuses.Present;
+        if (evening == AttendanceStatuses.AbsentInformed)
+            evening = AttendanceStatuses.Present;
+
         if (morning == AttendanceStatuses.Absent || evening == AttendanceStatuses.Absent)
             return AttendanceStatuses.Absent;
-        if (morning == AttendanceStatuses.AbsentInformed || evening == AttendanceStatuses.AbsentInformed)
-            return AttendanceStatuses.AbsentInformed;
         if (morning == AttendanceStatuses.Leave && evening == AttendanceStatuses.Leave)
             return AttendanceStatuses.Leave;
         if ((morning == AttendanceStatuses.Present && evening == AttendanceStatuses.Leave)
