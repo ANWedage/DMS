@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Diagnostics;
 using DMS.Helpers;
 using DMS.Models;
@@ -17,6 +18,7 @@ namespace DMS.Views
         private readonly DispatcherTimer _taskReminderTimer = new() { Interval = TimeSpan.FromMinutes(1) };
         private string? _taskReminderTimeZoneId;
         private bool _taskReminderStateErrorShown;
+        private Button? _activeNavigationButton;
 
         public AdminWindow() : this(new UserService(new Data.MongoDbContext()))
         {
@@ -45,37 +47,56 @@ namespace DMS.Views
         private void ShowDevelopers()
         {
             MainContentFrame.Navigate(new AllDevelopersPage(_userService));
+            SetActiveNavigationButton(AllDevelopersButton);
         }
 
         private void AllDevelopersButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new AllDevelopersPage(_userService));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void TasksButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new TasksPage(_userService));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void AttendanceTrackingButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new AttendanceTrackingPage(_userService));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void AdminDailyWorkButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new AdminDailyWorkPage(_userService));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void FormsButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new AdminFormsPage(_userService));
+            SetActiveNavigationButton((Button)sender);
+        }
+
+        private void SetActiveNavigationButton(Button selectedButton)
+        {
+            if (ReferenceEquals(_activeNavigationButton, selectedButton))
+                return;
+
+            if (_activeNavigationButton is not null)
+                _activeNavigationButton.Tag = null;
+
+            selectedButton.Tag = "Active";
+            _activeNavigationButton = selectedButton;
         }
 
         private void ChatButton_Click(object sender, RoutedEventArgs e)
         {
             _ = UpdateChatCountAsync();
             MainContentFrame.Navigate(new ChatPage(_userService, AppSession.CurrentUserId ?? string.Empty, "Admin", _chatConnection, () => _ = UpdateChatCountAsync()));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void AdminWindow_Activated(object? sender, EventArgs e)
@@ -182,11 +203,13 @@ namespace DMS.Views
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new NotificationsPage(_userService, () => _ = UpdateNotificationCountAsync()));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new AdminSettingsPage(_userService, OnPasswordChanged));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void VisitUsButton_Click(object sender, RoutedEventArgs e)

@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Diagnostics;
 using DMS.Helpers;
 using DMS.Models;
@@ -20,6 +21,7 @@ namespace DMS.Views
         private readonly DispatcherTimer _taskReminderTimer = new() { Interval = TimeSpan.FromMinutes(1) };
         private string? _taskReminderTimeZoneId;
         private bool _taskReminderStateErrorShown;
+        private Button? _activeNavigationButton;
 
         public MainWindow(User currentUser, IUserService userService)
         {
@@ -54,16 +56,31 @@ namespace DMS.Views
         private void ShowAttendance()
         {
             MainContentFrame.Navigate(new AttendancePage(_userService, _currentUserId));
+            SetActiveNavigationButton(AttendanceButton);
         }
 
         private void AttendanceButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new AttendancePage(_userService, _currentUserId));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void MyTasksButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new MyTasksPage(_userService, _currentUserId));
+            SetActiveNavigationButton((Button)sender);
+        }
+
+        private void SetActiveNavigationButton(Button selectedButton)
+        {
+            if (ReferenceEquals(_activeNavigationButton, selectedButton))
+                return;
+
+            if (_activeNavigationButton is not null)
+                _activeNavigationButton.Tag = null;
+
+            selectedButton.Tag = "Active";
+            _activeNavigationButton = selectedButton;
         }
 
         private async void LeaveFormButton_Click(object sender, RoutedEventArgs e)
@@ -96,6 +113,7 @@ namespace DMS.Views
         {
             _ = UpdateChatCountAsync();
             MainContentFrame.Navigate(new ChatPage(_userService, _currentUserId, "User", _chatConnection, () => _ = UpdateChatCountAsync()));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void MainWindow_Activated(object? sender, EventArgs e)
@@ -193,11 +211,13 @@ namespace DMS.Views
         private void NotificationsButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new NotificationsPage(_userService, () => _ = UpdateNotificationCountAsync()));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
             MainContentFrame.Navigate(new UserSettingsPage(_userService, OnProfileChanged));
+            SetActiveNavigationButton((Button)sender);
         }
 
         private void VisitUsButton_Click(object sender, RoutedEventArgs e)
