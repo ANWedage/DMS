@@ -2,8 +2,12 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Track Attendance">
-    <Grid Background="#E8EDEF">
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Grid Background="#E8EDEF" PreviewMouseWheel="Page_PreviewMouseWheel">
+        <ScrollViewer x:Name="PageScrollViewer"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      PanningMode="VerticalOnly"
+                      CanContentScroll="False">
             <StackPanel Margin="30">
                 <TextBlock Text="Track Attendance" Style="{StaticResource HeadingStyle}"/>
                 <TextBlock Text="Review attendance for the scheduled meetings."

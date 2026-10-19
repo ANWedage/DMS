@@ -10,6 +10,7 @@ using DMS.Services;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using VisualTreeHelper = System.Windows.Media.VisualTreeHelper;
 
 namespace DMS.Views
 {
@@ -41,6 +42,50 @@ namespace DMS.Views
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
             await LoadPageAsync();
+        }
+
+        private void Page_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            if (IsWithinElement(e.OriginalSource as DependencyObject, AttendanceGrid))
+            {
+                var gridScrollViewer = FindVisualChild<ScrollViewer>(AttendanceGrid);
+                if (gridScrollViewer is not null && gridScrollViewer.ScrollableHeight > 0)
+                    return;
+            }
+
+            PageScrollViewer.ScrollToVerticalOffset(PageScrollViewer.VerticalOffset - e.Delta);
+            e.Handled = true;
+        }
+
+        private static bool IsWithinElement(DependencyObject? source, DependencyObject element)
+        {
+            while (source is not null)
+            {
+                if (ReferenceEquals(source, element))
+                    return true;
+
+                source = source is System.Windows.Media.Visual
+                    ? VisualTreeHelper.GetParent(source)
+                    : LogicalTreeHelper.GetParent(source);
+            }
+
+            return false;
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, index);
+                if (child is T match)
+                    return match;
+
+                var descendant = FindVisualChild<T>(child);
+                if (descendant is not null)
+                    return descendant;
+            }
+
+            return null;
         }
 
         private void InitializeTimePickers()
