@@ -19,9 +19,9 @@
                 </StackPanel>
             </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                <Button Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="0,0,10,0"
+                <Button x:Name="RefreshButton" Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="0,0,10,0"
                     Click="RefreshButton_Click" ToolTip="Refresh notifications"/>
-                <Button Content="Mark all as read" Style="{StaticResource SecondaryButtonStyle}" Click="MarkAllReadButton_Click"/>
+                <Button x:Name="MarkAllReadButton" Content="Mark all as read" Style="{StaticResource SecondaryButtonStyle}" Click="MarkAllReadButton_Click"/>
                 </StackPanel>
         </Grid>
         <Grid Grid.Row="1">
@@ -161,7 +161,7 @@
                                          ToolTip="Search recipients by name, username, or email"/>
                             </DockPanel>
                         </Border>
-                        <ListBox x:Name="RecipientListBox" Height="118" Margin="0,6,0,0"
+                        <ListBox x:Name="RecipientListBox" Height="185" Margin="0,6,0,0"
                                  IsEnabled="False"
                                  SelectionMode="Single"
                                  BorderBrush="#DDE3E5"
@@ -170,6 +170,7 @@
                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  ScrollViewer.PanningMode="VerticalOnly"
+                                 PreviewMouseWheel="RecipientListBox_PreviewMouseWheel"
                                  SelectionChanged="RecipientListBox_SelectionChanged">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
@@ -203,6 +204,14 @@
                         <Button Content="Send notification" Margin="0,10,0,0" Click="SendButton_Click"/>
                     </StackPanel>
                 </ScrollViewer>
+            </Border>
+        </Grid>
+        <Grid x:Name="LoadingOverlay" Grid.RowSpan="2" Background="#800F1A24" Visibility="Collapsed" Panel.ZIndex="10">
+            <Border Width="260" Height="120" Background="White" CornerRadius="16" BorderBrush="#D7E5EA" BorderThickness="1.2">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <ProgressBar Width="42" Height="42" IsIndeterminate="True" Foreground="#0F4C5C" Margin="0,0,0,12"/>
+                    <TextBlock Text="Loading notifications..." FontSize="16" FontWeight="SemiBold" Foreground="#12343D" HorizontalAlignment="Center"/>
+                </StackPanel>
             </Border>
         </Grid>
     </Grid>

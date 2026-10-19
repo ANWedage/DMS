@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media;
 using DMS.Helpers;
 using DMS.Models;
 using DMS.Services;
@@ -15,6 +17,8 @@ namespace DMS.Views
         private readonly Action? _unreadChanged;
         private List<NotificationRecipient> _recipientOptions = new();
         private bool _showSentHistory;
+        private int _activeLoadCount;
+        private int _recipientWheelDelta;
 
         public NotificationsPage(IUserService userService, Action? unreadChanged = null)
         {
@@ -37,6 +41,7 @@ namespace DMS.Views
 
         private async Task LoadNotificationsAsync()
         {
+            BeginLoading();
             try
             {
                 var notifications = await Task.Run(() => _showSentHistory
@@ -53,6 +58,33 @@ namespace DMS.Views
             {
                 UnreadCountText.Text = ex.Message;
             }
+            finally
+            {
+                EndLoading();
+            }
+        }
+
+        private void BeginLoading()
+        {
+            _activeLoadCount++;
+            LoadingOverlay.Visibility = Visibility.Visible;
+            RefreshButton.IsEnabled = false;
+            MarkAllReadButton.IsEnabled = false;
+            AdminInboxButton.IsEnabled = false;
+            AdminSentButton.IsEnabled = false;
+        }
+
+        private void EndLoading()
+        {
+            _activeLoadCount = Math.Max(0, _activeLoadCount - 1);
+            if (_activeLoadCount > 0)
+                return;
+
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            RefreshButton.IsEnabled = true;
+            MarkAllReadButton.IsEnabled = true;
+            AdminInboxButton.IsEnabled = true;
+            AdminSentButton.IsEnabled = true;
         }
 
         public async Task RefreshAsync()
@@ -118,6 +150,44 @@ namespace DMS.Views
         private void RecipientListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateRecipientSelectionText();
+        }
+
+        private void RecipientListBox_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var scrollViewer = FindVisualChild<ScrollViewer>(RecipientListBox);
+            if (scrollViewer is null)
+                return;
+
+            _recipientWheelDelta += e.Delta;
+            while (_recipientWheelDelta >= Mouse.MouseWheelDeltaForOneLine)
+            {
+                scrollViewer.LineUp();
+                _recipientWheelDelta -= Mouse.MouseWheelDeltaForOneLine;
+            }
+
+            while (_recipientWheelDelta <= -Mouse.MouseWheelDeltaForOneLine)
+            {
+                scrollViewer.LineDown();
+                _recipientWheelDelta += Mouse.MouseWheelDeltaForOneLine;
+            }
+
+            e.Handled = true;
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T match)
+                    return match;
+
+                var descendant = FindVisualChild<T>(child);
+                if (descendant is not null)
+                    return descendant;
+            }
+
+            return null;
         }
 
         private void UpdateRecipientSelectionText()

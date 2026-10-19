@@ -13,6 +13,7 @@ namespace DMS.Views
         private readonly string _userId;
         private MeetingSettings _settings = new();
         private string _position = string.Empty;
+        private int _activeLoadCount;
 
         public AttendancePage(IUserService userService, string userId)
         {
@@ -41,6 +42,7 @@ namespace DMS.Views
 
         private async Task LoadAttendanceAsync()
         {
+            BeginLoading();
             try
             {
                 var date = AttendanceDatePicker.SelectedDate ?? DateTime.Today;
@@ -81,6 +83,29 @@ namespace DMS.Views
                 AttendanceItems.ItemsSource = null;
                 MessageText.Text = $"Unable to load attendance: {ex.Message}";
             }
+            finally
+            {
+                EndLoading();
+            }
+        }
+
+        private void BeginLoading()
+        {
+            _activeLoadCount++;
+            LoadingOverlay.Visibility = Visibility.Visible;
+            RefreshButton.IsEnabled = false;
+            AttendanceDatePicker.IsEnabled = false;
+        }
+
+        private void EndLoading()
+        {
+            _activeLoadCount = Math.Max(0, _activeLoadCount - 1);
+            if (_activeLoadCount > 0)
+                return;
+
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            RefreshButton.IsEnabled = true;
+            AttendanceDatePicker.IsEnabled = true;
         }
 
         private AttendanceRow CreateRow(List<AttendanceRecord> records, MeetingSlot slot, DateTime date)

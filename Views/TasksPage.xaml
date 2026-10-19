@@ -114,14 +114,23 @@
                         <TextBlock Text="Project details" FontSize="17" FontWeight="SemiBold" Margin="0,16,0,0"/>
                         <TextBlock Text="Update project information or change its status." Foreground="#66727D" Margin="0,4,0,0"/>
                         <Grid Margin="0,12,0,0">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="110"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <TextBox x:Name="EditProjectNameTextBox" Grid.Column="0" ToolTip="Project name"/>
-                            <TextBox x:Name="EditProjectDescriptionTextBox" Grid.Column="1" Margin="8,0,0,0" ToolTip="Project description"/>
-                            <DatePicker x:Name="EditProjectStartDatePicker" Grid.Column="2" Margin="8,0,0,0"/>
-                            <DatePicker x:Name="EditProjectDueDatePicker" Grid.Column="3" Margin="8,0,0,0"/>
-                            <ComboBox x:Name="EditProjectStatusComboBox" Grid.Column="4" Margin="8,0,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="110"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                            <TextBlock Text="Project name" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBlock Grid.Column="1" Text="Start date" FontWeight="SemiBold" Margin="8,0,0,5"/>
+                            <TextBlock Grid.Column="2" Text="Due date" FontWeight="SemiBold" Margin="8,0,0,5"/>
+                            <TextBlock Grid.Column="3" Text="Status" FontWeight="SemiBold" Margin="8,0,0,5"/>
+                            <TextBox x:Name="EditProjectNameTextBox" Grid.Row="1" Grid.Column="0" ToolTip="Project name"/>
+                            <DatePicker x:Name="EditProjectStartDatePicker" Grid.Row="1" Grid.Column="1" Margin="8,0,0,0"/>
+                            <DatePicker x:Name="EditProjectDueDatePicker" Grid.Row="1" Grid.Column="2" Margin="8,0,0,0"/>
+                            <ComboBox x:Name="EditProjectStatusComboBox" Grid.Row="1" Grid.Column="3" Margin="8,0,0,0">
                                 <ComboBoxItem Content="Draft"/><ComboBoxItem Content="Active"/><ComboBoxItem Content="Completed"/><ComboBoxItem Content="Archived"/>
                             </ComboBox>
+                            <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Text="Description" FontWeight="SemiBold" Margin="0,10,0,5"/>
+                            <TextBox x:Name="EditProjectDescriptionTextBox" Grid.Row="3" Grid.ColumnSpan="4"
+                                     MinHeight="110" MaxHeight="180" AcceptsReturn="True" TextWrapping="Wrap"
+                                     VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"
+                                     ToolTip="Project description"/>
                         </Grid>
                         <Button Content="Update Project" Click="UpdateProjectButton_Click" HorizontalAlignment="Left" Margin="0,10,0,0"/>
                     </StackPanel>
@@ -130,14 +139,22 @@
                             <TextBlock Text="Add New Component" FontSize="17" FontWeight="SemiBold"/>
                             <TextBlock Text="Create a work item for this project." Foreground="#66727D" Margin="0,4,0,0"/>
                             <Grid Margin="0,8,0,0">
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="130"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <TextBox x:Name="ComponentNameTextBox" Grid.Column="0" ToolTip="Component name"/>
-                                <TextBox x:Name="ComponentDescriptionTextBox" Grid.Column="1" Margin="8,0,0,0" ToolTip="Description"/>
-                                <ComboBox x:Name="ComponentPriorityComboBox" Grid.Column="2" Margin="8,0,0,0">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="130"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <TextBlock Text="Component name" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBlock Grid.Column="1" Text="Priority" FontWeight="SemiBold" Margin="8,0,0,5"/>
+                                <TextBlock Grid.Column="2" Text="Due date" FontWeight="SemiBold" Margin="8,0,0,5"/>
+                                <TextBox x:Name="ComponentNameTextBox" Grid.Row="1" Grid.Column="0" ToolTip="Component name"/>
+                                <ComboBox x:Name="ComponentPriorityComboBox" Grid.Row="1" Grid.Column="1" Margin="8,0,0,0">
                                     <ComboBoxItem Content="Low"/><ComboBoxItem Content="Medium"/><ComboBoxItem Content="High"/>
                                 </ComboBox>
-                                <DatePicker x:Name="ComponentDueDatePicker" Grid.Column="3" Margin="8,0,0,0"/>
-                                <Button Grid.Column="4" Content="Add" Click="AddComponentButton_Click" Margin="8,0,0,0"/>
+                                <DatePicker x:Name="ComponentDueDatePicker" Grid.Row="1" Grid.Column="2" Margin="8,0,0,0"/>
+                                <Button Grid.Row="1" Grid.Column="3" Content="Add" Click="AddComponentButton_Click" Margin="8,0,0,0"/>
+                                <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Text="Description" FontWeight="SemiBold" Margin="0,10,0,5"/>
+                                <TextBox x:Name="ComponentDescriptionTextBox" Grid.Row="3" Grid.ColumnSpan="4"
+                                         MinHeight="110" MaxHeight="180" AcceptsReturn="True" TextWrapping="Wrap"
+                                         VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"
+                                         ToolTip="Component description"/>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -211,17 +228,26 @@
                                         <TextBlock x:Name="SelectedComponentText" Text="Select a component" FontSize="18" FontWeight="SemiBold"/>
                                         <TextBlock Text="Edit component details and status." Foreground="#66727D" Margin="0,4,0,0"/>
                                         <Grid Margin="0,12,0,0">
-                                            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="2*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="120"/><ColumnDefinition Width="130"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                            <TextBox x:Name="EditComponentNameTextBox" Grid.Column="0" ToolTip="Component name"/>
-                                            <TextBox x:Name="EditComponentDescriptionTextBox" Grid.Column="1" Margin="8,0,0,0" ToolTip="Component description"/>
-                                            <ComboBox x:Name="EditComponentPriorityComboBox" Grid.Column="2" Margin="8,0,0,0">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="120"/><ColumnDefinition Width="130"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                            <TextBlock Text="Component name" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                            <TextBlock Grid.Column="1" Text="Priority" FontWeight="SemiBold" Margin="8,0,0,5"/>
+                                            <TextBlock Grid.Column="2" Text="Status" FontWeight="SemiBold" Margin="8,0,0,5"/>
+                                            <TextBlock Grid.Column="3" Text="Due date" FontWeight="SemiBold" Margin="8,0,0,5"/>
+                                            <TextBox x:Name="EditComponentNameTextBox" Grid.Row="1" Grid.Column="0" ToolTip="Component name"/>
+                                            <ComboBox x:Name="EditComponentPriorityComboBox" Grid.Row="1" Grid.Column="1" Margin="8,0,0,0">
                                                 <ComboBoxItem Content="Low"/><ComboBoxItem Content="Medium"/><ComboBoxItem Content="High"/>
                                             </ComboBox>
-                                            <ComboBox x:Name="EditComponentStatusComboBox" Grid.Column="3" Margin="8,0,0,0">
+                                            <ComboBox x:Name="EditComponentStatusComboBox" Grid.Row="1" Grid.Column="2" Margin="8,0,0,0">
                                                 <ComboBoxItem Content="Not started"/><ComboBoxItem Content="In progress"/><ComboBoxItem Content="Blocked"/><ComboBoxItem Content="Completed"/>
                                             </ComboBox>
-                                            <DatePicker x:Name="EditComponentDueDatePicker" Grid.Column="4" Margin="8,0,0,0"/>
-                                            <Button Grid.Column="5" Content="Update Component" Click="UpdateComponentButton_Click" Margin="8,0,0,0"/>
+                                            <DatePicker x:Name="EditComponentDueDatePicker" Grid.Row="1" Grid.Column="3" Margin="8,0,0,0"/>
+                                            <Button Grid.Row="1" Grid.Column="4" Content="Update Component" Click="UpdateComponentButton_Click" Margin="8,0,0,0"/>
+                                            <TextBlock Grid.Row="2" Grid.ColumnSpan="5" Text="Description" FontWeight="SemiBold" Margin="0,10,0,5"/>
+                                            <TextBox x:Name="EditComponentDescriptionTextBox" Grid.Row="3" Grid.ColumnSpan="5"
+                                                     MinHeight="110" MaxHeight="180" AcceptsReturn="True" TextWrapping="Wrap"
+                                                     VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"
+                                                     ToolTip="Component description"/>
                                         </Grid>
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Margin="0,18,0,0">
@@ -417,6 +443,14 @@
                     </StackPanel>
                 </Grid>
                 </ScrollViewer>
+            </Border>
+        </Grid>
+        <Grid x:Name="LoadingOverlay" Grid.RowSpan="2" Background="#800F1A24" Visibility="Collapsed" Panel.ZIndex="10">
+            <Border Width="260" Height="120" Background="White" CornerRadius="16" BorderBrush="#D7E5EA" BorderThickness="1.2">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <ProgressBar Width="42" Height="42" IsIndeterminate="True" Foreground="#0F4C5C" Margin="0,0,0,12"/>
+                    <TextBlock Text="Loading task management..." FontSize="16" FontWeight="SemiBold" Foreground="#12343D" HorizontalAlignment="Center"/>
+                </StackPanel>
             </Border>
         </Grid>
     </Grid>

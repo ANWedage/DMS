@@ -18,6 +18,7 @@ namespace DMS.Views
     {
         private readonly IUserService _userService;
         private readonly ObservableCollection<AttendanceRow> _rows = new();
+        private int _activeLoadCount;
 
         public AttendanceTrackingPage(IUserService userService)
         {
@@ -37,6 +38,12 @@ namespace DMS.Views
         {
             if (IsLoaded)
                 await LoadAttendanceAsync();
+        }
+
+        private void PositionFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsLoaded)
+                ApplyPositionFilter();
         }
 
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -154,7 +161,7 @@ namespace DMS.Views
             try
             {
                 QuestPDF.Settings.License = LicenseType.Community;
-                var rows = _rows.ToList();
+                var rows = GetFilteredAttendanceRows().ToList();
                 Document.Create(document => document.Page(page =>
                 {
                     page.Size(PageSizes.A4.Landscape());
@@ -238,11 +245,12 @@ namespace DMS.Views
 
         private async Task LoadPageAsync()
         {
+            BeginLoading();
             try
             {
                 // Load settings and attendance data in parallel for better performance
                 var settingsTask = Task.Run(_userService.GetMeetingSettings);
-                var attendanceTask = LoadAttendanceAsync(settingsTask);
+                var attendanceTask = LoadAttendanceAsync(settingsTask, showLoadingIndicator: false);
                 
                 await Task.WhenAll(settingsTask, attendanceTask);
                 
@@ -275,6 +283,10 @@ namespace DMS.Views
             catch (Exception ex)
             {
                 SettingsMessageText.Text = $"Unable to load meeting settings: {ex.Message}";
+            }
+            finally
+            {
+                EndLoading();
             }
         }
 
@@ -312,8 +324,11 @@ namespace DMS.Views
             }
         }
 
-        private async Task LoadAttendanceAsync(Task<MeetingSettings>? sharedSettingsTask = null)
+        private async Task LoadAttendanceAsync(Task<MeetingSettings>? sharedSettingsTask = null, bool showLoadingIndicator = true)
         {
+            if (showLoadingIndicator)
+                BeginLoading();
+
             try
             {
                 var date = AttendanceDatePicker.SelectedDate ?? DateTime.Today;
@@ -329,7 +344,7 @@ namespace DMS.Views
 
                 if (!MeetingSchedule.IsWorkingDay(date))
                 {
-                    AttendanceGrid.ItemsSource = _rows;
+                    ApplyPositionFilter();
                     AttendanceMessageText.Text = "Weekend: non-working day. No attendance records are required.";
                     return;
                 }
@@ -377,13 +392,39 @@ namespace DMS.Views
                         });
                     }
                 }
-                AttendanceGrid.ItemsSource = _rows;
+                ApplyPositionFilter();
                 AttendanceMessageText.Text = string.Empty;
             }
             catch (Exception ex)
             {
                 AttendanceMessageText.Text = $"Unable to load attendance: {ex.Message}";
             }
+            finally
+            {
+                if (showLoadingIndicator)
+                    EndLoading();
+            }
+        }
+
+        private void BeginLoading()
+        {
+            _activeLoadCount++;
+            LoadingOverlay.Visibility = Visibility.Visible;
+            RefreshButton.IsEnabled = false;
+            AttendanceDatePicker.IsEnabled = false;
+            PositionFilterComboBox.IsEnabled = false;
+        }
+
+        private void EndLoading()
+        {
+            _activeLoadCount = Math.Max(0, _activeLoadCount - 1);
+            if (_activeLoadCount > 0)
+                return;
+
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            RefreshButton.IsEnabled = true;
+            AttendanceDatePicker.IsEnabled = true;
+            PositionFilterComboBox.IsEnabled = true;
         }
 
         private async void SaveSettingsButton_Click(object sender, RoutedEventArgs e)
@@ -454,6 +495,22 @@ namespace DMS.Views
             LastSettingsUpdateText.Text = string.IsNullOrWhiteSpace(settings.UpdatedByAdminName)
                 ? "Meeting settings have not been updated yet."
                 : $"Last updated by {settings.UpdatedByAdminName} on {settings.UpdatedAt.ToLocalTime():g}";
+        }
+
+        private void ApplyPositionFilter()
+        {
+            AttendanceGrid.ItemsSource = GetFilteredAttendanceRows().ToList();
+        }
+
+        private IEnumerable<AttendanceRow> GetFilteredAttendanceRows()
+        {
+            var selectedPosition = (PositionFilterComboBox?.SelectedItem as ComboBoxItem)?.Content as string;
+            return _rows.Where(row =>
+                string.IsNullOrWhiteSpace(selectedPosition)
+                || selectedPosition == "All positions"
+                || (selectedPosition == "Unassigned"
+                    ? string.IsNullOrWhiteSpace(row.Position) || row.Position == "Unassigned"
+                    : string.Equals(row.Position, selectedPosition, StringComparison.OrdinalIgnoreCase)));
         }
 
         private async void SaveAttendanceButton_Click(object sender, RoutedEventArgs e)

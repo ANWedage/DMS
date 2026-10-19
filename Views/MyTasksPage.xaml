@@ -16,7 +16,8 @@
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
     </Page.Resources>
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <Grid>
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Background="#E8EDEF" Margin="30">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -34,7 +35,7 @@
                     <Border Background="#DCECE9" CornerRadius="18" Padding="14,8">
                         <TextBlock Text="FOCUS MODE" Foreground="#0D5558" FontWeight="SemiBold" FontSize="12"/>
                     </Border>
-                    <Button Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="10,0,0,0"
+                    <Button x:Name="RefreshButton" Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Width="38" Height="38" Margin="10,0,0,0"
                             Click="RefreshButton_Click" ToolTip="Refresh my tasks"/>
                 </StackPanel>
             </Grid>
@@ -221,5 +222,14 @@
                 </Border>
             </Grid>
         </Grid>
-    </ScrollViewer>
+      </ScrollViewer>
+      <Grid x:Name="LoadingOverlay" Background="#800F1A24" Visibility="Collapsed" Panel.ZIndex="10">
+          <Border Width="260" Height="120" Background="White" CornerRadius="16" BorderBrush="#D7E5EA" BorderThickness="1.2">
+              <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                  <ProgressBar Width="42" Height="42" IsIndeterminate="True" Foreground="#0F4C5C" Margin="0,0,0,12"/>
+                  <TextBlock Text="Loading your daily work..." FontSize="16" FontWeight="SemiBold" Foreground="#12343D" HorizontalAlignment="Center"/>
+              </StackPanel>
+          </Border>
+      </Grid>
+    </Grid>
 </Page>

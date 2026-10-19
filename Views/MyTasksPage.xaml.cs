@@ -14,6 +14,7 @@ public partial class MyTasksPage : Page
     private string _taskSearchText = string.Empty;
     private string _taskFilter = "All tasks";
     private bool _isFullDayLeave;
+    private int _activeLoadCount;
 
     public MyTasksPage(IUserService userService, string userId)
     {
@@ -30,6 +31,7 @@ public partial class MyTasksPage : Page
 
     private async Task LoadTasksAsync()
     {
+        BeginLoading();
         try
         {
             ClearUpdateInputs();
@@ -56,6 +58,24 @@ public partial class MyTasksPage : Page
 
         }
         catch (Exception ex) { MessageText.Text = $"Unable to load your tasks: {ex.Message}"; }
+        finally { EndLoading(); }
+    }
+
+    private void BeginLoading()
+    {
+        _activeLoadCount++;
+        LoadingOverlay.Visibility = Visibility.Visible;
+        RefreshButton.IsEnabled = false;
+    }
+
+    private void EndLoading()
+    {
+        _activeLoadCount = Math.Max(0, _activeLoadCount - 1);
+        if (_activeLoadCount > 0)
+            return;
+
+        LoadingOverlay.Visibility = Visibility.Collapsed;
+        RefreshButton.IsEnabled = true;
     }
 
     private async void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -80,13 +100,25 @@ public partial class MyTasksPage : Page
         ProjectText.Text = $"Project: {_selectedTask.Project.Name}";
         DescriptionText.Text = _selectedTask.Component.Description;
         DueDateText.Text = $"Due: {_selectedTask.Component.DueDate:d} | Status: {_selectedTask.Component.Status}";
-        var updates = await Task.Run(() => _userService.GetTaskUpdates(_selectedTask.Component.Id, _userId, false));
-        var today = updates.FirstOrDefault(update => update.UpdateDate.Date == DateTime.Today);
-        DailyDescriptionTextBox.Text = today?.Description ?? string.Empty;
-        TaskStatusComboBox.SelectedIndex = Array.FindIndex(new[] { TaskStatuses.NotStarted, TaskStatuses.InProgress, TaskStatuses.Blocked, TaskStatuses.Completed }, status => status == (today?.Status ?? TaskStatuses.InProgress));
-        BlockedReasonTextBox.Text = today?.BlockedReason ?? string.Empty;
-        MessageText.Text = string.Empty;
-        await LoadDailyHistoryAsync();
+        BeginLoading();
+        try
+        {
+            var updates = await Task.Run(() => _userService.GetTaskUpdates(_selectedTask.Component.Id, _userId, false));
+            var today = updates.FirstOrDefault(update => update.UpdateDate.Date == DateTime.Today);
+            DailyDescriptionTextBox.Text = today?.Description ?? string.Empty;
+            TaskStatusComboBox.SelectedIndex = Array.FindIndex(new[] { TaskStatuses.NotStarted, TaskStatuses.InProgress, TaskStatuses.Blocked, TaskStatuses.Completed }, status => status == (today?.Status ?? TaskStatuses.InProgress));
+            BlockedReasonTextBox.Text = today?.BlockedReason ?? string.Empty;
+            MessageText.Text = string.Empty;
+            await LoadDailyHistoryAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageText.Text = $"Unable to load task updates: {ex.Message}";
+        }
+        finally
+        {
+            EndLoading();
+        }
     }
 
     private void TaskSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -280,6 +312,9 @@ public partial class MyTasksPage : Page
 
     private async Task RefreshTaskListAndHistoryAsync()
     {
+        BeginLoading();
+        try
+        {
         var selectedComponentId = _selectedTask?.Component.Id;
 
         ClearUpdateInputs();
@@ -313,7 +348,11 @@ public partial class MyTasksPage : Page
             TaskStatusComboBox.SelectedIndex = 1;
             await LoadDailyHistoryAsync();
         }
-
+        }
+        finally
+        {
+            EndLoading();
+        }
     }
 
     private sealed class DailyHistoryDisplayRow

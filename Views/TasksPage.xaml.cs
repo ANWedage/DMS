@@ -23,6 +23,7 @@ namespace DMS.Views
     private List<ProjectDailyTaskReportRow> _projectReportRows = new();
     private List<SelfStudyReportRow> _selfStudyReportRows = new();
     private bool _suppressMemberChangeConfirmation;
+    private int _activeLoadCount;
 
     public TasksPage(IUserService userService)
     {
@@ -42,6 +43,7 @@ namespace DMS.Views
 
     private async Task LoadProjectsAsync()
     {
+        BeginLoading();
         try
         {
             var projectsTask = Task.Run(_userService.GetProjects);
@@ -53,9 +55,23 @@ namespace DMS.Views
             MembersListBox.ItemsSource = _users.Select(user => new MemberOption(user)).ToList();
         }
         catch (Exception ex) { MessageBox.Show($"Unable to load tasks: {ex.Message}", "Task management", MessageBoxButton.OK, MessageBoxImage.Error); }
+        finally { EndLoading(); }
     }
 
     public Task RefreshAsync() => LoadProjectsAsync();
+
+    private void BeginLoading()
+    {
+        _activeLoadCount++;
+        LoadingOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void EndLoading()
+    {
+        _activeLoadCount = Math.Max(0, _activeLoadCount - 1);
+        if (_activeLoadCount == 0)
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+    }
 
     private void TaskManagement_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {

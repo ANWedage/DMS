@@ -81,6 +81,8 @@ public partial class ChatPage : Page
             return;
 
         _isLoading = true;
+        LoadingOverlay.Visibility = Visibility.Visible;
+        RefreshButton.IsEnabled = false;
         try
         {
             ChatStatusText.Text = "Loading chat...";
@@ -103,6 +105,8 @@ public partial class ChatPage : Page
         finally
         {
             _isLoading = false;
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            RefreshButton.IsEnabled = true;
         }
     }
 

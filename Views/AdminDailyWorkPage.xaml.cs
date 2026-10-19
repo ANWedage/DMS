@@ -43,6 +43,9 @@ public partial class AdminDailyWorkPage : Page
             return;
 
         _isLoading = true;
+        LoadingOverlay.Visibility = Visibility.Visible;
+        RefreshButton.IsEnabled = false;
+        WorkDatePicker.IsEnabled = false;
         try
         {
             var date = SelectedDate;
@@ -64,6 +67,9 @@ public partial class AdminDailyWorkPage : Page
         finally
         {
             _isLoading = false;
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            RefreshButton.IsEnabled = true;
+            WorkDatePicker.IsEnabled = true;
         }
     }
 

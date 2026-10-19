@@ -131,7 +131,22 @@
                 <StackPanel Orientation="Horizontal" Margin="0,20,0,10">
                     <TextBlock Text="Attendance date" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <DatePicker x:Name="AttendanceDatePicker" SelectedDateChanged="AttendanceDatePicker_SelectedDateChanged"/>
-                    <Button Content="Refresh" Click="RefreshButton_Click" Margin="10,0,0,0"/>
+                    <StackPanel Margin="14,0,0,0">
+                        <TextBlock Text="Position" FontSize="12"/>
+                        <ComboBox x:Name="PositionFilterComboBox"
+                                  Width="125"
+                                  Height="30"
+                                  SelectedIndex="0"
+                                  SelectionChanged="PositionFilterComboBox_SelectionChanged"
+                                  ToolTip="Filter attendance by developer position">
+                            <ComboBoxItem Content="All positions"/>
+                            <ComboBoxItem Content="QA"/>
+                            <ComboBoxItem Content="UI/UX"/>
+                            <ComboBoxItem Content="Full Stack"/>
+                            <ComboBoxItem Content="Unassigned"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" Margin="10,0,0,0"/>
                     <Button Content="Generate PDF report" Click="GenerateReportButton_Click" Margin="10,0,0,0"/>
                 </StackPanel>
                 <TextBlock x:Name="AttendanceMessageText" Margin="0,0,0,10" TextWrapping="Wrap"/>
@@ -190,5 +205,13 @@
                 </Border>
             </StackPanel>
         </ScrollViewer>
+        <Grid x:Name="LoadingOverlay" Background="#800F1A24" Visibility="Collapsed" Panel.ZIndex="10">
+            <Border Width="260" Height="120" Background="White" CornerRadius="16" BorderBrush="#D7E5EA" BorderThickness="1.2">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <ProgressBar Width="42" Height="42" IsIndeterminate="True" Foreground="#0F4C5C" Margin="0,0,0,12"/>
+                    <TextBlock Text="Loading attendance..." FontSize="16" FontWeight="SemiBold" Foreground="#12343D" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Page>
