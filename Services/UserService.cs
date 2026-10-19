@@ -673,6 +673,15 @@ namespace DMS.Services
             return _context.Notifications.CountDocuments(n => n.RecipientId == recipientId && n.RecipientRole == recipientRole && !n.IsRead);
         }
 
+        public bool DeleteSentNotification(string notificationId, string senderId, string senderRole)
+        {
+            if (string.IsNullOrWhiteSpace(senderId) || senderRole != "Admin")
+                throw new InvalidOperationException("Only administrators can delete sent notifications.");
+
+            var result = _context.Notifications.DeleteOne(n => n.Id == notificationId && n.SenderId == senderId);
+            return result.DeletedCount > 0;
+        }
+
         public bool MarkNotificationRead(string notificationId, string recipientId, string recipientRole)
         {
             ValidateRecipient(recipientId, recipientRole);

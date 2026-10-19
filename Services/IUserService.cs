@@ -64,6 +64,7 @@ namespace DMS.Services
         List<Notification> GetNotifications(string recipientId, string recipientRole);
         List<Notification> GetSentNotifications(string senderId, string senderRole);
         long GetUnreadNotificationCount(string recipientId, string recipientRole);
+        bool DeleteSentNotification(string notificationId, string senderId, string senderRole);
         bool MarkNotificationRead(string notificationId, string recipientId, string recipientRole);
         bool MarkAllNotificationsRead(string recipientId, string recipientRole);
         void EnsureDailyTaskReminder(DateTime localDate);

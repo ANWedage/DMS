@@ -48,6 +48,21 @@
                         </Grid>
                     </Border>
                     <StackPanel Margin="0,8,10,0">
+                        <TextBlock Text="Position" FontSize="11" Foreground="#66727D"/>
+                        <ComboBox x:Name="PositionFilterComboBox"
+                                  Width="120"
+                                  Height="30"
+                                  SelectedIndex="0"
+                                  SelectionChanged="PositionFilterComboBox_SelectionChanged"
+                                  ToolTip="Filter developers by position">
+                            <ComboBoxItem Content="All positions"/>
+                            <ComboBoxItem Content="QA"/>
+                            <ComboBoxItem Content="UI/UX"/>
+                            <ComboBoxItem Content="Full Stack"/>
+                            <ComboBoxItem Content="Unassigned"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Margin="0,8,10,0">
                         <TextBlock Text="Submission date" FontSize="11" Foreground="#66727D"/>
                         <DatePicker x:Name="DailyTaskDatePicker"
                                     Width="132"

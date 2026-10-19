@@ -294,6 +294,17 @@ authenticated.MapGet("/admin/notifications/sent", (ClaimsPrincipal principal, IU
         : Results.Ok(users.GetSentNotifications(senderId, "Admin"));
 });
 
+authenticated.MapDelete("/admin/notifications/sent/{notificationId}", (string notificationId, ClaimsPrincipal principal, IUserService users) =>
+{
+    var senderId = GetSubject(principal);
+    if (!principal.IsInRole("Admin") || string.IsNullOrWhiteSpace(senderId))
+        return Results.Forbid();
+
+    return users.DeleteSentNotification(notificationId, senderId, "Admin")
+        ? Results.NoContent()
+        : Results.NotFound();
+});
+
 authenticated.MapGet("/chat/users", (ClaimsPrincipal principal, IUserService users) =>
 {
     var userId = GetSubject(principal);

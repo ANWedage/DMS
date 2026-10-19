@@ -94,6 +94,7 @@ namespace DMS.Views
         {
             LoadingOverlay.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
             RefreshButton.IsEnabled = !isLoading;
+            PositionFilterComboBox.IsEnabled = !isLoading;
             DailyTaskDatePicker.IsEnabled = !isLoading;
             SearchTextBox.IsEnabled = !isLoading;
             ClearSearchButton.IsEnabled = !isLoading;
@@ -104,6 +105,12 @@ namespace DMS.Views
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             ApplyFilter();
+        }
+
+        private void PositionFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsLoaded)
+                ApplyFilter();
         }
 
         private void ClearSearchButton_Click(object sender, RoutedEventArgs e)
@@ -305,13 +312,18 @@ namespace DMS.Views
         private void ApplyFilter()
         {
             var searchText = SearchTextBox?.Text ?? string.Empty;
-            var filteredUsers = string.IsNullOrWhiteSpace(searchText)
-                ? _allUsers
-                : _allUsers.Where(u =>
-                    (u.Username ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase)
-                    || (u.Email ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase)
-                    || (u.ContactNumber ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase)
-                    || (u.Position ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            var selectedPosition = (PositionFilterComboBox?.SelectedItem as ComboBoxItem)?.Content as string;
+            var filteredUsers = _allUsers.Where(user =>
+                (string.IsNullOrWhiteSpace(selectedPosition)
+                 || selectedPosition == "All positions"
+                 || (selectedPosition == "Unassigned"
+                     ? string.IsNullOrWhiteSpace(user.Position)
+                     : string.Equals(user.Position, selectedPosition, StringComparison.OrdinalIgnoreCase)))
+                && (string.IsNullOrWhiteSpace(searchText)
+                    || (user.Username ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                    || (user.Email ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                    || (user.ContactNumber ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                    || (user.Position ?? string.Empty).Contains(searchText, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
             DeveloperListView.ItemsSource = filteredUsers;

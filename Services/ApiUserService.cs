@@ -206,6 +206,14 @@ public sealed class ApiUserService : IUserService, IDisposable
         return Read<long>(Send(HttpMethod.Get, "api/notifications/unread-count"));
     }
 
+    public bool DeleteSentNotification(string notificationId, string senderId, string senderRole)
+    {
+        if (!AppSession.IsAdmin || !string.Equals(AppSession.CurrentUserId, senderId, StringComparison.Ordinal))
+            throw new InvalidOperationException("Only the signed-in administrator can delete sent notifications.");
+        using var response = Send(HttpMethod.Delete, $"api/admin/notifications/sent/{Uri.EscapeDataString(notificationId)}");
+        return response.IsSuccessStatusCode;
+    }
+
     public bool MarkNotificationRead(string notificationId, string recipientId, string recipientRole)
     {
         EnsureCurrentRecipient(recipientId, recipientRole);

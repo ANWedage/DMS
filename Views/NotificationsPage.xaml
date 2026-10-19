@@ -30,7 +30,13 @@
                 <ColumnDefinition x:Name="ComposeColumn" Width="0"/>
             </Grid.ColumnDefinitions>
             <Border Grid.Column="0" Background="White" CornerRadius="10" Padding="10">
-                <ListView x:Name="NotificationList" BorderThickness="0" Background="Transparent">
+                <ListView x:Name="NotificationList"
+                          BorderThickness="0"
+                          Background="Transparent"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          ScrollViewer.PanningMode="VerticalOnly"
+                          VirtualizingPanel.ScrollUnit="Pixel">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -55,9 +61,14 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <DockPanel Grid.Row="0">
-                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16"/>
-                                    <Button Content="Mark read" DockPanel.Dock="Right" Tag="{Binding Id}" Width="92" Height="28"
+                                <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Title}" FontWeight="Bold" FontSize="16" TextWrapping="Wrap"/>
+                                    <Button Grid.Column="1" Content="Mark read" Tag="{Binding Id}" Width="92" Height="28"
                                             Padding="6,2" HorizontalAlignment="Right" Click="MarkReadButton_Click">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -73,7 +84,21 @@
                                             </Style>
                                         </Button.Style>
                                     </Button>
-                                </DockPanel>
+                                    <Button Grid.Column="2" Content="&#xE74D;" Tag="{Binding Id}" Width="32" Height="28"
+                                            Margin="6,0,0,0" FontFamily="Segoe MDL2 Assets" Padding="0"
+                                            Click="DeleteSentNotificationButton_Click" ToolTip="Delete sent notification">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSent}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </Grid>
                                 <TextBlock Grid.Row="1" Text="{Binding Message}" TextWrapping="Wrap" Margin="0,7,0,0"/>
                                 <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,7,0,0">
                                     <TextBlock Text="From " Foreground="#66727D">

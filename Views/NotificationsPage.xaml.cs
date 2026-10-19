@@ -136,6 +136,39 @@ namespace DMS.Views
             }
         }
 
+        private async void DeleteSentNotificationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!AppSession.IsAdmin || !_showSentHistory)
+                return;
+
+            var notificationId = (sender as Button)?.Tag?.ToString();
+            if (string.IsNullOrWhiteSpace(notificationId))
+                return;
+
+            var result = MessageBox.Show(
+                "Delete this sent notification? It will also be removed from the recipient's inbox.",
+                "Delete sent notification",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            try
+            {
+                if (!_userService.DeleteSentNotification(notificationId, _recipientId, _recipientRole))
+                {
+                    MessageBox.Show("The sent notification could not be found or deleted.", "Delete notification", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                await LoadNotificationsAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to delete the sent notification: {ex.Message}", "Delete notification", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private void MarkAllReadButton_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show("Mark all notifications as read?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
