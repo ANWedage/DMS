@@ -1,5 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media.Media3D;
 using Microsoft.Win32;
 using DMS.Helpers;
 using DMS.Models;
@@ -7,6 +9,7 @@ using DMS.Services;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using VisualTreeHelper = System.Windows.Media.VisualTreeHelper;
 
 namespace DMS.Views
 {
@@ -53,6 +56,40 @@ namespace DMS.Views
     }
 
     public Task RefreshAsync() => LoadProjectsAsync();
+
+    private void TaskManagement_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        var source = e.OriginalSource as DependencyObject;
+        var scrollViewers = new List<ScrollViewer>();
+        while (source is not null)
+        {
+            if (source is ScrollViewer scrollViewer)
+                scrollViewers.Add(scrollViewer);
+
+            source = GetParent(source);
+        }
+
+        var target = scrollViewers.FirstOrDefault(viewer => CanScroll(viewer, e.Delta))
+            ?? scrollViewers.LastOrDefault();
+        if (target is null)
+            return;
+
+        target.ScrollToVerticalOffset(target.VerticalOffset - e.Delta * 0.35);
+        e.Handled = true;
+    }
+
+    private static bool CanScroll(ScrollViewer scrollViewer, int delta) =>
+        delta > 0
+            ? scrollViewer.VerticalOffset > 0
+            : scrollViewer.VerticalOffset < scrollViewer.ScrollableHeight;
+
+    private static DependencyObject? GetParent(DependencyObject element)
+    {
+        if (element is System.Windows.Media.Visual or Visual3D)
+            return VisualTreeHelper.GetParent(element);
+
+        return LogicalTreeHelper.GetParent(element);
+    }
 
     private async void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
@@ -560,6 +597,7 @@ namespace DMS.Views
         public bool IsSelected { get; set; }
         public bool IsAssigned { get; set; }
         public string DisplayName => User.Username ?? User.Email;
+        public string PositionDisplay => string.IsNullOrWhiteSpace(User.Position) ? "Unassigned" : User.Position;
         public MemberOption(User user) => User = user;
     }
 

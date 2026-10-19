@@ -26,7 +26,7 @@ namespace DMS.Views
 
             if (AppSession.IsAdmin)
             {
-                ComposeColumn.Width = new GridLength(330);
+                ComposeColumn.Width = new GridLength(390);
                 ComposePanel.Visibility = Visibility.Visible;
                 AdminHistoryButtons.Visibility = Visibility.Visible;
                 LoadRecipients();
@@ -79,9 +79,10 @@ namespace DMS.Views
                     .Where(user => user.IsActive)
                     .Select(user => new NotificationRecipient(user.Id, $"{user.Username ?? user.Email} ({user.Email})", "User"))
                     .ToList();
-                    RecipientComboBox.ItemsSource = _recipientOptions;
-                    RecipientSearchBox.Clear();
-                    RecipientComboBox.SelectedItem = null;
+            RecipientListBox.ItemsSource = _recipientOptions;
+            RecipientSearchBox.Clear();
+            RecipientListBox.SelectedItem = null;
+            UpdateRecipientSelectionText();
         }
 
         private string GetSelectedRole() => (RecipientRoleBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "User";
@@ -96,7 +97,8 @@ namespace DMS.Views
         {
             var enabled = SendToAllBox.IsChecked != true;
             RecipientSearchBox.IsEnabled = enabled;
-            RecipientComboBox.IsEnabled = enabled;
+            RecipientListBox.IsEnabled = enabled;
+            UpdateRecipientSelectionText();
         }
 
         private void RecipientSearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -107,14 +109,24 @@ namespace DMS.Views
                 && (string.IsNullOrWhiteSpace(searchText)
                     || recipient.DisplayName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
             view.Refresh();
-            if (RecipientComboBox.IsDropDownOpen == false && !string.IsNullOrWhiteSpace(searchText))
-                RecipientComboBox.IsDropDownOpen = true;
+            if (RecipientListBox.SelectedItem is NotificationRecipient selectedRecipient
+                && !view.Contains(selectedRecipient))
+                RecipientListBox.SelectedItem = null;
+            UpdateRecipientSelectionText();
         }
 
-        private void RecipientComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void RecipientListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (RecipientComboBox.SelectedItem is NotificationRecipient recipient)
-                RecipientSearchBox.Text = recipient.DisplayName;
+            UpdateRecipientSelectionText();
+        }
+
+        private void UpdateRecipientSelectionText()
+        {
+            RecipientSelectionText.Text = SendToAllBox.IsChecked == true
+                ? "This notification will be sent to everyone in this group."
+                : RecipientListBox.SelectedItem is NotificationRecipient recipient
+                    ? $"Selected: {recipient.DisplayName}"
+                    : "Select one recipient from the list.";
         }
 
         private void MarkReadButton_Click(object sender, RoutedEventArgs e)
@@ -200,7 +212,7 @@ namespace DMS.Views
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             var sendToAll = SendToAllBox.IsChecked == true;
-            var selectedRecipient = RecipientComboBox.SelectedItem as NotificationRecipient;
+            var selectedRecipient = RecipientListBox.SelectedItem as NotificationRecipient;
             var title = TitleBox.Text.Trim();
             var message = MessageTextBox.Text.Trim();
             ComposeErrorText.Text = string.Empty;
