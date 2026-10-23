@@ -14,6 +14,7 @@ public partial class MyTasksPage : Page
     private string _taskSearchText = string.Empty;
     private string _taskFilter = "All tasks";
     private bool _isFullDayLeave;
+    private bool _hasSubmittedUpdateToday;
     private int _activeLoadCount;
 
     public MyTasksPage(IUserService userService, string userId)
@@ -24,7 +25,7 @@ public partial class MyTasksPage : Page
         UpdateTypeComboBox.SelectedIndex = 0;
         TaskStatusComboBox.SelectedIndex = 1;
         TaskStatusComboBox.SelectionChanged += (_, _) =>
-            BlockedReasonTextBox.Visibility = (TaskStatusComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() == TaskStatuses.Blocked
+            BlockedReasonPanel.Visibility = (TaskStatusComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() == TaskStatuses.Blocked
                 ? Visibility.Visible : Visibility.Collapsed;
         Loaded += async (_, _) => await LoadTasksAsync();
     }
@@ -36,8 +37,7 @@ public partial class MyTasksPage : Page
         {
             ClearUpdateInputs();
             _isFullDayLeave = await Task.Run(() => _userService.IsUserFullDayLeave(_userId, DateTime.Today));
-            SaveUpdateButton.IsEnabled = !_isFullDayLeave;
-            MessageText.Text = _isFullDayLeave ? "Daily task submission is not required today because both meetings are marked leave." : string.Empty;
+            UpdateDailySubmissionState();
             _tasks = await Task.Run(() => _userService.GetMyTasks(_userId));
             ApplyTaskView();
             UpdateTaskSummary();
@@ -216,6 +216,7 @@ public partial class MyTasksPage : Page
             if (status == TaskStatuses.Blocked && string.IsNullOrWhiteSpace(blockedReason)) { MessageText.Text = "Explain what is blocking this study session."; return; }
             if (MessageBox.Show("Save this self study update?", "Confirm self study update", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
 
+            var updateSaved = false;
             try
             {
                 var update = new DailyTaskUpdate
@@ -229,11 +230,23 @@ public partial class MyTasksPage : Page
                     BlockedReason = blockedReason
                 };
                 await Task.Run(() => _userService.SaveDailyTaskUpdate(update));
+                updateSaved = true;
                 await RefreshTaskListAndHistoryAsync();
-                ClearUpdateInputs();
-                MessageText.Text = "Today's self study update saved successfully.";
+                MessageText.Text = string.Empty;
+                MessageBox.Show("Today's self-study update was saved successfully.",
+                    "Update saved", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch (Exception ex) { MessageText.Text = $"Unable to save today's update: {ex.Message}"; }
+            catch (Exception ex)
+            {
+                MessageText.Text = string.Empty;
+                MessageBox.Show(
+                    updateSaved
+                        ? $"The self-study update was saved, but the page could not refresh: {ex.Message}"
+                        : $"Unable to save today's self-study update: {ex.Message}",
+                    updateSaved ? "Update saved; refresh failed" : "Update not saved",
+                    MessageBoxButton.OK,
+                    updateSaved ? MessageBoxImage.Warning : MessageBoxImage.Error);
+            }
             return;
         }
 
@@ -241,6 +254,7 @@ public partial class MyTasksPage : Page
         if (string.IsNullOrWhiteSpace(description)) { MessageText.Text = "Describe the work completed today."; return; }
         if (status == TaskStatuses.Blocked && string.IsNullOrWhiteSpace(blockedReason)) { MessageText.Text = "Explain what is blocking this task."; return; }
         if (MessageBox.Show("Save today's task update?", "Confirm daily update", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        var taskUpdateSaved = false;
         try
         {
             var update = new DailyTaskUpdate
@@ -254,11 +268,23 @@ public partial class MyTasksPage : Page
                 BlockedReason = blockedReason
             };
             await Task.Run(() => _userService.SaveDailyTaskUpdate(update));
+            taskUpdateSaved = true;
             await RefreshTaskListAndHistoryAsync();
-            ClearUpdateInputs();
-            MessageText.Text = "Today's update saved successfully.";
+            MessageText.Text = string.Empty;
+            MessageBox.Show("Today's task update was saved successfully.",
+                "Update saved", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-        catch (Exception ex) { MessageText.Text = $"Unable to save today's update: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            MessageText.Text = string.Empty;
+            MessageBox.Show(
+                taskUpdateSaved
+                    ? $"The task update was saved, but the page could not refresh: {ex.Message}"
+                    : $"Unable to save today's task update: {ex.Message}",
+                taskUpdateSaved ? "Update saved; refresh failed" : "Update not saved",
+                MessageBoxButton.OK,
+                taskUpdateSaved ? MessageBoxImage.Warning : MessageBoxImage.Error);
+        }
     }
 
     private void UpdateTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -269,6 +295,9 @@ public partial class MyTasksPage : Page
         DailyDescriptionPlaceholderText.Text = isSelfStudy
             ? "Write the key points or notes from your study session..."
             : "Describe the work you completed on this assigned task...";
+        DailyDescriptionLabelText.Text = isSelfStudy
+            ? "What did you study today?"
+            : "What did you work on?";
 
         if (isSelfStudy)
         {
@@ -296,18 +325,42 @@ public partial class MyTasksPage : Page
     private async Task LoadDailyHistoryAsync()
     {
         var history = await Task.Run(() => _userService.GetMyDailyHistory(_userId));
-        HistoryListView.ItemsSource = history
+        _hasSubmittedUpdateToday = history.Any(update => update.UpdateDate.Date == DateTime.Today);
+        UpdateDailySubmissionState();
+
+        var displayRows = history
             .Select(update => new DailyHistoryDisplayRow
             {
                 UpdateDate = update.UpdateDate,
                 UpdateType = string.Equals(update.UpdateType, DailyUpdateTypes.SelfStudy, StringComparison.OrdinalIgnoreCase)
                     ? DailyUpdateTypes.SelfStudy
                     : DailyUpdateTypes.AssignedTask,
-                Topic = string.IsNullOrWhiteSpace(update.SelfStudyTopic) ? "-" : update.SelfStudyTopic,
+                Topic = string.IsNullOrWhiteSpace(update.SelfStudyTopic)
+                    ? "No topic specified"
+                    : update.SelfStudyTopic.Trim(),
                 Status = update.Status,
-                Description = update.Description
+                Description = update.Description,
+                BlockedReason = update.BlockedReason?.Trim() ?? string.Empty
             })
             .ToList();
+        HistoryListView.ItemsSource = displayRows;
+        HistoryEmptyText.Visibility = displayRows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void UpdateDailySubmissionState()
+    {
+        var canSubmit = !_isFullDayLeave && !_hasSubmittedUpdateToday;
+        SaveUpdateButton.IsEnabled = canSubmit;
+        UpdateTypeComboBox.IsEnabled = canSubmit;
+        TaskStatusComboBox.IsEnabled = canSubmit;
+        SelfStudyTopicTextBox.IsReadOnly = !canSubmit;
+        DailyDescriptionTextBox.IsReadOnly = !canSubmit;
+        BlockedReasonTextBox.IsReadOnly = !canSubmit;
+        MessageText.Text = _isFullDayLeave
+            ? "Daily task submission is not required today because both meetings are marked leave."
+            : _hasSubmittedUpdateToday
+                ? "Daily update already submitted for today."
+                : string.Empty;
     }
 
     private async Task RefreshTaskListAndHistoryAsync()
@@ -362,5 +415,7 @@ public partial class MyTasksPage : Page
         public string Topic { get; init; } = string.Empty;
         public string Status { get; init; } = string.Empty;
         public string Description { get; init; } = string.Empty;
+        public string BlockedReason { get; init; } = string.Empty;
+        public bool HasBlockedReason => Status == TaskStatuses.Blocked && !string.IsNullOrWhiteSpace(BlockedReason);
     }
 }

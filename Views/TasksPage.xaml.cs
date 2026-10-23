@@ -514,7 +514,9 @@ namespace DMS.Views
                     text.Span(AppSession.CurrentDisplayName ?? AppSession.CurrentUsername ?? "Administrator").Bold();
                 });
             })).GeneratePdf(dialog.FileName);
-            SelfStudyReportMessageText.Text = $"PDF report saved to {dialog.FileName}";
+            SelfStudyReportMessageText.Text = string.Empty;
+            MessageBox.Show($"Self-study PDF report saved to:\n{dialog.FileName}",
+                "Report saved", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
@@ -596,7 +598,9 @@ namespace DMS.Views
                     text.Span(AppSession.CurrentDisplayName ?? AppSession.CurrentUsername ?? "Administrator").Bold();
                 });
             })).GeneratePdf(dialog.FileName);
-            ProjectReportMessageText.Text = $"PDF report saved to {dialog.FileName}";
+            ProjectReportMessageText.Text = string.Empty;
+            MessageBox.Show($"Project daily task PDF report saved to:\n{dialog.FileName}",
+                "Report saved", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex) { ProjectReportMessageText.Text = $"Unable to generate PDF report: {ex.Message}"; }
     }

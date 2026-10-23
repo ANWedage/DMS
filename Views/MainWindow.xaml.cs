@@ -101,6 +101,14 @@ namespace DMS.Views
                     return;
                 }
 
+                var confirmation = MessageBox.Show(
+                    $"Open the {formName} form in your web browser?",
+                    "Open leave form",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+                if (confirmation != MessageBoxResult.Yes)
+                    return;
+
                 Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
             }
             catch (Exception ex)
