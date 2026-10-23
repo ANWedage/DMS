@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
@@ -17,7 +16,7 @@ namespace DMS.Views
     public partial class AttendanceTrackingPage : Page
     {
         private readonly IUserService _userService;
-        private readonly ObservableCollection<AttendanceRow> _rows = new();
+        private readonly List<DeveloperAttendanceRow> _rows = new();
         private int _activeLoadCount;
 
         public AttendanceTrackingPage(IUserService userService)
@@ -161,7 +160,6 @@ namespace DMS.Views
             try
             {
                 QuestPDF.Settings.License = LicenseType.Community;
-                var rows = GetFilteredAttendanceRows().ToList();
                 Document.Create(document => document.Page(page =>
                 {
                     page.Size(PageSizes.A4.Landscape());
@@ -175,32 +173,48 @@ namespace DMS.Views
                     {
                         table.ColumnsDefinition(columns =>
                         {
-                            columns.RelativeColumn(2);
                             columns.RelativeColumn(1.2f);
+                            columns.RelativeColumn(2);
                             columns.RelativeColumn(1.5f);
+                            columns.RelativeColumn(1.2f);
                             columns.RelativeColumn(2);
                             columns.RelativeColumn(2.5f);
-                            columns.RelativeColumn(1.2f);
+                            columns.RelativeColumn(1.5f);
                         });
 
                         table.Header(header =>
                         {
+                            header.Cell().Element(HeaderCell).Text("Team");
                             header.Cell().Element(HeaderCell).Text("Member");
                             header.Cell().Element(HeaderCell).Text("Meeting");
                             header.Cell().Element(HeaderCell).Text("Status");
                             header.Cell().Element(HeaderCell).Text("Marked by");
                             header.Cell().Element(HeaderCell).Text("Admin note");
-                            header.Cell().Element(HeaderCell).Text("Team");
+                            header.Cell().Element(HeaderCell).Text("Daily task");
                         });
 
-                        foreach (var row in rows)
+                        foreach (var developerRow in GetFilteredAttendanceRows())
                         {
-                            table.Cell().Element(BodyCell).Text(row.MemberName);
-                            table.Cell().Element(BodyCell).Text(row.MeetingType);
-                            table.Cell().Element(StatusCell(row.Status)).Text(row.Status);
-                            table.Cell().Element(BodyCell).Text(row.MarkedByDisplay);
-                            table.Cell().Element(BodyCell).Text(row.AdminNote);
-                            table.Cell().Element(BodyCell).Text(row.Team);
+                            var rowSpan = (uint)developerRow.AttendanceRows.Count;
+                            table.Cell().RowSpan(rowSpan).Element(BodyCell).Text(developerRow.Team);
+                            table.Cell().RowSpan(rowSpan).Element(BodyCell).Text(developerRow.MemberName);
+
+                            var firstAttendanceRow = developerRow.AttendanceRows[0];
+                            table.Cell().Element(BodyCell).Text(firstAttendanceRow.MeetingType);
+                            table.Cell().Element(StatusCell(firstAttendanceRow.Status)).Text(firstAttendanceRow.Status);
+                            table.Cell().Element(BodyCell).Text(firstAttendanceRow.MarkedByDisplay);
+                            table.Cell().Element(BodyCell).Text(firstAttendanceRow.AdminNote);
+                            table.Cell().RowSpan(rowSpan).Element(DailyTaskCell(developerRow.DailyTaskDisplayStatus))
+                                .Text(developerRow.DailyTaskDisplayStatus);
+
+                            for (var index = 1; index < developerRow.AttendanceRows.Count; index++)
+                            {
+                                var attendanceRow = developerRow.AttendanceRows[index];
+                                table.Cell().Element(BodyCell).Text(attendanceRow.MeetingType);
+                                table.Cell().Element(StatusCell(attendanceRow.Status)).Text(attendanceRow.Status);
+                                table.Cell().Element(BodyCell).Text(attendanceRow.MarkedByDisplay);
+                                table.Cell().Element(BodyCell).Text(attendanceRow.AdminNote);
+                            }
                         }
                     });
                     page.Footer().AlignCenter().Text(text =>
@@ -210,8 +224,9 @@ namespace DMS.Views
                     });
                 })).GeneratePdf(dialog.FileName);
 
-                AttendanceMessageText.Foreground = System.Windows.Media.Brushes.DarkGreen;
-                AttendanceMessageText.Text = $"PDF report saved to {dialog.FileName}";
+                AttendanceMessageText.Text = string.Empty;
+                MessageBox.Show($"Attendance PDF report saved to:\n{dialog.FileName}",
+                    "Report saved", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
@@ -239,6 +254,18 @@ namespace DMS.Views
                 AttendanceStatuses.AbsentInformed => Colors.Orange.Lighten3,
                 AttendanceStatuses.Leave => Colors.Purple.Lighten3,
                 _ => Colors.Grey.Lighten3
+            };
+            return container => container.Background(color).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5);
+        }
+
+        private static Func<IContainer, IContainer> DailyTaskCell(string status)
+        {
+            var color = status switch
+            {
+                "Submitted" => Colors.Green.Lighten4,
+                "Leave" => Colors.Purple.Lighten4,
+                "Half day" => Colors.Orange.Lighten4,
+                _ => Colors.Red.Lighten4
             };
             return container => container.Background(color).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5);
         }
@@ -334,10 +361,15 @@ namespace DMS.Views
                 var date = AttendanceDatePicker.SelectedDate ?? DateTime.Today;
                 var usersTask = Task.Run(_userService.GetAllUsers);
                 var attendanceTask = Task.Run(() => _userService.GetAllAttendance(date));
+                var dailyTaskStatusesTask = Task.Run(() => _userService.GetDeveloperDailyTaskStatus(date));
                 var settingsTask = sharedSettingsTask ?? Task.Run(_userService.GetMeetingSettings);
-                await Task.WhenAll(usersTask, attendanceTask, settingsTask);
+                await Task.WhenAll(usersTask, attendanceTask, dailyTaskStatusesTask, settingsTask);
 
                 var records = attendanceTask.Result;
+                var dailyTaskStatuses = dailyTaskStatusesTask.Result.ToDictionary(
+                    status => status.UserId,
+                    status => status.DisplayStatus,
+                    StringComparer.Ordinal);
                 var recordsByUserAndMeeting = records.ToDictionary(
                     item => (item.UserId, item.MeetingType));
                 _rows.Clear();
@@ -360,37 +392,52 @@ namespace DMS.Views
                         .FirstOrDefault(User.IsSupportedPosition);
                     var schedulePosition = historicalTeam ?? user.Position;
                     var userSlots = MeetingSchedule.ForDate(settingsTask.Result, date, schedulePosition);
+                    var dailyTaskStatus = dailyTaskStatuses.GetValueOrDefault(user.Id, "Not submitted");
                     if (userSlots.Count == 0)
                     {
-                        _rows.Add(new AttendanceRow
+                        _rows.Add(new DeveloperAttendanceRow
                         {
                             MemberName = user.Username ?? user.Email,
                             Team = "Unassigned",
                             Position = "Unassigned",
-                            MeetingType = "No meetings configured",
-                            Status = "-",
-                            MarkedByDisplay = "-",
-                            AdminNote = "Assign Full Stack, QA, or UI/UX"
+                            DailyTaskDisplayStatus = dailyTaskStatus,
+                            AttendanceRows = new List<AttendanceRow>
+                            {
+                                new()
+                                {
+                                    MemberName = user.Username ?? user.Email,
+                                    MeetingType = "No meetings configured",
+                                    Status = "-",
+                                    MarkedByDisplay = "-",
+                                    AdminNote = "Assign Full Stack, QA, or UI/UX"
+                                }
+                            }
                         });
                         continue;
                     }
 
+                    var developerRow = new DeveloperAttendanceRow
+                    {
+                        Team = schedulePosition,
+                        MemberName = user.Username ?? user.Email,
+                        Position = schedulePosition,
+                        DailyTaskDisplayStatus = dailyTaskStatus
+                    };
                     for (var slotIndex = 0; slotIndex < userSlots.Count; slotIndex++)
                     {
                         var slot = userSlots[slotIndex];
                         recordsByUserAndMeeting.TryGetValue((user.Id, slot.Type), out var record);
-                        _rows.Add(new AttendanceRow
+                        developerRow.AttendanceRows.Add(new AttendanceRow
                         {
                             RecordId = record?.Id ?? string.Empty,
-                            MemberName = slotIndex == 0 ? user.Username ?? user.Email : string.Empty,
-                            Team = slotIndex == 0 ? record?.Team ?? schedulePosition : string.Empty,
-                            Position = record?.Team ?? schedulePosition,
+                            MemberName = user.Username ?? user.Email,
                             MeetingType = slot.DisplayName,
                             Status = record?.Status ?? AttendanceStatuses.Pending,
                             MarkedByDisplay = record == null ? "-" : record.ChangedByAdminName ?? record.MarkedBy ?? "-",
                             AdminNote = record?.AdminNote ?? string.Empty
                         });
                     }
+                    _rows.Add(developerRow);
                 }
                 ApplyPositionFilter();
                 AttendanceMessageText.Text = string.Empty;
@@ -480,8 +527,9 @@ namespace DMS.Views
                 await LoadPageAsync();
 
                 LastSettingsUpdateText.Text = $"Last updated by {AppSession.CurrentDisplayName ?? AppSession.CurrentUsername ?? "Administrator"} on {DateTime.Now:g}";
-                SettingsMessageText.Foreground = System.Windows.Media.Brushes.DarkGreen;
-                SettingsMessageText.Text = "Meeting settings saved.";
+                SettingsMessageText.Text = string.Empty;
+                MessageBox.Show("Meeting details saved successfully.",
+                    "Meeting details saved", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
@@ -499,10 +547,12 @@ namespace DMS.Views
 
         private void ApplyPositionFilter()
         {
-            AttendanceGrid.ItemsSource = GetFilteredAttendanceRows().ToList();
+            var filteredRows = GetFilteredAttendanceRows().ToList();
+            AttendanceGrid.ItemsSource = filteredRows;
+            AttendanceCountText.Text = $"Developers: {filteredRows.Count}";
         }
 
-        private IEnumerable<AttendanceRow> GetFilteredAttendanceRows()
+        private IEnumerable<DeveloperAttendanceRow> GetFilteredAttendanceRows()
         {
             var selectedPosition = (PositionFilterComboBox?.SelectedItem as ComboBoxItem)?.Content as string;
             return _rows.Where(row =>
@@ -540,12 +590,19 @@ namespace DMS.Views
                 await LoadAttendanceAsync();
         }
 
+        private sealed class DeveloperAttendanceRow
+        {
+            public string Team { get; init; } = string.Empty;
+            public string MemberName { get; init; } = string.Empty;
+            public string Position { get; init; } = string.Empty;
+            public string DailyTaskDisplayStatus { get; init; } = "Not submitted";
+            public List<AttendanceRow> AttendanceRows { get; init; } = new();
+        }
+
         private sealed class AttendanceRow
         {
             public string RecordId { get; init; } = string.Empty;
             public string MemberName { get; init; } = string.Empty;
-            public string Team { get; init; } = string.Empty;
-            public string Position { get; init; } = string.Empty;
             public string MeetingType { get; init; } = string.Empty;
             public string MarkedByDisplay { get; init; } = string.Empty;
             public string Status { get; set; } = AttendanceStatuses.Pending;

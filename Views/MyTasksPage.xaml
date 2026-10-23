@@ -7,13 +7,16 @@
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#DDE3E5"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="18,14"/>
         </Style>
         <Style x:Key="TaskListItemStyle" TargetType="ListBoxItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         </Style>
     </Page.Resources>
     <Grid>
@@ -41,30 +44,37 @@
             </Grid>
 
             <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,20">
-                <Border Style="{StaticResource MetricCardStyle}" Margin="0,0,10,0">
+                <Border Style="{StaticResource MetricCardStyle}" BorderBrush="#9FCAC4" BorderThickness="1.5" Margin="0,0,12,0">
                     <StackPanel><TextBlock Text="ASSIGNED TASKS" Style="{StaticResource EyebrowStyle}"/><TextBlock x:Name="AssignedCountText" Text="0" FontSize="26" FontWeight="Bold" Margin="0,4,0,0"/><TextBlock Text="Across your projects" Style="{StaticResource MutedStyle}" FontSize="12"/></StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCardStyle}" Margin="0,0,10,0">
+                <Border Style="{StaticResource MetricCardStyle}" BorderBrush="#E5C27A" BorderThickness="1.5" Margin="0,0,12,0">
                     <StackPanel><TextBlock Text="DUE SOON" Foreground="#B26A00" FontWeight="SemiBold" FontSize="12"/><TextBlock x:Name="DueSoonCountText" Text="0" FontSize="26" FontWeight="Bold" Margin="0,4,0,0"/><TextBlock Text="Within the next 7 days" Style="{StaticResource MutedStyle}" FontSize="12"/></StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCardStyle}" Margin="0,0,10,0">
+                <Border Style="{StaticResource MetricCardStyle}" BorderBrush="#E4A09A" BorderThickness="1.5" Margin="0,0,12,0">
                     <StackPanel><TextBlock Text="BLOCKED" Foreground="#B54736" FontWeight="SemiBold" FontSize="12"/><TextBlock x:Name="BlockedCountText" Text="0" FontSize="26" FontWeight="Bold" Margin="0,4,0,0"/><TextBlock Text="Need attention" Style="{StaticResource MutedStyle}" FontSize="12"/></StackPanel>
                 </Border>
-                <Border Style="{StaticResource MetricCardStyle}">
+                <Border Style="{StaticResource MetricCardStyle}" BorderBrush="#9ACDB0" BorderThickness="1.5">
                     <StackPanel><TextBlock Text="COMPLETED TODAY" Foreground="#126E70" FontWeight="SemiBold" FontSize="12"/><TextBlock x:Name="CompletedTodayCountText" Text="0" FontSize="26" FontWeight="Bold" Margin="0,4,0,0"/><TextBlock Text="Keep the momentum" Style="{StaticResource MutedStyle}" FontSize="12"/></StackPanel>
                 </Border>
             </UniformGrid>
 
             <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="320"/><ColumnDefinition Width="20"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="340"/><ColumnDefinition Width="20"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="16">
+                <Border Grid.Column="0" Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="14" Padding="18">
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
-                            <TextBlock Text="Your task list" Style="{StaticResource SectionHeadingStyle}"/>
-                            <TextBlock Text="Choose a task to update your progress." Style="{StaticResource MutedStyle}" Margin="0,4,0,10"/>
-                            <TextBox x:Name="TaskSearchTextBox" Height="38" TextChanged="TaskSearchTextBox_TextChanged" ToolTip="Search tasks or projects"/>
-                            <ComboBox x:Name="TaskFilterComboBox" Height="36" Margin="0,8,0,0" SelectionChanged="TaskFilterComboBox_SelectionChanged">
+                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                            <DockPanel LastChildFill="False">
+                                <Border DockPanel.Dock="Right" Background="#E7F3F2" CornerRadius="10" Padding="9,4">
+                                    <TextBlock Text="{Binding Items.Count, ElementName=TaskListBox, StringFormat={}{0} TASKS}"
+                                               Foreground="#0F6B66" FontWeight="Bold" FontSize="10"/>
+                                </Border>
+                                <TextBlock Text="Your task list" Style="{StaticResource SectionHeadingStyle}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <TextBlock Text="Choose a task to update your progress." Style="{StaticResource MutedStyle}" Margin="0,5,0,12"/>
+                            <TextBox x:Name="TaskSearchTextBox" Height="40" TextChanged="TaskSearchTextBox_TextChanged"
+                                     ToolTip="Search tasks or projects" Padding="12,8"/>
+                            <ComboBox x:Name="TaskFilterComboBox" Height="38" Margin="0,9,0,0" SelectionChanged="TaskFilterComboBox_SelectionChanged">
                                 <ComboBoxItem Content="All tasks" IsSelected="True"/>
                                 <ComboBoxItem Content="In progress"/>
                                 <ComboBoxItem Content="Due soon"/>
@@ -76,13 +86,17 @@
                             <ListBox x:Name="TaskListBox" SelectionChanged="TaskListBox_SelectionChanged" BorderThickness="0" ItemContainerStyle="{StaticResource TaskListItemStyle}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Padding="12" CornerRadius="7">
+                                        <Border Padding="14" CornerRadius="10">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Background" Value="#FBFCFC"/>
-                                                    <Setter Property="BorderBrush" Value="#DDE3E5"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="BorderBrush" Value="#9FCAC4"/>
+                                                    <Setter Property="BorderThickness" Value="1.5"/>
                                                     <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True">
+                                                            <Setter Property="Background" Value="#F4F9F8"/>
+                                                            <Setter Property="BorderBrush" Value="#9FCAC4"/>
+                                                        </DataTrigger>
                                                         <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
                                                             <Setter Property="Background" Value="#E5F4F2"/>
                                                             <Setter Property="BorderBrush" Value="#126E70"/>
@@ -90,16 +104,30 @@
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </Border.Style>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Component.Name}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                                                <TextBlock Text="{Binding Project.Name}" Foreground="#66727D" FontSize="12" Margin="0,4,0,0"/>
-                                                <Grid Margin="0,10,0,0">
-                                                    <TextBlock Text="{Binding Component.Status}" Foreground="#126E70" FontWeight="SemiBold" FontSize="12"/>
-                                                    <TextBlock Text="{Binding Component.Priority}" HorizontalAlignment="Right" Foreground="#66727D" FontSize="12"/>
+                                                </Border.Style>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="4"/>
+                                                        <ColumnDefinition Width="12"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Grid.Column="0" CornerRadius="2" Background="#126E70"/>
+                                                    <StackPanel Grid.Column="2">
+                                                        <TextBlock Text="{Binding Component.Name}" FontSize="15" FontWeight="SemiBold"
+                                                                   Foreground="#17212B" TextWrapping="Wrap"/>
+                                                        <TextBlock Text="{Binding Project.Name}" Foreground="#66727D" FontSize="12" Margin="0,5,0,0"/>
+                                                        <WrapPanel Margin="0,11,0,0">
+                                                            <Border Background="#E7F3F2" CornerRadius="9" Padding="8,4" Margin="0,0,6,5">
+                                                                <TextBlock Text="{Binding Component.Status}" Foreground="#0F6B66" FontWeight="SemiBold" FontSize="11"/>
+                                                            </Border>
+                                                            <Border Background="#F1F4F5" CornerRadius="9" Padding="8,4" Margin="0,0,6,5">
+                                                                <TextBlock Text="{Binding Component.Priority}" Foreground="#52636A" FontWeight="SemiBold" FontSize="11"/>
+                                                            </Border>
+                                                        </WrapPanel>
+                                                        <TextBlock Text="{Binding Component.DueDate, StringFormat=Due {0:dd MMM yyyy}}"
+                                                                   Foreground="#66727D" FontSize="12" Margin="0,3,0,0"/>
+                                                    </StackPanel>
                                                 </Grid>
-                                                <TextBlock Text="{Binding Component.DueDate, StringFormat=Due {0:dd MMM yyyy}}" Foreground="#66727D" FontSize="12" Margin="0,5,0,0"/>
-                                            </StackPanel>
                                         </Border>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -108,48 +136,90 @@
                     </DockPanel>
                 </Border>
 
-                <Border Grid.Column="2" Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="10" Padding="22">
+                <Border Grid.Column="2" Background="White" BorderBrush="#DDE3E5" BorderThickness="1" CornerRadius="14" Padding="22">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <Grid>
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                            <Grid Grid.Row="0">
-                                <StackPanel Margin="0,0,150,0">
-                                    <TextBlock Text="SELECTED TASK" Style="{StaticResource EyebrowStyle}"/>
-                                    <TextBlock x:Name="ComponentTitleText" Text="Select a task" FontSize="26" FontWeight="Bold" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                                    <TextBlock x:Name="ProjectText" Foreground="#66727D" Margin="0,5,0,0"/>
-                                    <TextBlock x:Name="DescriptionText" TextWrapping="Wrap" Margin="0,14,0,0"/>
-                                    <TextBlock x:Name="DueDateText" Foreground="#126E70" FontWeight="SemiBold" Margin="0,10,0,0"/>
-                                </StackPanel>
-                                <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#E8F0EF" CornerRadius="7" Padding="12,9">
-                                    <StackPanel><TextBlock Text="TODAY" Foreground="#0D5558" FontWeight="Bold" FontSize="11"/><TextBlock Text="Update your progress" Foreground="#126E70" FontSize="12" Margin="0,3,0,0"/></StackPanel>
-                                </Border>
-                            </Grid>
-
-                            <Border Grid.Row="1" Background="#F5F8F7" BorderBrush="#DCE8E5" BorderThickness="1" Padding="18" Margin="0,22,0,22" CornerRadius="9">
+                            <Border Grid.Row="0" Background="#F3F8F7" BorderBrush="#DCE8E5" BorderThickness="1"
+                                    CornerRadius="12" Padding="20">
                                 <StackPanel>
-                                    <TextBlock Text="Today's update" Style="{StaticResource SectionHeadingStyle}"/>
-                                    <TextBlock Text="Record the work you completed or the study session you focused on." Style="{StaticResource MutedStyle}" Margin="0,4,0,12"/>
-                                    <TextBlock Text="Update type" Style="{StaticResource LabelStyle}"/>
-                                    <ComboBox x:Name="UpdateTypeComboBox" Height="38" Margin="0,6,0,0" SelectionChanged="UpdateTypeComboBox_SelectionChanged">
-                                        <ComboBoxItem Content="Assigned task"/>
-                                        <ComboBoxItem Content="Self study"/>
-                                    </ComboBox>
-                                    <Grid x:Name="SelfStudyTopicInputPanel" Margin="0,8,0,0" Visibility="Collapsed">
-                                        <TextBox x:Name="SelfStudyTopicTextBox" Height="40" ToolTip="Topic you studied today"/>
-                                        <TextBlock Text="What did you study today?" Margin="13,0,13,0" VerticalAlignment="Center" Foreground="#88949B" IsHitTestVisible="False">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Text, ElementName=SelfStudyTopicTextBox}" Value="">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
+                                    <DockPanel LastChildFill="False">
+                                        <Border DockPanel.Dock="Right" Background="#DCECE9" CornerRadius="9" Padding="10,6">
+                                            <StackPanel>
+                                                <TextBlock Text="TODAY" Foreground="#0D5558" FontWeight="Bold" FontSize="10"/>
+                                                <TextBlock Text="Update your progress" Foreground="#126E70" FontSize="11" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <TextBlock Text="SELECTED TASK" Style="{StaticResource EyebrowStyle}" VerticalAlignment="Center"/>
+                                    </DockPanel>
+                                    <TextBlock x:Name="ComponentTitleText" Text="Select a task" FontSize="27" FontWeight="Bold"
+                                               Foreground="#17212B" TextWrapping="Wrap" Margin="0,14,0,0"/>
+                                    <TextBlock x:Name="ProjectText" Foreground="#52636A" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                                    <Border Height="1" Background="#DDE8E6" Margin="0,16,0,14"/>
+                                    <TextBlock x:Name="DescriptionText" TextWrapping="Wrap" Foreground="#52636A" LineHeight="21"/>
+                                    <Border Background="#E7F3F2" CornerRadius="9" Padding="10,7" HorizontalAlignment="Left" Margin="0,16,0,0">
+                                        <TextBlock x:Name="DueDateText" Foreground="#0F6B66" FontWeight="SemiBold"/>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="1" Background="#FBFCFC" BorderBrush="#DDE3E5" BorderThickness="1"
+                                    Padding="20" Margin="0,18,0,22" CornerRadius="12">
+                                <StackPanel>
+                                    <DockPanel LastChildFill="False">
+                                        <Border DockPanel.Dock="Right" Background="#E7F3F2" CornerRadius="9" Padding="9,5">
+                                            <TextBlock Text="DAILY LOG" Foreground="#0F6B66" FontWeight="Bold" FontSize="10"/>
+                                        </Border>
+                                        <TextBlock Text="Today's update" Style="{StaticResource SectionHeadingStyle}" VerticalAlignment="Center"/>
+                                    </DockPanel>
+                                    <TextBlock Text="Capture your progress and set the latest status." Style="{StaticResource MutedStyle}" Margin="0,5,0,16"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.2*"/>
+                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Update type" Style="{StaticResource LabelStyle}"/>
+                                            <ComboBox x:Name="UpdateTypeComboBox" Height="42" Margin="0,7,0,0"
+                                                      SelectionChanged="UpdateTypeComboBox_SelectionChanged">
+                                                <ComboBoxItem Content="Assigned task"/>
+                                                <ComboBoxItem Content="Self study"/>
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Current status" Style="{StaticResource LabelStyle}"/>
+                                            <ComboBox x:Name="TaskStatusComboBox" Height="42" Margin="0,7,0,0">
+                                                <ComboBoxItem Content="Not started"/><ComboBoxItem Content="In progress"/><ComboBoxItem Content="Blocked"/><ComboBoxItem Content="Completed"/>
+                                            </ComboBox>
+                                        </StackPanel>
                                     </Grid>
-                                    <TextBlock Text="What did you work on?" Style="{StaticResource LabelStyle}" Margin="0,14,0,0"/>
+                                    <Grid x:Name="SelfStudyTopicInputPanel" Margin="0,14,0,0" Visibility="Collapsed">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="7"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="Study topic" Style="{StaticResource LabelStyle}"/>
+                                        <Grid Grid.Row="2">
+                                            <TextBox x:Name="SelfStudyTopicTextBox" Height="42" ToolTip="Topic you studied today" Margin="0"/>
+                                            <TextBlock Text="What topic did you study?"
+                                                       Margin="13,0,13,0" VerticalAlignment="Center" Foreground="#88949B" IsHitTestVisible="False">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Text, ElementName=SelfStudyTopicTextBox}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </Grid>
+                                    <TextBlock x:Name="DailyDescriptionLabelText" Text="What did you work on?"
+                                               Style="{StaticResource LabelStyle}" Margin="0,16,0,0"/>
                                     <Grid Margin="0,6,0,0">
                                         <TextBox x:Name="DailyDescriptionTextBox" Height="95" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"/>
                                         <TextBlock x:Name="DailyDescriptionPlaceholderText" Text="Describe the work you completed on this assigned task..." Margin="13,11,13,0" VerticalAlignment="Top" Foreground="#88949B" IsHitTestVisible="False" TextWrapping="Wrap">
@@ -165,14 +235,24 @@
                                             </TextBlock.Style>
                                         </TextBlock>
                                     </Grid>
-                                    <TextBlock Text="Current status" Style="{StaticResource LabelStyle}" Margin="0,14,0,0"/>
-                                    <ComboBox x:Name="TaskStatusComboBox" Height="38" Margin="0,6,0,0">
-                                        <ComboBoxItem Content="Not started"/><ComboBoxItem Content="In progress"/><ComboBoxItem Content="Blocked"/><ComboBoxItem Content="Completed"/>
-                                    </ComboBox>
-                                    <TextBox x:Name="BlockedReasonTextBox" Height="60" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" Margin="0,8,0,0" Visibility="Collapsed" ToolTip="Explain what is blocking the task"/>
-                                    <DockPanel Margin="0,14,0,0">
-                                        <TextBlock x:Name="MessageText" DockPanel.Dock="Right" Foreground="#126E70" TextWrapping="Wrap" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                        <Button x:Name="SaveUpdateButton" Content="Save today's update" Click="SaveUpdateButton_Click" HorizontalAlignment="Left"/>
+                                    <Grid x:Name="BlockedReasonPanel" Margin="0,12,0,0" Visibility="Collapsed">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="7"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="What is blocking this?" Style="{StaticResource LabelStyle}"/>
+                                        <TextBox x:Name="BlockedReasonTextBox" Grid.Row="2" Height="64" AcceptsReturn="True"
+                                                 TextWrapping="Wrap" VerticalContentAlignment="Top" Margin="0"
+                                                 Visibility="Visible" ToolTip="Explain what is blocking the task"
+                                                 Padding="12,9"/>
+                                    </Grid>
+                                    <DockPanel LastChildFill="False" Margin="0,18,0,0">
+                                        <TextBlock x:Name="MessageText" TextWrapping="Wrap" VerticalAlignment="Center"
+                                                   Foreground="#126E70" Margin="0,0,12,0" MaxWidth="420"/>
+                                        <Button x:Name="SaveUpdateButton" Content="Save today's update"
+                                                Click="SaveUpdateButton_Click" HorizontalAlignment="Right"
+                                                Padding="18,11"/>
                                     </DockPanel>
                                 </StackPanel>
                             </Border>
@@ -184,34 +264,139 @@
                                 </StackPanel>
                                 <TextBlock Text="LATEST FIRST" HorizontalAlignment="Right" VerticalAlignment="Bottom" Foreground="#88949B" FontSize="11" FontWeight="SemiBold"/>
                             </Grid>
-                            <Border Grid.Row="3" Background="#F5F8F7" Margin="0,0,0,2" Padding="10,8">
-                                <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="155"/><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="DATE" Foreground="#66727D" FontSize="11" FontWeight="SemiBold"/>
-                                    <TextBlock Grid.Column="1" Text="TYPE" Foreground="#66727D" FontSize="11" FontWeight="SemiBold"/>
-                                    <TextBlock Grid.Column="2" Text="STATUS" Foreground="#66727D" FontSize="11" FontWeight="SemiBold"/>
-                                    <TextBlock Grid.Column="3" Text="WORK SUMMARY" Foreground="#66727D" FontSize="11" FontWeight="SemiBold"/>
-                                </Grid>
-                            </Border>
+                            <TextBlock x:Name="HistoryEmptyText" Grid.Row="3"
+                                       Text="Your submitted updates will appear here."
+                                       Foreground="#66727D" Background="#F5F8F7" Padding="16"
+                                       TextAlignment="Center" Margin="0,0,0,8" Visibility="Collapsed"/>
                             <ListView Grid.Row="4" x:Name="HistoryListView" BorderThickness="0" Background="Transparent">
                                 <ListView.ItemContainerStyle>
                                     <Style TargetType="ListViewItem">
                                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                        <Setter Property="Padding" Value="10,0"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="Margin" Value="0,0,0,9"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                                     </Style>
                                 </ListView.ItemContainerStyle>
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Border BorderBrush="#DDE3E5" BorderThickness="0,0,0,1" Padding="0,12">
+                                        <Border Background="White" BorderBrush="#DDE3E5" BorderThickness="1"
+                                                CornerRadius="10" Padding="13">
                                             <Grid>
-                                                <Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="155"/><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding UpdateDate, StringFormat={}{0:dd MMM}}" Foreground="#126E70" FontWeight="SemiBold"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding UpdateType}" Foreground="#17212B"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding Status}" Foreground="#66727D"/>
-                                                <StackPanel Grid.Column="3">
-                                                    <TextBlock Text="{Binding Topic}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                                    <TextBlock Text="{Binding Description}" Foreground="#66727D" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="58"/>
+                                                    <ColumnDefinition Width="14"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Background="#E7F3F2" CornerRadius="8"
+                                                        HorizontalAlignment="Stretch" VerticalAlignment="Top" Padding="4,8">
+                                                    <StackPanel HorizontalAlignment="Center">
+                                                        <TextBlock Text="{Binding UpdateDate, StringFormat={}{0:dd}}"
+                                                                   Foreground="#0F6B66" FontSize="18" FontWeight="Bold"
+                                                                   HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding UpdateDate, StringFormat={}{0:MMM}}"
+                                                                   Foreground="#52636A" FontSize="10" FontWeight="SemiBold"
+                                                                   HorizontalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                    <StackPanel>
+                                                        <StackPanel.Style>
+                                                            <Style TargetType="StackPanel">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding UpdateType}" Value="Self study">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </StackPanel.Style>
+                                                        <TextBlock Text="Study topic" Foreground="#52636A"
+                                                                   FontSize="11" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding Topic}" FontWeight="SemiBold" FontSize="14"
+                                                                   Foreground="#17212B" TextWrapping="Wrap"/>
+                                                    </StackPanel>
+                                                    <TextBlock Foreground="#52636A" FontSize="11" FontWeight="SemiBold" Margin="0,7,0,0">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="Work completed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding UpdateType}" Value="Self study">
+                                                                        <Setter Property="Text" Value="Study notes"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                    <TextBlock Text="{Binding Description}" Foreground="#17212B"
+                                                               TextWrapping="Wrap" Margin="0,3,0,0" LineHeight="18"/>
+                                                    <Border Background="#FFF4F1" BorderBrush="#F0C4BB" BorderThickness="1"
+                                                            CornerRadius="8" Padding="9,7" Margin="0,9,0,0">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding HasBlockedReason}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <StackPanel>
+                                                            <TextBlock Text="Blocked reason" Foreground="#A3342C"
+                                                                       FontSize="11" FontWeight="SemiBold"/>
+                                                            <TextBlock Text="{Binding BlockedReason}" Foreground="#17212B"
+                                                                       TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <Border Background="#F1F4F5" CornerRadius="8" Padding="7,3"
+                                                            HorizontalAlignment="Left" Margin="0,8,0,0">
+                                                        <TextBlock Text="{Binding UpdateType}" Foreground="#52636A"
+                                                                   FontSize="10" FontWeight="SemiBold"/>
+                                                    </Border>
                                                 </StackPanel>
+                                                <Border Grid.Column="3" CornerRadius="9" Padding="9,5"
+                                                        VerticalAlignment="Top" Margin="10,0,0,0">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="#EEF1F2"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Not started">
+                                                                    <Setter Property="Background" Value="#F1F4F5"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="In progress">
+                                                                    <Setter Property="Background" Value="#E0F2FE"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Blocked">
+                                                                    <Setter Property="Background" Value="#FDEAE7"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Completed">
+                                                                    <Setter Property="Background" Value="#D9F5E5"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock Text="{Binding Status}" FontSize="10" FontWeight="Bold">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="#52636A"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Status}" Value="In progress">
+                                                                        <Setter Property="Foreground" Value="#075985"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Status}" Value="Blocked">
+                                                                        <Setter Property="Foreground" Value="#B54736"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Status}" Value="Completed">
+                                                                        <Setter Property="Foreground" Value="#137A45"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

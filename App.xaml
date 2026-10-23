@@ -10,6 +10,7 @@
         <SolidColorBrush x:Key="CanvasBrush" Color="#EEF1F2"/>
         <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="LineBrush" Color="#DDE3E5"/>
+        <SolidColorBrush x:Key="AdminSidebarBrush" Color="#172C38"/>
         <SolidColorBrush x:Key="TealBrush" Color="#126E70"/>
         <SolidColorBrush x:Key="TealDarkBrush" Color="#0D5558"/>
         <SolidColorBrush x:Key="CoralBrush" Color="#E97858"/>

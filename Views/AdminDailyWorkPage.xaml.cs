@@ -366,7 +366,9 @@ public partial class AdminDailyWorkPage : Page
                     text.Span(AppSession.CurrentDisplayName ?? AppSession.CurrentUsername ?? "Administrator").Bold();
                 });
             })).GeneratePdf(dialog.FileName);
-            ReportMessageText.Text = $"All-admin PDF saved to {dialog.FileName}";
+            ReportMessageText.Text = string.Empty;
+            MessageBox.Show($"All-admin PDF report saved to:\n{dialog.FileName}",
+                "Report saved", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex) { ReportMessageText.Text = $"Unable to generate all-admin PDF: {ex.Message}"; }
         finally

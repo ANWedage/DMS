@@ -13,7 +13,7 @@
             <ColumnDefinition Width="1.05*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0" Background="{StaticResource TealBrush}" Padding="42">
+        <Border Grid.Column="0" Background="{StaticResource AdminSidebarBrush}" Padding="42">
             <Grid>
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Source="/Assets/dms-logo.png" Width="270" Height="270"
@@ -75,7 +75,7 @@
 
         <Button Grid.Column="1" Width="38" Height="38" HorizontalAlignment="Right" VerticalAlignment="Bottom"
                 Margin="0,0,20,20" ToolTip="Switch login mode" Click="ToggleRoleButton_Click"
-                Background="{StaticResource TealBrush}" Foreground="White" BorderThickness="0"
+                Background="{StaticResource AdminSidebarBrush}" Foreground="White" BorderThickness="0"
                 Padding="0" FontSize="18" Cursor="Hand">
             <TextBlock Text="👤" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </Button>
@@ -120,7 +120,8 @@
             <PasswordBox Grid.Row="8" x:Name="PasswordBox" ToolTip="Enter your password"/>
 
             <TextBlock Grid.Row="10" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorStyle}"/>
-            <Button Grid.Row="12" Content="{Binding LoginButtonText}" Command="{Binding LoginCommand}" Height="46" IsDefault="True"/>
+            <Button Grid.Row="12" Content="{Binding LoginButtonText}" Command="{Binding LoginCommand}" Height="46" IsDefault="True"
+                    Background="{StaticResource AdminSidebarBrush}"/>
 
             <TextBlock Grid.Row="14" HorizontalAlignment="Center" Foreground="{StaticResource MutedBrush}">
                 <Hyperlink Click="ForgotPasswordLink_Click" Style="{StaticResource LinkStyle}">Forgot password?</Hyperlink>

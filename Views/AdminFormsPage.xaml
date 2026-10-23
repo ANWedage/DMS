@@ -8,8 +8,12 @@
             <TextBlock Text="Configure the leave form opened from the member workspace." Style="{StaticResource MutedStyle}" Margin="0,8,0,24"/>
             <Border Background="White" CornerRadius="10" Padding="22">
                 <StackPanel>
-                    <TextBlock Text="Leave form URL" Style="{StaticResource LabelStyle}"/>
-                    <TextBox x:Name="LeaveFormLinkBox"/>
+                    <DockPanel Margin="0,0,0,4">
+                        <Button x:Name="OpenLeaveFormButton" Content="Open link" DockPanel.Dock="Right"
+                                Padding="12,6" IsEnabled="False" Click="OpenLeaveFormButton_Click"/>
+                        <TextBlock Text="Leave form URL" Style="{StaticResource LabelStyle}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBox x:Name="LeaveFormLinkBox" TextChanged="LeaveFormLinkBox_TextChanged"/>
                     <TextBlock x:Name="FormsMessageText" Style="{StaticResource ErrorStyle}" Margin="0,8,0,0" TextWrapping="Wrap"/>
                     <Button Content="Save leave form link" HorizontalAlignment="Left" Margin="0,10,0,0" Click="SaveFormLinksButton_Click"/>
                 </StackPanel>

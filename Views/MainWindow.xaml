@@ -40,7 +40,7 @@
                         <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="16" Width="28"/><TextBlock Text="Open leave form" VerticalAlignment="Center"/></StackPanel>
                     </Button>
                     <Button x:Name="ChatButton" Style="{StaticResource SidebarNavigationButtonStyle}"
-                        Height="42" Margin="0,0,0,8" Click="ChatButton_Click">
+                        Height="42" Margin="0,0,0,8" Click="ChatButton_Click" Visibility="Collapsed">
                         <DockPanel>
                             <Border x:Name="UserChatBadge" DockPanel.Dock="Right" Background="#E97858" CornerRadius="10" Padding="7,2" Margin="10,0,0,0" Visibility="Collapsed">
                                 <TextBlock x:Name="UserChatCountText" Foreground="White" FontWeight="Bold"/>
@@ -82,14 +82,21 @@
                 <StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                    <StackPanel Orientation="Horizontal">
-                        <Border Background="#F8FBFB" BorderBrush="#B7D6DD" BorderThickness="1" CornerRadius="8" Padding="12,7">
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Username}" Foreground="#17212B" FontWeight="SemiBold"/>
-                                <TextBlock Text="{Binding Email}" Style="{StaticResource MutedStyle}" FontSize="12"/>
+                    <Border Background="White" BorderBrush="#D5E1E3" BorderThickness="1" CornerRadius="12" Padding="10,8">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.12" Color="#12343D"/>
+                        </Border.Effect>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Image Source="/Assets/dms-logo.png" Width="40" Height="40" Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="HighQuality" ToolTip="DMS logo"/>
+                            <StackPanel VerticalAlignment="Center" Margin="10,0,4,0">
+                                <TextBlock Text="{Binding Username}" Foreground="#17212B" FontWeight="Bold" FontSize="14"/>
+                                <TextBlock Text="{Binding Email}" Foreground="#66727D" FontSize="11" Margin="0,2,0,0"/>
+                                <TextBlock Text="DEVELOPER ACCOUNT" Foreground="#0F6B66" FontSize="9"
+                                           FontWeight="Bold" Margin="0,2,0,0"/>
                             </StackPanel>
-                        </Border>
-                    </StackPanel>
+                        </StackPanel>
+                    </Border>
                     <Button Content="⏻" Click="SignOutButton_Click" Margin="16,2,0,0"
                             Width="36" Height="36" Padding="0" FontSize="20"
                             Background="#0F4C5C" Foreground="White" BorderThickness="0"
