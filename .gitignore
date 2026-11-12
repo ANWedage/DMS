@@ -3,7 +3,6 @@
 bin/
 obj/
 .vs/
-.vscode/
 
 # User-specific files
 *.user
@@ -19,6 +18,6 @@ release/
 publish/
 
 commands.txt
-config.bat
+
 node_modules
-.env
+config.bat
