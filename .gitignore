@@ -21,3 +21,4 @@ publish/
 commands.txt
 config.bat
 node_modules
+.env
