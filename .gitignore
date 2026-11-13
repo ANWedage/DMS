@@ -20,4 +20,4 @@ publish/
 commands.txt
 
 node_modules
-config.bat
+.env
